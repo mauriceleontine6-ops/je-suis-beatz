@@ -1,0 +1,37 @@
+mutation CreateBeat($title: String!, $genre: String!, $previewUrl: String!, $bpm: Int, $key: String, $description: String) @auth(level: USER) {
+  beat_insert(data: {
+    title: $title,
+    genre: $genre,
+    previewUrl: $previewUrl,
+    producerId_expr: "auth.uid",
+    bpm: $bpm,
+    key: $key,
+    description: $description
+  })
+}
+
+mutation PurchaseBeat($licenseTypeId: UUID!, $downloadUrl: String!) @auth(level: USER) {
+  purchase_insert(data: {
+    artistId_expr: "auth.uid",
+    licenseTypeId: $licenseTypeId,
+    downloadUrl: $downloadUrl,
+    purchaseDate_expr: "request.time"
+  })
+}
+
+query ListMyBeats @auth(level: USER) {
+  beats(where: {producerId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    genre
+    bpm
+  }
+}
+
+query GetLicenseDetails($beatId: UUID!) @auth(level: PUBLIC) {
+  licenseTypes(where: {beatId: {eq: $beatId}}) {
+    id
+    name
+    price
+  }
+}

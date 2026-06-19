@@ -1,0 +1,489 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     STUDIO VIRTUEL PRO — HTML Structure
+     Intégration dans index.html (remplace la section page-freestyle)
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-freestyle">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      
+      <!-- ═══ STUDIO CONTAINER ═══ -->
+      <div class="studio-container">
+        
+        <!-- HEADER -->
+        <div class="studio-header">
+          <div class="studio-title-group">
+            <div class="studio-icon">🎛️</div>
+            <div class="studio-title-text">
+              <h1>STUDIO PRO</h1>
+              <p>PRODUCTION · MIX · MASTER · EXPORT</p>
+            </div>
+          </div>
+          
+          <div class="studio-status">
+            <div class="studio-status-dot"></div>
+            <span class="studio-status-label" id="studioStatus">PRÊT</span>
+          </div>
+        </div>
+
+        <!-- BEAT SELECTOR -->
+        <div style="margin-bottom: 32px; padding: 24px; background: rgba(0,52,204,0.08); border: 1px solid rgba(0,217,255,0.2); border-radius: 16px; backdrop-filter: blur(20px);">
+          <div class="studio-section-title">
+            <i class="fas fa-compact-disc"></i> Sélectionner un Beat
+          </div>
+          <div id="beatSelector" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px;"></div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="studio-main">
+          
+          <!-- 1. BEAT PLAYER -->
+          <div class="studio-section">
+            <div class="studio-section-title">
+              <i class="fas fa-play-circle"></i> Lecteur de Beat
+            </div>
+
+            <div class="beat-display">
+              <div style="font-size: 2rem; margin-bottom: 12px;">🎵</div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--studio-secondary); font-weight: bold;" id="beatName">Sélectionne un beat</div>
+            </div>
+
+            <div class="beat-info">
+              <div class="beat-stat">
+                <div class="beat-stat-value" id="beatBPM">—</div>
+                <div class="beat-stat-label">BPM</div>
+              </div>
+              <div class="beat-stat">
+                <div class="beat-stat-value" id="beatKey">—</div>
+                <div class="beat-stat-label">KEY</div>
+              </div>
+              <div class="beat-stat">
+                <div class="beat-stat-value" id="beatGenre">—</div>
+                <div class="beat-stat-label">Genre</div>
+              </div>
+            </div>
+
+            <div class="waveform-container">
+              <canvas id="beatWaveform" class="waveform-canvas"></canvas>
+            </div>
+
+            <div class="control-buttons">
+              <button class="control-btn" id="beatPlayBtn" onclick="studioBeatPlay()">
+                <i class="fas fa-play"></i> Play
+              </button>
+              <button class="control-btn" onclick="studioBeatPause()">
+                <i class="fas fa-pause"></i> Pause
+              </button>
+              <button class="control-btn" onclick="studioBeatStop()">
+                <i class="fas fa-stop"></i> Stop
+              </button>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar" id="beatProgress" onclick="seekBeat(event)">
+                <div class="progress-fill" id="beatProgressFill"></div>
+              </div>
+              <div class="time-display">
+                <span id="beatCurrentTime">0:00</span>
+                <span id="beatDuration">0:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. RECORDER -->
+          <div class="studio-section">
+            <div class="studio-section-title">
+              <i class="fas fa-microphone"></i> Enregistrement Vocal
+            </div>
+
+            <div class="record-center">
+              <button class="record-button" id="recordBtn" onclick="toggleRecording()">
+                <i class="fas fa-microphone" id="recordIcon"></i>
+              </button>
+
+              <div class="record-info">
+                <div class="record-status" id="recordStatus">Prêt à enregistrer</div>
+                <div class="record-timer" id="recordTimer" style="display: none;">0:00</div>
+              </div>
+
+              <div class="mic-level">
+                <div class="mic-level-bar" id="micLevelBar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. MIXER -->
+          <div class="studio-section">
+            <div class="studio-section-title">
+              <i class="fas fa-sliders-h"></i> Table de Mixage
+            </div>
+
+            <div class="mixer-controls">
+              <!-- Beat Volume -->
+              <div class="fader-group">
+                <div class="fader-label">
+                  <span><i class="fas fa-music"></i> Volume Beat</span>
+                  <span class="fader-value" id="beatVolValue">70%</span>
+                </div>
+                <input type="range" class="fader-slider" id="beatVolSlider" min="0" max="100" value="70" oninput="updateBeatVolume(this.value)">
+              </div>
+
+              <!-- Vocal Volume -->
+              <div class="fader-group">
+                <div class="fader-label">
+                  <span><i class="fas fa-microphone"></i> Volume Voix</span>
+                  <span class="fader-value" id="vocalVolValue">80%</span>
+                </div>
+                <input type="range" class="fader-slider" id="vocalVolSlider" min="0" max="100" value="80" oninput="updateVocalVolume(this.value)">
+              </div>
+
+              <!-- Effect Buttons -->
+              <div class="effect-buttons">
+                <button class="effect-btn" id="reverbBtn" onclick="toggleEffect('reverb')">
+                  <i class="fas fa-water"></i> Reverb
+                </button>
+                <button class="effect-btn" id="delayBtn" onclick="toggleEffect('delay')">
+                  <i class="fas fa-history"></i> Delay
+                </button>
+                <button class="effect-btn" id="muteBtn" onclick="toggleMute()">
+                  <i class="fas fa-volume-mute"></i> Mute
+                </button>
+                <button class="effect-btn" id="soloBtn" onclick="toggleSolo()">
+                  <i class="fas fa-headphones"></i> Solo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EQ SECTION -->
+        <div class="eq-section">
+          <div class="eq-title">
+            <i class="fas fa-chart-bar"></i> Égaliseur (EQ) 3-Bandes
+          </div>
+
+          <div class="eq-bands">
+            <!-- Bass -->
+            <div class="eq-band">
+              <div class="eq-band-label">Basses</div>
+              <input type="range" class="eq-band-slider" id="eqBass" min="-50" max="50" value="0" oninput="updateEQ('bass', this.value)">
+              <div class="eq-band-value" id="eqBassValue">0 dB</div>
+              <div class="eq-band-freq">100 Hz</div>
+            </div>
+
+            <!-- Mid -->
+            <div class="eq-band">
+              <div class="eq-band-label">Médiums</div>
+              <input type="range" class="eq-band-slider" id="eqMid" min="-50" max="50" value="0" oninput="updateEQ('mid', this.value)">
+              <div class="eq-band-value" id="eqMidValue">0 dB</div>
+              <div class="eq-band-freq">1 kHz</div>
+            </div>
+
+            <!-- Treble -->
+            <div class="eq-band">
+              <div class="eq-band-label">Aigus</div>
+              <input type="range" class="eq-band-slider" id="eqTreble" min="-50" max="50" value="0" oninput="updateEQ('treble', this.value)">
+              <div class="eq-band-value" id="eqTrebleValue">0 dB</div>
+              <div class="eq-band-freq">10 kHz</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER CONTROLS -->
+        <div class="studio-footer">
+          <!-- EXPORT -->
+          <div class="export-section">
+            <div class="export-title">
+              <i class="fas fa-download"></i> Export & Partage
+            </div>
+            <div class="export-buttons">
+              <button class="export-btn" onclick="exportFreestyle()">
+                <i class="fas fa-file-download"></i> Exporter en MP3
+              </button>
+              <button class="export-btn" onclick="publishFreestyle()">
+                <i class="fas fa-share-alt"></i> Publier sur Profil
+              </button>
+              <button class="export-btn" onclick="shareFreestyle()">
+                <i class="fas fa-link"></i> Copier Lien Partage
+              </button>
+            </div>
+          </div>
+
+          <!-- VISUALIZER -->
+          <div class="visualizer-section">
+            <div class="visualizer-title">
+              <i class="fas fa-waveform-lines"></i> Analyseur Spectral
+            </div>
+            <canvas id="studioVisualizer" class="visualizer-canvas"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPT D'INTÉGRATION (À ajouter avant la fermeture du body)
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<script>
+// Initialize Studio on page load
+let studio = null;
+
+async function initializeStudio() {
+  studio = await initStudio();
+  
+  // Register UI callbacks
+  studio.registerUICallback('beatLoaded', (beatData) => {
+    document.getElementById('beatName').textContent = beatData.name;
+    document.getElementById('beatBPM').textContent = beatData.bpm;
+    document.getElementById('beatKey').textContent = beatData.key;
+    document.getElementById('beatGenre').textContent = beatData.genre;
+  });
+
+  studio.registerUICallback('beatPlaying', () => {
+    document.getElementById('beatPlayBtn').classList.add('active');
+    updateBeatProgress();
+  });
+
+  studio.registerUICallback('beatPaused', () => {
+    document.getElementById('beatPlayBtn').classList.remove('active');
+  });
+
+  studio.registerUICallback('recordingStarted', () => {
+    document.getElementById('recordBtn').classList.add('recording');
+    document.getElementById('recordStatus').textContent = 'En cours...';
+    document.getElementById('recordTimer').style.display = 'block';
+    updateRecordingTimer();
+  });
+
+  studio.registerUICallback('recordingStopped', () => {
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('recordStatus').textContent = 'Enregistrement terminé';
+    document.getElementById('recordTimer').style.display = 'none';
+  });
+
+  // Load sample beats
+  loadBeats();
+  
+  console.log('✅ Studio UI initialized');
+}
+
+function loadBeats() {
+  // Fetch beats from Firebase
+  db.collection('beats').limit(6).get().then(snapshot => {
+    const selector = document.getElementById('beatSelector');
+    selector.innerHTML = '';
+
+    snapshot.forEach(doc => {
+      const beat = doc.data();
+      const beatBtn = document.createElement('button');
+      beatBtn.className = 'control-btn';
+      beatBtn.innerHTML = `
+        <div style="font-size: 1.5rem; margin-bottom: 4px;">🎵</div>
+        <div style="font-size: 0.6rem; font-weight: bold;">${beat.title}</div>
+      `;
+      beatBtn.onclick = () => selectBeat(doc.id, beat);
+      selector.appendChild(beatBtn);
+    });
+  });
+}
+
+async function selectBeat(id, beatData) {
+  try {
+    // Get download URL from Firebase Storage
+    const storage = firebase.storage();
+    const beatRef = storage.ref(`beats/${beatData.audioFile}`);
+    const url = await beatRef.getDownloadURL();
+    
+    await studio.loadBeatFromURL(url, {
+      name: beatData.title,
+      bpm: beatData.bpm || 120,
+      key: beatData.key || 'C',
+      genre: beatData.genre || 'Hip-Hop'
+    });
+    
+    document.getElementById('beatDuration').textContent = formatTime(studio.beatPlayer.getDuration());
+  } catch (error) {
+    console.error('Error loading beat:', error);
+    showToast('Error loading beat');
+  }
+}
+
+// Beat Player Controls
+function studioBeatPlay() {
+  studio.playBeat();
+}
+
+function studioBeatPause() {
+  studio.pauseBeat();
+}
+
+function studioBeatStop() {
+  studio.stopBeat();
+}
+
+function seekBeat(event) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const percentage = x / rect.width;
+  const duration = studio.beatPlayer.getDuration();
+  studio.seekBeat(duration * percentage);
+}
+
+function updateBeatProgress() {
+  const interval = setInterval(() => {
+    if (!studio.beatPlayer.isPlaying) {
+      clearInterval(interval);
+      return;
+    }
+
+    const progress = studio.getBeatProgress();
+    document.getElementById('beatProgressFill').style.width = progress.percentage + '%';
+    document.getElementById('beatCurrentTime').textContent = formatTime(progress.current);
+  }, 100);
+}
+
+// Recording Controls
+function toggleRecording() {
+  if (studio.vocalRecorder.isRecording) {
+    studio.stopRecording();
+  } else {
+    studio.startRecording();
+  }
+}
+
+function updateRecordingTimer() {
+  const interval = setInterval(() => {
+    if (!studio.vocalRecorder.isRecording) {
+      clearInterval(interval);
+      return;
+    }
+
+    const duration = studio.getRecordingDuration() / 1000;
+    document.getElementById('recordTimer').textContent = formatTime(duration);
+    
+    // Update mic level
+    const level = Math.min(100, studio.getMicLevel() * 200);
+    document.getElementById('micLevelBar').style.width = level + '%';
+  }, 50);
+}
+
+// Mixer Controls
+function updateBeatVolume(value) {
+  studio.setBeatVolume(value);
+  document.getElementById('beatVolValue').textContent = value + '%';
+}
+
+function updateVocalVolume(value) {
+  studio.setVocalVolume(value);
+  document.getElementById('vocalVolValue').textContent = value + '%';
+}
+
+function toggleEffect(effect) {
+  const btn = document.getElementById(effect + 'Btn');
+  btn.classList.toggle('active');
+
+  if (effect === 'reverb') {
+    studio.setReverb(btn.classList.contains('active') ? 50 : 0);
+  } else if (effect === 'delay') {
+    studio.setDelay(btn.classList.contains('active') ? 50 : 0);
+  }
+}
+
+function toggleMute() {
+  // Implement mute logic
+}
+
+function toggleSolo() {
+  // Implement solo logic
+}
+
+// EQ Controls
+function updateEQ(band, value) {
+  const dB = (value - 0) / 10;
+  const bandIndex = band === 'bass' ? 0 : band === 'mid' ? 1 : 2;
+  
+  studio.setEQ(bandIndex, value);
+  
+  document.getElementById('eq' + band.charAt(0).toUpperCase() + band.slice(1) + 'Value').textContent = dB.toFixed(1) + ' dB';
+}
+
+// Export & Publish
+async function exportFreestyle() {
+  showToast('Préparation de l\'export...');
+  
+  try {
+    const wavBlob = await studio.exportRecording();
+    
+    if (!wavBlob) {
+      showToast('Aucun enregistrement à exporter');
+      return;
+    }
+
+    // Convert to MP3 or download as WAV
+    const url = URL.createObjectURL(wavBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `freestyle_${Date.now()}.wav`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast('✅ Freestyle exporté avec succès');
+  } catch (error) {
+    console.error('Export error:', error);
+    showToast('Erreur lors de l\'export');
+  }
+}
+
+async function publishFreestyle() {
+  showToast('Publication en cours...');
+  
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      showToast('Connecte-toi d\'abord');
+      return;
+    }
+
+    const wavBlob = await studio.exportRecording();
+    const storageRef = firebase.storage().ref(`freestyles/${user.uid}/${Date.now()}.wav`);
+    
+    await storageRef.put(wavBlob);
+    const url = await storageRef.getDownloadURL();
+
+    // Save metadata to Firestore
+    await db.collection('freestyles').add({
+      userId: user.uid,
+      title: `Freestyle - ${new Date().toLocaleDateString()}`,
+      audioUrl: url,
+      createdAt: new Date(),
+      likes: 0,
+      plays: 0
+    });
+
+    showToast('✅ Freestyle publié sur ton profil');
+  } catch (error) {
+    console.error('Publish error:', error);
+    showToast('Erreur lors de la publication');
+  }
+}
+
+function shareFreestyle() {
+  const link = window.location.href + '#freestyle';
+  navigator.clipboard.writeText(link);
+  showToast('✅ Lien copié');
+}
+
+// Initialize when Studio page is shown
+document.addEventListener('studioReady', initializeStudio);
+
+// Manual init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeStudio);
+} else {
+  initializeStudio();
+}
+</script>

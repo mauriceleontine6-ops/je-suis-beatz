@@ -1,0 +1,31 @@
+const fs = require('fs');
+const html = fs.readFileSync('index.html', 'utf8');
+const script = fs.readFileSync('script.js', 'utf8');
+const htmlKeys = new Set([...html.matchAll(/data-i18n(?:-ph)?="([^"]+)"/g)].map(m=>m[1]));
+const payKeys = new Set([...html.matchAll(/data-i18n-pay="([^"]+)"/g)].map(m=>m[1]));
+const allKeys = new Set([...htmlKeys, ...payKeys]);
+const translationsStart = script.indexOf('const translations = {');
+if (translationsStart === -1) throw new Error('translation block not found');
+const enStart = script.indexOf('en: {', translationsStart);
+if (enStart === -1) throw new Error('en block not found');
+let idx = enStart + 'en: {'.length;
+let depth = 1;
+while (idx < script.length && depth) {
+  const ch = script[idx];
+  if (ch === '{') depth++;
+  else if (ch === '}') depth--;
+  idx++;
+}
+if (depth !== 0) throw new Error('unbalanced en block');
+const enText = script.slice(enStart + 'en: {'.length, idx - 1);
+const enKeys = new Set([...enText.matchAll(/^[ \t]*([A-Za-z0-9_]+)\s*:/gm)].map(m=>m[1]));
+console.log('htmlKeys', htmlKeys.size);
+console.log('payKeys', payKeys.size);
+console.log('allKeys', allKeys.size);
+console.log('enKeys', enKeys.size);
+const missing = [...allKeys].filter(k => !enKeys.has(k)).sort();
+console.log('missing', missing.length);
+missing.forEach(k => console.log(k));
+const extra = [...enKeys].filter(k => !allKeys.has(k)).sort();
+console.log('extra', extra.length);
+extra.forEach(k => console.log(k));

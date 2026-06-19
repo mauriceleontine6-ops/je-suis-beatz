@@ -1,0 +1,83 @@
+{
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22",
+    "codebase": "default"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.md",
+      "functions/**",
+      "dataconnect/**",
+      "tools/**",
+      ".agents/**",
+      "compare-keys.js",
+      "functions_index.js",
+      "functions_package.json",
+      "firebase (2).json",
+      "firestore (2).rules",
+      "firestore.indexes (2).json",
+      "firebase-hosting-config.json",
+      "skills-lock.json"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+          { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+          { "key": "Cross-Origin-Resource-Policy", "value": "same-site" },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; connect-src 'self' https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+          }
+        ]
+      },
+      {
+        "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.@(mpeg|mp3|wav|m4a)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      },
+      {
+        "source": "**/*.@(jpeg|jpg|png|gif|webp|svg|ico)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      }
+    ]
+  }
+}

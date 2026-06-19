@@ -1,0 +1,966 @@
+<!DOCTYPE html> 
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<!-- ═══ SÉCURITÉ — En-têtes HTTP ═══ -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=(), usb=()">
+
+<!-- ═══ CSP RENFORCÉE — Protège contre XSS, clickjacking, injection ═══
+     • default-src 'none' : rien d'autorisé par défaut (whitelist only)
+     • script-src : UNIQUEMENT self + domaines de confiance (Firebase)
+     • style-src : self + Google Fonts (peut inclure 'unsafe-inline' pour style critique inline)
+     • font-src : Google Fonts + CDN
+     • img-src : self + Firebase Storage + data URIs (SVG inline)
+     • media-src : self + blob (enregistrements audio) + Firebase Storage
+     • connect-src : APIs Firebase + Cloud Functions
+     • frame-ancestors 'none' : empêche être en iframe (défense clickjacking)
+     • object-src 'none' : pas de <object>, <embed>, <applet>
+     • base-uri 'self' : empêche réécriture de <base href>
+     • form-action 'self' : soumission de formulaires vers le site uniquement
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; connect-src 'self' https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests;">
+<title>Je Suis Beatz — I am the sound you are looking for</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="style.css?v=20260615">
+<link rel="stylesheet" type="text/css" href="studio-pro-theme.css?v=20260615">
+<link rel="icon" type="image/jpeg" href="icône_site.jpeg">
+<!-- ═══ FIREBASE SDK ═══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA8Bno11y0ijvlm4EfM-MF0LpE6gE6nZGI",
+    authDomain: "je-suis-beatz.firebaseapp.com",
+    projectId: "je-suis-beatz",
+    storageBucket: "je-suis-beatz.firebasestorage.app",
+    messagingSenderId: "260774573474",
+    appId: "1:260774573474:web:46959196c9091227fdaefb",
+    measurementId: "G-39K49HH649"
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.db = firebase.firestore();
+  window.auth = firebase.auth();
+  window.storage = firebase.storage();
+  // ℹ️ Note sécurité : l'apiKey Firebase est intentionnellement publique.
+  // Elle identifie le projet mais ne donne PAS accès aux données.
+  // La vraie protection = Firestore Security Rules (voir firestore.rules).
+  // ⚠️ IMPORTANT : Restreindre cette clé dans Google Cloud Console
+  // → APIs & Services → Credentials → Application restrictions → HTTP referrers
+  // → Ajouter uniquement : https://je-suis-beatz.web.app/*
+</script>
+</head>
+<body>
+ 
+<div class="bg-mesh"></div>
+<div class="grid-lines"></div>
+ 
+<!-- ═══════════ NAVBAR ═══════════ -->
+<nav id="mainNav">
+  <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">
+    <div class="nav-logo-icon"><i class="fas fa-waveform-lines"></i></div>
+    <span>JE SUIS <em>BEATZ</em></span>
+  </div>
+ 
+  <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+ 
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active"><i class="fas fa-house-chimney"></i> <span data-i18n="nav_home">Accueil</span></a></li>
+    <li><a onclick="showPage('beats')" id="nav-beats"><i class="fas fa-compact-disc"></i> Beats</a></li>
+    <li><a onclick="showPage('freestyle')" id="nav-freestyle"><i class="fas fa-microphone-lines"></i> <span data-i18n="nav_freestyle">Freestyle</span></a></li>
+    <li><a onclick="showPage('community')" id="nav-community"><i class="fas fa-users"></i> <span data-i18n="nav_artists">Artistes</span></a></li>
+    <li><a onclick="showPage('licenses')" id="nav-licenses"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></a></li>
+    <li><a onclick="showPage('contact')" id="nav-contact"><i class="fas fa-paper-plane"></i> Contact</a></li>
+  </ul>
+ 
+  <div class="nav-actions">
+    <button class="btn-cart" onclick="toggleCart()" title="Cart">
+      <i class="fas fa-shopping-bag"></i>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <!-- Language switcher -->
+    <button class="btn-lang" id="langBtn" onclick="toggleLang()" title="Switch language">
+      <span id="langFlag">🇬🇧</span> <span id="langLabel">EN</span>
+    </button>
+    <button class="btn-login-nav" id="authBtn" onclick="showPage('login')">
+      <i class="fas fa-user"></i> <span data-i18n="nav_login">Connexion</span>
+    </button>
+    <button class="btn-login-nav" id="adminBtn" onclick="showAdminPage()" style="display:none">
+      <i class="fas fa-cog"></i> Admin
+    </button>
+    <button class="btn-login-nav danger" id="logoutBtn" onclick="logout()" style="display:none">
+      <i class="fas fa-sign-out-alt"></i> <span id="logoutName"></span>
+    </button>
+  </div>
+</nav>
+ 
+<!-- Mobile Drawer -->
+<div class="nav-drawer" id="navDrawer">
+  <a onclick="showPage('home');closeMobileNav()"><i class="fas fa-home" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_home">Accueil</span></a>
+  <a onclick="showPage('beats');closeMobileNav()"><i class="fas fa-music" style="color:var(--cyan);margin-right:10px"></i> Beats</a>
+  <a onclick="showPage('freestyle');closeMobileNav()"><i class="fas fa-microphone" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_freestyle">Freestyle</span></a>
+  <a onclick="showPage('community');closeMobileNav()"><i class="fas fa-users" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_artists">Artistes</span></a>
+  <a onclick="showPage('licenses');closeMobileNav()"><i class="fas fa-file-contract" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_licenses">Licences</span></a>
+  <a onclick="showPage('contact');closeMobileNav()"><i class="fas fa-envelope" style="color:var(--cyan);margin-right:10px"></i> Contact</a>
+</div>
+ 
+<!-- ═══════════ HOME ═══════════ -->
+<div class="page active" id="page-home">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-orb orb3"></div>
+ 
+    <div class="hero-badge"><i class="fas fa-map-marker-alt"></i> <span data-i18n="hero_badge">Côte d'Ivoire · Distribution Internationale</span></div>
+    <h1>The Beat<br><span class="cyan">Maker's Studio</span></h1>
+    <p class="hero-slogan"><em>I am the sound you are looking for</em></p>
+    <div class="hero-tags">
+      <span class="hero-tag"><i class="fas fa-circle" style="color:var(--cyan);font-size:.4rem"></i> Drill</span>
+      <span class="hero-tag">Afrobeats</span>
+      <span class="hero-tag">Hip-Hop</span>
+      <span class="hero-tag">RnB</span>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="showPage('beats')">
+        <i class="fas fa-play"></i> <span data-i18n="hero_explore">Explorer les Beats</span>
+      </button>
+      <button class="btn-ghost" onclick="showPage('licenses')">
+        <i class="fas fa-file-alt"></i> <span data-i18n="hero_licenses">Voir les Licences</span>
+      </button>
+    </div>
+    <div class="wave-viz" id="heroWave"></div>
+  </section>
+ 
+  <!-- Stats -->
+  <div class="stats-bar" style="margin-bottom:80px">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <span class="stat-num" id="statBeats">0</span>
+        <span class="stat-label"><i class="fas fa-music"></i> Beats</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">4</span>
+        <span class="stat-label"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">🌍</span>
+        <span class="stat-label">International</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">24/7</span>
+        <span class="stat-label"><i class="fas fa-headphones"></i> <span data-i18n="stat_available">Disponible</span></span>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Featured Beat -->
+  <section class="section" style="padding-top:0">
+    <div class="section-inner">
+      <div class="section-head">
+        <span class="section-chip"><i class="fas fa-fire"></i> <span data-i18n="featured_chip">Nouveau drop</span></span>
+        <h2 class="section-title" data-i18n="featured_title">Beat en Vedette</h2>
+        <div class="divider"></div>
+      </div>
+      <div id="featuredBeat"></div>
+    </div>
+  </section>
+ 
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo" style="margin-bottom:0">
+            <div class="nav-logo-icon"><i class="fas fa-waveform-lines"></i></div>
+            <span style="font-family:var(--font-display);font-size:1.3rem;color:#fff;letter-spacing:2px">JE SUIS <em style="color:var(--cyan);font-style:normal">BEATZ</em></span>
+          </div>
+          <p data-i18n="footer_desc">Producteur basé en Côte d'Ivoire. Des sons premium conçus pour dominer les charts internationaux. <em style="color:var(--cyan);font-style:italic">I am the sound you are looking for.</em></p>
+          <div class="socials" style="margin-top:20px">
+            <a class="social-icon" title="Instagram" href="https://www.instagram.com/je_suis_the_beatmaker?igsh=MW04eDRINW55cGIndw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+            <a class="social-icon" title="YouTube" href="https://www.youtube.com/@jesuisthebeatmaker?si=ib05IvcBDnKYrYPF" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+            <a class="social-icon" title="TikTok" href="https://www.tiktok.com/@je.suis.thebeatmaker?_r=1&_t=ZN-95LPshqUwPm" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4 data-i18n="footer_nav">Navigation</h4>
+          <ul>
+            <li><a onclick="showPage('home')" data-i18n="nav_home">Accueil</a></li>
+            <li><a onclick="showPage('beats')" data-i18n="footer_catalog">Catalogue Beats</a></li>
+            <li><a onclick="showPage('freestyle')" data-i18n="footer_freestyle">Mode Freestyle</a></li>
+            <li><a onclick="showPage('community')" data-i18n="footer_artists">Espace Artistes</a></li>
+            <li><a onclick="showPage('licenses')" data-i18n="nav_licenses">Licences</a></li>
+            <li><a onclick="showPage('contact')">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4 data-i18n="nav_licenses">Licences</h4>
+          <ul>
+            <li><a onclick="showPage('licenses')">Basic — $25</a></li>
+            <li><a onclick="showPage('licenses')">Premium — $50</a></li>
+            <li><a onclick="showPage('licenses')">WAV + Stems — $100</a></li>
+            <li><a onclick="showPage('licenses')" style="color:#D4AF37">Exclusif — $300</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Genres</h4>
+          <ul>
+            <li><a onclick="showPage('beats');filterBeats('Drill')">Drill</a></li>
+            <li><a onclick="showPage('beats');filterBeats('Afro')">Afrobeats</a></li>
+            <li><a onclick="showPage('beats');filterBeats('Hip-Hop')">Hip-Hop</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy" data-i18n="footer_rights">© 2026 Je Suis Beatz · Tous droits réservés · Abidjan, Côte d'Ivoire</span>
+        <span class="footer-copy" style="color:rgba(0,229,255,0.3)">Made with <i class="fas fa-heart" style="color:var(--cyan)"></i> by Je Suis Beatz</span>
+      </div>
+    </div>
+  </footer>
+</div>
+ 
+<!-- ═══════════ BEATS ═══════════ -->
+<div class="page" id="page-beats">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      <div class="section-head">
+        <span class="section-chip"><i class="fas fa-compact-disc"></i> <span data-i18n="beats_chip">Catalogue</span></span>
+        <h2 class="section-title" data-i18n="beats_title">Tous les Beats</h2>
+        <div class="divider"></div>
+        <p class="section-sub" data-i18n="beats_sub">Des productions premium pour tous les styles. Téléchargement immédiat après achat.</p>
+      </div>
+      <div class="filter-row" id="filterRow">
+        <button class="filter-btn active" onclick="filterBeats('Tous',this)"><i class="fas fa-border-all"></i> <span data-i18n="filter_all">Tous</span></button>
+        <button class="filter-btn" onclick="filterBeats('Drill',this)">Drill</button>
+        <button class="filter-btn" onclick="filterBeats('Afro',this)">Afro</button>
+        <button class="filter-btn" onclick="filterBeats('Hip-Hop',this)">Hip-Hop</button>
+        <button class="filter-btn" onclick="filterBeats('RnB',this)">RnB</button>
+      </div>
+      <div class="beats-grid" id="beatsGrid"></div>
+    </div>
+  </section>
+</div>
+ 
+<!-- ═══════════ LICENSES ═══════════ -->
+<div class="page" id="page-licenses">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      <div class="section-head">
+        <span class="section-chip"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></span>
+        <h2 class="section-title" data-i18n="lic_title">Choisissez votre Licence</h2>
+        <div class="divider"></div>
+        <p class="section-sub" data-i18n="lic_sub">Des licences adaptées à chaque projet, du morceau amateur à la sortie commerciale internationale.</p>
+      </div>
+      <div class="licenses-grid">
+        <div class="license-card">
+          <div class="lic-icon"><i class="fas fa-seedling"></i></div>
+          <div class="lic-name">BASIC</div>
+          <div class="lic-tagline" data-i18n="lic_basic_tag">Pour démarrer</div>
+          <div class="lic-price"><span class="lic-currency">$</span>25</div>
+          <ul class="lic-features">
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_b1">Usage non commercial</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_b2">10 000 streams inclus</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_b3">Fichier MP3 taggé</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_b4">1 artiste uniquement</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_b5">Réseaux sociaux OK</span></li>
+            <li><i class="fas fa-times" style="color:#ff6b6b"></i> <span data-i18n="lic_b6">WAV non inclus</span></li>
+          </ul>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="showPage('beats')">
+            <i class="fas fa-shopping-cart"></i> <span data-i18n="lic_choose_basic">Choisir Basic</span>
+          </button>
+        </div>
+        <div class="license-card featured-lic">
+          <div class="lic-badge" data-i18n="lic_recommended">Recommandé</div>
+          <div class="lic-icon" style="margin-top:20px"><i class="fas fa-star"></i></div>
+          <div class="lic-name">PREMIUM</div>
+          <div class="lic-tagline" data-i18n="lic_premium_tag">Le plus populaire</div>
+          <div class="lic-price"><span class="lic-currency">$</span>50</div>
+          <ul class="lic-features">
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_p1">Usage commercial</span></li>
+            <li><i class="fas fa-check"></i> 500 000 streams</li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_p3">WAV + MP3 Non taggé</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_p4">Radio & YouTube OK</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_p5">Ventes physiques : 2 000</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_p6">Distribution mondiale</span></li>
+          </ul>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="showPage('beats')">
+            <i class="fas fa-shopping-cart"></i> <span data-i18n="lic_choose_premium">Choisir Premium</span>
+          </button>
+        </div>
+        <!-- WAV + STEMS LICENSE -->
+        <div class="license-card">
+          <div class="lic-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="lic-name">WAV + STEMS</div>
+          <div class="lic-tagline" data-i18n="lic_wav_tag">Production complète</div>
+          <div class="lic-price"><span class="lic-currency">$</span>100</div>
+          <ul class="lic-features">
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_w1">Usage commercial</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_w2">WAV Haute qualité + Stems</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_w3">Mixage & Mastering facilité</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_w4">100 000 streams</span></li>
+            <li><i class="fas fa-check"></i> <span data-i18n="lic_w5">Distribution mondiale</span></li>
+            <li><i class="fas fa-times" style="color:#ff6b6b"></i> <span data-i18n="lic_w6">Beat reste en catalogue</span></li>
+          </ul>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="showPage('beats')">
+            <i class="fas fa-shopping-cart"></i> <span data-i18n="lic_choose_wav">Choisir WAV + Stems</span>
+          </button>
+        </div>
+ 
+        <div class="license-card" style="border-color:rgba(212,175,55,0.35);background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(0,0,0,0.4))">
+          <div class="lic-icon" style="background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));border-color:rgba(212,175,55,0.4);color:#D4AF37"><i class="fas fa-crown"></i></div>
+          <div class="lic-name" style="color:#D4AF37">EXCLUSIF</div>
+          <div class="lic-tagline" data-i18n="lic_excl_tag">Droits totaux</div>
+          <div class="lic-price" style="color:#D4AF37"><span class="lic-currency" style="color:#D4AF37">$</span>300</div>
+          <ul class="lic-features">
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e1">Propriété exclusive</span></li>
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e2">Streams illimités</span></li>
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e3">WAV + MP3 + Stems</span></li>
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e4">Contrat officiel signé</span></li>
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e5">Retiré du catalogue</span></li>
+            <li><i class="fas fa-check" style="color:#D4AF37"></i> <span data-i18n="lic_e6">Support prioritaire</span></li>
+          </ul>
+          <button class="btn-primary" style="width:100%;justify-content:center;background:linear-gradient(135deg,#B8860B,#D4AF37);border:none" onclick="showPage('beats')">
+            <i class="fas fa-shopping-cart"></i> <span data-i18n="lic_choose_excl">Choisir Exclusif</span>
+          </button>
+        </div>
+      </div>
+ 
+      <!-- FAQ -->
+      <div style="margin-top:80px">
+        <div class="section-head">
+          <span class="section-chip"><i class="fas fa-question-circle"></i> FAQ</span>
+          <h2 class="section-title" style="font-size:2rem" data-i18n="faq_title">Questions fréquentes</h2>
+          <div class="divider"></div>
+        </div>
+        <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+          <div class="admin-card" style="margin-bottom:0">
+            <strong style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem"><i class="fas fa-chevron-right" style="margin-right:8px"></i><span data-i18n="faq_q1">Comment télécharger après achat ?</span></strong>
+            <p style="color:white;margin-top:10px;font-size:0.9rem;line-height:1.7" data-i18n="faq_a1">Après le paiement, vous recevez un lien de téléchargement immédiat par email. Le fichier est disponible pendant 30 jours.</p>
+          </div>
+          <div class="admin-card" style="margin-bottom:0">
+            <strong style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem"><i class="fas fa-chevron-right" style="margin-right:8px"></i><span data-i18n="faq_q2">Puis-je utiliser le beat sur toutes les plateformes ?</span></strong>
+            <p style="color:white;margin-top:10px;font-size:0.9rem;line-height:1.7" data-i18n="faq_a2">Oui, selon votre licence. Le Premium et l'Exclusif couvrent Spotify, Apple Music, YouTube, TikTok et toutes les plateformes internationales.</p>
+          </div>
+          <div class="admin-card" style="margin-bottom:0">
+            <strong style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem"><i class="fas fa-chevron-right" style="margin-right:8px"></i><span data-i18n="faq_q3">Quels moyens de paiement acceptez-vous ?</span></strong>
+            <p style="color: white;margin-top:10px;font-size:0.9rem;line-height:1.7" data-i18n="faq_a3">Carte bancaire (Visa/Mastercard), PayPal, Mobile Money (Orange Money, Wave, MTN). Paiement 100% sécurisé.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+ 
+<!-- ═══════════ CONTACT ═══════════ -->
+<div class="page" id="page-contact">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      <div class="section-head">
+        <span class="section-chip"><i class="fas fa-paper-plane"></i> Contact</span>
+        <h2 class="section-title" data-i18n="contact_title">Travaillons Ensemble</h2>
+        <div class="divider"></div>
+        <p class="section-sub" data-i18n="contact_sub">Une question, une collaboration, un projet ? N'hésitez pas à m'écrire.</p>
+      </div>
+      <div class="contact-grid">
+        <div>
+          <div class="contact-info-card">
+            <div class="contact-row">
+              <div class="contact-ico"><i class="fas fa-envelope"></i></div>
+              <div>
+                <div class="contact-lbl">Email</div>
+                <div class="contact-val">
+                  <a href="/cdn-cgi/l/email-protection#97fdf2e4e2fee4e3fff2f5f2f6e3faf6fcf2e5d7f0faf6fefbb9f4f8fa" style="text-decoration: none; color: #fff;">
+                    <span class="__cf_email__" data-cfemail="442e2137312d37302c212621253029252f2136042329252d286a272b29">[email&#160;protected]</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-ico"><i class="fab fa-whatsapp"></i></div>
+              <div>
+                <div class="contact-lbl">WhatsApp</div>
+                <div class="contact-val">+225 0701803236</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-ico"><i class="fas fa-map-marker-alt"></i></div>
+              <div>
+                <div class="contact-lbl" data-i18n="contact_based">Basé à</div>
+                <div class="contact-val">Abidjan, Côte d'Ivoire 🇨🇮</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-ico"><i class="fas fa-globe"></i></div>
+              <div>
+                <div class="contact-lbl" data-i18n="contact_dist">Distribution</div>
+                <div class="contact-val" data-i18n="contact_dist_val">Mondiale — Livraison digitale immédiate</div>
+              </div>
+            </div>
+            <div class="socials">
+              <a class="social-icon" href="https://www.instagram.com/je_suis_the_beatmaker?igsh=MW04eDRINW55cGIndw%3D%3D&utm_source=qr" title="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+              <a class="social-icon" href="https://www.youtube.com/@jesuisthebeatmaker?si=ib05IvcBDnKYrYPF" title="YouTube" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+              <a class="social-icon" href="https://www.tiktok.com/@je.suis.thebeatmaker?_r=1&_t=ZN-95LPshqUwPm" title="TikTok" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form-card">
+          <h3 style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:2px;margin-bottom:24px" data-i18n="contact_form_title">Envoyer un Message</h3>
+          <div class="form-row">
+            <label class="form-lbl" data-i18n="contact_name">Nom complet</label>
+            <input class="form-inp" type="text" data-i18n-ph="contact_name_ph" placeholder="Votre nom">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Email</label>
+            <input class="form-inp" type="email" data-i18n-ph="contact_email_ph" placeholder="votre@email.com">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl" data-i18n="contact_subject">Sujet</label>
+            <input class="form-inp" data-i18n-ph="contact_subject_ph" placeholder="Collaboration, question, achat...">
+          </div>
+          <div class="form-row">
+            <label class="form-lbl" data-i18n="contact_msg">Message</label>
+            <textarea class="form-inp" data-i18n-ph="contact_msg_ph" placeholder="Décrivez votre projet..."></textarea>
+          </div>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="showToast(t('dyn_msg_sent'))">
+            <i class="fas fa-paper-plane"></i> <span data-i18n="contact_send">Envoyer le Message</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+ 
+<!-- ═══════════ STUDIO PRO ═══════════ -->
+<div class="page" id="page-freestyle">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      <!-- STUDIO HEADER -->
+      <div style="background:rgba(0,52,204,0.08);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.3);border-radius:24px;padding:32px;margin-bottom:32px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+          <div style="display:flex;align-items:center;gap:20px">
+            <div style="font-size:3rem">🎛️</div>
+            <div>
+              <h1 style="margin:0;font-family:var(--font-display);font-size:2.2rem;letter-spacing:3px" data-i18n="studio_title">STUDIO PRO</h1>
+              <p style="margin:8px 0 0;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px;color:var(--cyan)" data-i18n="studio_subtitle">PRODUCTION · MIX · MASTER · EXPORT</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(0,217,255,0.1);padding:12px 20px;border-radius:12px;border:1px solid rgba(0,217,255,0.2)">
+            <div id="studioStatus" style="width:12px;height:12px;border-radius:50%;background:#00ff88;box-shadow:0 0 12px #00ff88;animation:studioAura 2s infinite"></div>
+            <span id="studioReadyLabel" style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px;color:#00ff88" data-i18n="studio_ready">PRÊT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEAT SELECTOR -->
+      <div style="background:rgba(0,52,204,0.08);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.2);border-radius:20px;padding:24px;margin-bottom:24px">
+        <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:20px"><i class="fas fa-compact-disc"></i> <span data-i18n="fs_choose_beat">Sélectionner un Beat</span></div>
+        <div id="fsBeatList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px"></div>
+      </div>
+
+      <div style="background:rgba(0,217,255,0.05);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.15);border-radius:20px;padding:24px;margin-bottom:32px">
+        <div style="display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center">
+          <img id="fsBeatCover" src="image_beat.jpeg" alt="Beat cover" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:1px solid rgba(0,217,255,0.12);background:#07101f" onerror="this.src='image_beat.jpeg'" />
+          <div>
+            <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px"><i class="fas fa-play-circle"></i> <span data-i18n="fs_selected_beat">Beat sélectionné</span></div>
+            <div id="fsBeatName" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:2px">Aucun beat sélectionné</div>
+            <div id="fsBeatMeta" style="font-family:var(--font-mono);font-size:0.82rem;color:var(--text-dim);margin-top:8px">Choisis un beat dans la liste ci-dessus.</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+              <button class="btn-primary" id="fsBeatPlayBtn" onclick="toggleFsBeat()" style="min-width:150px"><i class="fas fa-play"></i> <span data-i18n="fs_play_beat">Jouer le beat</span></button>
+              <span id="fsBeatDuration" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim)">0:00</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:18px;background:rgba(0,217,255,0.05);border-radius:12px;padding:12px;cursor:pointer" onclick="seekFsBeat(event)">
+          <div style="height:6px;background:rgba(0,217,255,0.18);border-radius:10px;overflow:hidden">
+            <div id="fsProgFill" style="height:100%;width:0%;background:linear-gradient(90deg,#0052cc,var(--cyan));border-radius:10px"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);margin-top:10px">
+            <span id="fsCurT">0:00</span>
+            <span id="fsDurT">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN STUDIO GRID -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:32px">
+        <!-- RECORDING -->
+        <div style="background:rgba(255,68,68,0.05);backdrop-filter:blur(30px);border:1px solid rgba(255,68,68,0.2);border-radius:20px;padding:24px">
+          <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:#ff4444;text-transform:uppercase;margin-bottom:20px"><i class="fas fa-circle" style="color:#ff4444"></i> <span data-i18n="fs_recording_label">Enregistrement Vocal</span></div>
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px">
+              <button type="button" class="record-button" id="recordStartBtn" onclick="startRecordingFlow()" style="width:120px;height:120px;border:3px solid rgba(255,68,68,0.5)"><i class="fas fa-microphone"></i></button>
+              <button type="button" class="record-action-btn stop" id="recordStopBtn" onclick="stopRecordingFlow()"><i class="fas fa-stop"></i> <span data-i18n="dyn_stop">Arrêter</span></button>
+              <button type="button" class="record-action-btn restart" id="recordRestartBtn" onclick="restartRecordingFlow()"><i class="fas fa-redo"></i> <span data-i18n="dyn_restart">Recommencer</span></button>
+            </div>
+            <div id="recordStatus" style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px;color:var(--text-dim);margin-top:0">Prêt à enregistrer</div>
+            <div id="monitoringBadge" class="monitoring-badge"><i class="fas fa-headphones"></i> <span data-i18n="fs_monitoring_label">Monitoring Studio</span></div>
+            <div id="recordTimer" style="font-family:var(--font-display);font-size:1.8rem;color:#ff4444;display:none;margin-top:8px">0:00</div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:2px;color:var(--cyan);margin-bottom:8px"><i class="fas fa-microphone"></i> <span data-i18n="fs_mic_level">Niveau Micro</span></div>
+            <div style="height:8px;background:rgba(0,217,255,0.1);border-radius:10px;overflow:hidden;border:1px solid rgba(0,217,255,0.15)">
+              <div id="micLevelBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),#00ff88);border-radius:10px;transition:width 0.05s"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIXER -->
+        <div style="background:rgba(0,217,255,0.05);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.15);border-radius:20px;padding:24px">
+          <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:20px"><i class="fas fa-sliders-h"></i> <span data-i18n="studio_mix_title">Mixage</span></div>
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.62rem;margin-bottom:8px">
+              <span><i class="fas fa-music"></i> <span data-i18n="studio_beat_volume">Volume Beat</span></span>
+              <span id="beatVolValue" style="color:var(--cyan)">70%</span>
+            </div>
+            <input type="range" class="fader-slider" id="beatVolSlider" min="0" max="100" value="70" oninput="updateBeatVolume(this.value)">
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.62rem;margin-bottom:8px">
+              <span><i class="fas fa-microphone"></i> <span data-i18n="studio_vocal_volume">Volume Voix</span></span>
+              <span id="vocalVolValue" style="color:var(--cyan)">80%</span>
+            </div>
+            <input type="range" class="fader-slider" id="vocalVolSlider" min="0" max="100" value="80" oninput="updateVocalVolume(this.value)">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="effect-btn" id="reverbBtn" onclick="toggleEffect('reverb')"><i class="fas fa-water"></i> <span data-i18n="studio_effect_reverb">Reverb</span></button>
+            <button class="effect-btn" id="delayBtn" onclick="toggleEffect('delay')"><i class="fas fa-history"></i> <span data-i18n="studio_effect_delay">Delay</span></button>
+            <button class="effect-btn" id="muteBtn" onclick="toggleMute()"><i class="fas fa-volume-mute"></i> <span data-i18n="studio_effect_mute">Muet</span></button>
+            <button class="effect-btn" id="soloBtn" onclick="toggleSolo()"><i class="fas fa-headphones"></i> <span data-i18n="studio_effect_solo">Solo</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORDING RESULT — affiché après enregistrement -->
+      <div id="recordingResultSection" class="recording-result-section" style="display:none">
+        <div class="recording-result-header">
+          <i class="fas fa-check-circle"></i>
+          <span data-i18n="fs_recording_ready">Enregistrement terminé — Écoute ton take</span>
+        </div>
+        <div id="recordingResultList" class="recording-result-list"></div>
+        <div id="playbackModeTabs" class="playback-mode-tabs" style="display:none">
+          <button type="button" class="playback-mode-btn active" id="playModeMix" onclick="setPlaybackMode('mix')">
+            <i class="fas fa-headphones"></i> <span data-i18n="fs_play_mode_mix">Mix Studio</span>
+          </button>
+          <button type="button" class="playback-mode-btn" id="playModeVocal" onclick="setPlaybackMode('vocal')">
+            <i class="fas fa-microphone"></i> <span data-i18n="fs_play_mode_vocal">Voix seule</span>
+          </button>
+        </div>
+        <audio id="recordingPlayback" class="recording-playback-audio" controls preload="auto" playsinline></audio>
+        <p id="recordingPlaybackHint" class="recording-playback-hint"><i class="fas fa-headphones"></i> <span data-i18n="fs_mix_playback_hint">Mix studio — beat et voix synchronisés</span></p>
+        <div class="recording-result-actions">
+          <button class="btn-primary" id="playRecordingBtn" onclick="playLastRecording()">
+            <i class="fas fa-play"></i> <span data-i18n="fs_listen_mix">Écouter le mix</span>
+          </button>
+          <button class="btn-ghost" onclick="downloadLastRecording()">
+            <i class="fas fa-download"></i> <span data-i18n="fs_download_voice">Télécharger</span>
+          </button>
+          <button class="btn-ghost danger-text" onclick="discardLastRecording()">
+            <i class="fas fa-trash"></i> <span data-i18n="fs_discard_recording">Supprimer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- EQ SECTION -->
+      <div style="background:rgba(0,217,255,0.05);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.15);border-radius:20px;padding:24px;margin-bottom:32px">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:20px"><i class="fas fa-chart-bar"></i> <span data-i18n="studio_eq_title">Égaliseur 3-Bandes</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:20px">
+          <div style="text-align:center">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;color:var(--cyan);margin-bottom:12px" data-i18n="studio_band_bass">BASSES</div>
+            <div style="height:120px;background:rgba(0,217,255,0.05);border-radius:10px;border:1px solid rgba(0,217,255,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+              <input type="range" class="eq-band-slider" id="eqBass" min="-50" max="50" value="0" oninput="updateEQ('bass',this.value)" style="writing-mode:vertical-lr;direction:rtl;width:100%">
+            </div>
+            <div id="eqBassValue" style="font-family:var(--font-display);font-size:0.9rem;color:var(--cyan)">0 dB</div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">100 Hz</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;color:var(--cyan);margin-bottom:12px" data-i18n="studio_band_mid">MÉDIUMS</div>
+            <div style="height:120px;background:rgba(0,217,255,0.05);border-radius:10px;border:1px solid rgba(0,217,255,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+              <input type="range" class="eq-band-slider" id="eqMid" min="-50" max="50" value="0" oninput="updateEQ('mid',this.value)" style="writing-mode:vertical-lr;direction:rtl;width:100%">
+            </div>
+            <div id="eqMidValue" style="font-family:var(--font-display);font-size:0.9rem;color:var(--cyan)">0 dB</div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">1 kHz</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;color:var(--cyan);margin-bottom:12px" data-i18n="studio_band_treble">AIGUS</div>
+            <div style="height:120px;background:rgba(0,217,255,0.05);border-radius:10px;border:1px solid rgba(0,217,255,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+              <input type="range" class="eq-band-slider" id="eqTreble" min="-50" max="50" value="0" oninput="updateEQ('treble',this.value)" style="writing-mode:vertical-lr;direction:rtl;width:100%">
+            </div>
+            <div id="eqTrebleValue" style="font-family:var(--font-display);font-size:0.9rem;color:var(--cyan)">0 dB</div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">10 kHz</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT & VISUALIZER -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
+        <div style="background:rgba(0,217,255,0.05);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.15);border-radius:20px;padding:24px">
+          <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:20px"><i class="fas fa-download"></i> <span data-i18n="studio_export_title">Export & Partage</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn-primary" onclick="exportFreestyle()" style="background:linear-gradient(135deg,#0052cc,#0078ff);border-color:#0052cc;justify-content:center"><i class="fas fa-file-download"></i> <span data-i18n="fs_export_mp3">Exporter en MP3</span></button>
+            <button class="btn-primary" onclick="publishFreestyle()" style="background:rgba(0,217,255,0.1);border-color:rgba(0,217,255,0.3);color:var(--cyan);justify-content:center"><i class="fas fa-share-alt"></i> <span data-i18n="fs_publish">Publier</span></button>
+            <button class="btn-primary" onclick="shareFreestyle()" style="background:rgba(0,217,255,0.1);border-color:rgba(0,217,255,0.3);color:var(--cyan);justify-content:center"><i class="fas fa-link"></i> <span data-i18n="fs_share_link">Copier Lien</span></button>
+          </div>
+        </div>
+
+        <div style="background:rgba(0,217,255,0.05);backdrop-filter:blur(30px);border:1px solid rgba(0,217,255,0.15);border-radius:20px;padding:24px">
+          <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:16px"><i class="fas fa-waveform-lines"></i> <span data-i18n="studio_spectral_analyzer">Analyseur Spectral</span></div>
+          <canvas id="studioVisualizer" style="width:100%;height:120px;border-radius:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,217,255,0.1);display:block"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+ 
+<!-- ═══════════ COMMUNITY ═══════════ -->
+<div class="page" id="page-community">
+  <section class="section" style="padding-top:110px">
+    <div class="section-inner">
+      <div class="section-head">
+        <span class="section-chip"><i class="fas fa-users"></i> <span data-i18n="comm_chip">Communauté</span></span>
+        <h2 class="section-title" data-i18n="comm_title">Espace Artistes</h2>
+        <div class="divider"></div>
+        <p class="section-sub" data-i18n="comm_sub">Crée ton profil artiste, partage tes réseaux, publie tes sons réalisés avec les beats de Je Suis Beatz.</p>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:36px;flex-wrap:wrap;justify-content:center">
+        <button class='filter-btn active' onclick='communityTab("profiles",this)'><i class='fas fa-users'></i> <span data-i18n='nav_artists'>Artistes</span></button>
+        <button class='filter-btn' onclick='communityTab("my-profile",this)'><i class='fas fa-user-circle'></i> <span data-i18n='comm_my_profile'>Mon Profil</span></button>
+        <button class='filter-btn' onclick='communityTab("feed",this)'><i class='fas fa-stream'></i> <span data-i18n='comm_feed'>Fil d'actualité</span></button>
+      </div>
+      <div id="comm-profiles"><div id="artistsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px"></div></div>
+      <div id="comm-my-profile" style="display:none"><div id="myProfileContent"></div></div>
+      <div id="comm-feed" style="display:none"><div id="feedContent" style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px"></div></div>
+    </div>
+  </section>
+</div>
+ 
+<!-- ═══════════ LOGIN ═══════════ -->
+<div class="page" id="page-login">
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-icon"><img src="icône_site.jpeg" alt="Logo Je Suis Beatz" style="width:100%;height:100%;border-radius:22px;object-fit:cover"/></div>
+      <div class="login-title" id="loginTitle" data-i18n="login_title">Connexion</div>
+      <div class="login-sub" id="loginSub" data-i18n="login_sub">Accédez à votre espace</div>
+      <div class="alert error" id="loginErr"></div>
+      <div class="alert ok" id="loginOk"></div>
+ 
+      <div id="loginForm">
+        <div class="form-row">
+          <label class="form-lbl" data-i18n="login_email_label">Email ou Pseudo</label>
+          <input class="form-inp" type="text" id="loginUser" placeholder="admin...">
+        </div>
+        <div class="form-row">
+          <label class="form-lbl" data-i18n="login_pwd_label">Mot de passe</label>
+          <input class="form-inp" type="password" id="loginPass" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">
+          <i class="fas fa-sign-in-alt"></i> <span data-i18n="login_btn">Se Connecter</span>
+        </button>
+        <div class="login-switch" style="margin-top:16px"><span data-i18n="login_no_account">Pas de compte ?</span> <a onclick="toggleRegister()" data-i18n="login_register">S'inscrire</a></div>
+        <div style="text-align:center;margin-top:12px">
+          <span class="back-link" onclick="showPage('home')"><i class="fas fa-arrow-left"></i> <span data-i18n="login_back">Retour au site</span></span>
+        </div>
+      </div>
+ 
+      <div id="registerForm" style="display:none">
+        <div class="form-row">
+          <label class="form-lbl" data-i18n="reg_pseudo">Pseudo</label>
+          <input class="form-inp" type="text" id="regUser" placeholder="Votre pseudo">
+        </div>
+        <div class="form-row">
+          <label class="form-lbl">Email</label>
+          <input class="form-inp" type="email" id="regEmail" data-i18n-ph="contact_email_ph" placeholder="votre@email.com">
+        </div>
+        <div class="form-row">
+          <label class="form-lbl">Mot de passe</label>
+          <input class="form-inp" type="password" id="regPass" placeholder="Min. 6 caractères">
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doRegister()">
+          <i class="fas fa-user-plus"></i> <span data-i18n="reg_btn">Créer un Compte</span>
+        </button>
+        <div class="login-switch" style="margin-top:16px"><span data-i18n="reg_already">Déjà inscrit ?</span> <a onclick="toggleRegister()" data-i18n="login_btn">Se connecter</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ═══════════ ADMIN ═══════════ -->
+<div class="page" id="page-admin">
+  <button class="admin-mobile-toggle" id="adminMobileToggle" onclick="toggleAdminSidebar()">
+    <i class="fas fa-bars" id="adminToggleIcon"></i>
+    <span style="font-weight:bold;letter-spacing:2px" data-i18n="admin_menu">MENU ADMIN</span>
+    <span style="margin-left:auto;font-size:0.55rem;opacity:0.6">ADMIN PANEL</span>
+  </button>
+<div class="admin-layout">
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-label">// Admin Panel</div>
+      <div class="sidebar-item active" onclick="adminPanel('dashboard',this);closeSidebarOnMobile()"><i class="fas fa-chart-bar"></i> Dashboard</div>
+      <div class="sidebar-item" onclick="adminPanel('add-beat',this);closeSidebarOnMobile()"><i class="fas fa-plus-circle"></i> <span data-i18n="admin_add_beat">Ajouter un Beat</span></div>
+      <div class="sidebar-item" onclick="adminPanel('manage',this);closeSidebarOnMobile()"><i class="fas fa-music"></i> <span data-i18n="admin_manage_beats">Gérer les Beats</span></div>
+      <div class="sidebar-item" onclick="adminPanel('settings',this);closeSidebarOnMobile()"><i class="fas fa-cog"></i> <span data-i18n="admin_settings">Paramètres</span></div>
+      <div class="sidebar-item" onclick="showPage('home')" style="margin-top:auto;border-top:1px solid rgba(0,229,255,0.08)"><i class="fas fa-external-link-alt"></i> <span data-i18n="admin_view_site">Voir le Site</span></div>
+    </aside>
+    <main class="admin-main">
+      <!-- Dashboard -->
+      <div class="admin-panel active" id="panel-dashboard">
+        <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,5vw,2.2rem);color:#fff;margin-bottom:6px;letter-spacing:2px">Dashboard</h1>
+        <p style="color: #FFF;margin-bottom:24px;font-family:var(--font-mono);font-size:clamp(0.6rem,2vw,1rem);letter-spacing:2px; font-weight: bold;" data-i18n="admin_welcome">Bienvenue dans votre espace administration</p>
+        <div class="stats-g" id="statsG"></div>
+        <div class="admin-card">
+          <div class="admin-card-title"><i class="fas fa-clock"></i> <span data-i18n="admin_recent_beats">Beats récents</span></div>
+          <div class="beats-table-wrap"><table class="beats-table" id="recentTbl"></table></div>
+        </div>
+        <div class="admin-card" style="margin-top:24px">
+          <div class="admin-card-title"><i class="fas fa-users"></i> Utilisateurs inscrits</div>
+          <p id="adminUsersNote" style="color:rgba(255,255,255,0.6);font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;margin-bottom:16px"></p>
+          <div class="beats-table-wrap"><table class="beats-table" id="adminUsersTbl"></table></div>
+        </div>
+      </div>
+ 
+      <!-- Add Beat -->
+      <div class="admin-panel" id="panel-add-beat">
+        <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,5vw,2.2rem);color:#fff;margin-bottom:6px;letter-spacing:2px" data-i18n="admin_add_beat">Ajouter un Beat</h1>
+        <p style="color: white;margin-bottom:24px;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px" data-i18n="admin_add_beat_sub">Ajoutez un nouveau beat à votre catalogue</p>
+
+        <!-- Upload fichiers -->
+        <div class="admin-card" style="margin-bottom:20px">
+          <div class="admin-card-title"><i class="fas fa-cloud-upload-alt"></i> <span data-i18n="admin_upload_title">Téléverser les fichiers</span></div>
+          <p class="upload-hint" data-i18n="admin_upload_hint">Glissez-déposez ou cliquez pour sélectionner. MP3, WAV, MPEG · JPG, PNG, WEBP</p>
+          <div class="upload-grid">
+            <div class="upload-zone" id="coverDropZone" onclick="document.getElementById('nCoverFile').click()">
+              <input type="file" id="nCoverFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden onchange="onCoverFileSelected(this)">
+              <div class="upload-zone-icon"><i class="fas fa-image"></i></div>
+              <div class="upload-zone-title" data-i18n="admin_upload_cover">Image de couverture</div>
+              <div class="upload-zone-sub" id="coverFileLabel" data-i18n="admin_upload_cover_sub">Cliquez ou glissez une image</div>
+              <img id="coverPreview" class="upload-preview" alt="" style="display:none">
+            </div>
+            <div class="upload-zone" id="audioDropZone" onclick="document.getElementById('nAudioFile').click()">
+              <input type="file" id="nAudioFile" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/m4a,audio/flac,.mp3,.wav,.mpeg,.m4a" hidden onchange="onAudioFileSelected(this)">
+              <div class="upload-zone-icon"><i class="fas fa-file-audio"></i></div>
+              <div class="upload-zone-title" data-i18n="admin_upload_audio">Fichier audio du beat</div>
+              <div class="upload-zone-sub" id="audioFileLabel" data-i18n="admin_upload_audio_sub">Cliquez ou glissez un audio</div>
+              <audio id="audioPreview" class="upload-audio-preview" controls style="display:none"></audio>
+            </div>
+          </div>
+          <div class="upload-progress-wrap" id="uploadProgressWrap" style="display:none">
+            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+            <span class="upload-progress-lbl" id="uploadProgressLbl">0%</span>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-title"><i class="fas fa-music"></i> <span data-i18n="admin_info">Informations</span></div>
+          <div class="form-grid">
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_title_field">Titre *</label><input class="form-inp" id="nTitle" placeholder="Ex: GHOST"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_bpm_field">BPM *</label><input class="form-inp" type="number" id="nBpm" placeholder="142"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_genre_field">Genre *</label>
+              <select class="form-inp" id="nGenre">
+                <option>Drill</option><option>Afro</option><option>Hip-Hop</option><option>RnB</option><option>Afrobeat</option>
+              </select>
+            </div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_subgenre_field">Sous-genre</label><input class="form-inp" id="nSub" placeholder="Ex: UK, Afro"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_price_basic">Prix Basic ($)</label><input class="form-inp" type="number" id="nPb" placeholder="25"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_price_premium">Prix Premium ($)</label><input class="form-inp" type="number" id="nPp" placeholder="50"></div>
+            <div class="frm-grp"><label class="frm-lbl">Prix WAV + Stems ($)</label><input class="form-inp" type="number" id="nPw" placeholder="100"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_price_excl">Prix Exclusif ($)</label><input class="form-inp" type="number" id="nPe" placeholder="300"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_status">Statut</label>
+              <select class="form-inp" id="nStatus"><option value="available" data-i18n="dyn_available_label">Disponible</option><option value="sold" data-i18n="dyn_sold_excl_label">Vendu (Exclusif)</option></select>
+            </div>
+          </div>
+          <details class="admin-url-fallback" style="margin-top:18px">
+            <summary data-i18n="admin_url_fallback">Ou utiliser des URLs externes (optionnel)</summary>
+            <div class="frm-grp" style="margin-top:12px"><label class="frm-lbl" data-i18n="admin_cover_url">URL Image</label><input class="form-inp" id="nCover" placeholder="https://..."></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_audio_url">URL Audio (MP3/WAV)</label><input class="form-inp" id="nAudio" placeholder="https://..."></div>
+          </details>
+          <div class="frm-grp" style="margin-top:14px"><label class="form-lbl">Icone du beat (optionnel)</label><input class="form-inp" id="nIcon" placeholder="fas fa-dragon, fas fa-music, ..."></div>
+          <div class="frm-grp" style="margin-top:14px"><label class="frm-lbl" data-i18n="admin_description">Description (FR)</label><textarea class="form-inp" id="nDesc" rows="3" placeholder="Ambiance, instruments, inspiration..."></textarea></div>
+          <div class="frm-grp" style="margin-top:14px"><label class="frm-lbl">Description (EN)</label><textarea class="form-inp" id="nDescEn" rows="3" placeholder="Vibe, instruments, inspiration..."></textarea></div>
+          <button class="btn-primary" id="addBeatBtn" style="margin-top:20px" onclick="addBeat()"><i class="fas fa-plus"></i> <span data-i18n="admin_add_beat_btn">Ajouter le Beat</span></button>
+        </div>
+      </div>
+ 
+      <!-- Manage -->
+      <div class="admin-panel" id="panel-manage">
+        <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,5vw,2.2rem);color: #fff;margin-bottom:6px;letter-spacing:2px" data-i18n="admin_manage_beats">Gérer les Beats</h1>
+        <p style="color: white;margin-bottom:24px;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px" data-i18n="admin_manage_beats_sub">Modifier ou supprimer vos beats existants</p>
+        <div class="admin-card">
+          <div class="admin-card-title"><i class="fas fa-list"></i> <span data-i18n="admin_full_catalog">Catalogue complet</span></div>
+          <div class="beats-table-wrap"><table class="beats-table" id="manageTbl"></table></div>
+        </div>
+      </div>
+ 
+      <!-- Settings -->
+      <div class="admin-panel" id="panel-settings">
+        <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,5vw,2.2rem);color:#fff;margin-bottom:6px;letter-spacing:2px" data-i18n="admin_settings">Paramètres</h1>
+        <p style="color: white;margin-bottom:32px;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px" data-i18n="admin_settings_sub">Configuration du site</p>
+        <div class="admin-card">
+          <div class="admin-card-title"><i class="fas fa-user"></i> <span data-i18n="admin_artist_info">Informations artiste</span></div>
+          <div class="form-grid">
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_artist_name">Nom artiste</label><input class="form-inp" id="adminArtistName" value="Je Suis Beatz"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_email_contact">Email contact</label><input class="form-inp" id="adminEmail" value="jesuisthebeatmaker@gmail.com"></div>
+            <div class="frm-grp"><label class="frm-lbl">WhatsApp</label><input class="form-inp" id="adminWhatsapp" value="+225 0701803236"></div>
+            <div class="frm-grp"><label class="frm-lbl">Instagram</label><input class="form-inp" id="adminInstagram" placeholder="@je_suis_the_beatmaker"></div>
+          </div>
+          <button class="btn-primary" style="margin-top:20px" onclick="saveAdminSettings()"><i class="fas fa-save"></i> <span data-i18n="admin_save_btn">Sauvegarder</span></button>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title"><i class="fas fa-lock"></i> <span data-i18n="admin_security">Sécurité</span></div>
+          <div class="form-grid">
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_old_pwd">Ancien mot de passe</label><input class="form-inp" type="password" id="oldPwd"></div>
+            <div class="frm-grp"><label class="frm-lbl" data-i18n="admin_new_pwd">Nouveau mot de passe</label><input class="form-inp" type="password" id="newPwd"></div>
+          </div>
+          <button class="btn-primary" style="margin-top:20px" onclick="changePwd()"><i class="fas fa-key"></i> <span data-i18n="admin_change_pwd">Changer</span></button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+ 
+<!-- ═══════════ AUDIO PLAYER ═══════════ -->
+<div class="audio-bar" id="audioBar">
+  <img id="audioThumb" class="audio-thumb" src="" alt="">
+  <div class="audio-info">
+    <div class="audio-name-row">
+      <div class="audio-name" id="audioTitle">—</div>
+      <div class="audio-beat-icon" id="beatIcon"><img src="image_beat.jpeg" alt="beat icon" class="beat-default-icon"/></div>
+    </div>
+    <div class="audio-by">Je Suis Beatz</div>
+  </div>
+  <div class="audio-controls">
+    <button class="ctrl" onclick="prevTrack()"><i class="fas fa-step-backward"></i></button>
+    <button class="ctrl ctrl-play" id="playBtn" onclick="togglePlay()"><i class="fas fa-play"></i></button>
+    <button class="ctrl" onclick="nextTrack()"><i class="fas fa-step-forward"></i></button>
+  </div>
+  <div class="audio-prog-wrap">
+    <div class="prog-times"><span id="curT">0:00</span><span id="durT">0:00</span></div>
+    <div class="prog-bar" onclick="seekAudio(event)">
+      <div class="prog-fill" id="progFill" style="width:0%"><div class="prog-dot"></div></div>
+    </div>
+  </div>
+  <div class="vol-wrap">
+    <i class="fas fa-volume-up" style="font-size:0.85rem"></i>
+    <input type="range" class="vol-slider" min="0" max="100" value="80" oninput="setVol(this.value)">
+  </div>
+  <button class="close-player" onclick="closePlayer()"><i class="fas fa-times"></i></button>
+</div>
+ 
+<!-- ═══════════ CART MODAL ═══════════ -->
+<div class="modal-bg" id="cartModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title"><i class="fas fa-shopping-bag" style="color:var(--cyan);font-size:1.4rem;margin-right:10px"></i><span data-i18n="cart_title">Panier</span></div>
+      <button class="modal-close" onclick="toggleCart()"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="cartItems"></div>
+    <div id="cartFoot" style="display:none">
+      <div class="cart-foot">
+        <div><div class="cart-total-lbl">Total</div><div class="cart-total-val" id="cartTotVal">$0</div></div>
+        <button class="btn-primary" onclick="checkout()"><i class="fas fa-credit-card"></i> <span data-i18n="cart_pay">Payer</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- Edit Modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" data-i18n="edit_beat_title">Modifier le Beat</div>
+      <button class="modal-close" onclick="closeEdit()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="frm-grp" style="margin-bottom:16px"><label class="frm-lbl">Titre</label><input class="form-inp" id="eTitle" style="width:100%"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="frm-grp"><label class="frm-lbl">BPM</label><input class="form-inp" id="eBpm" type="number"></div>
+      <div class="frm-grp"><label class="frm-lbl">Genre</label>
+        <select class="form-inp" id="eGenre"><option>Drill</option><option>Afro</option><option>Hip-Hop</option><option>RnB</option><option>Afrobeat</option></select>
+      </div>
+      <div class="frm-grp"><label class="frm-lbl">Prix Basic</label><input class="form-inp" id="ePb" type="number"></div>
+      <div class="frm-grp"><label class="frm-lbl">Prix Premium</label><input class="form-inp" id="ePp" type="number"></div>
+      <div class="frm-grp"><label class="frm-lbl" style="color:#D4AF37">Prix WAV + Stems ($)</label><input class="form-inp" id="ePw" type="number" style="border-color:rgba(212,175,55,0.3)"></div>
+      <div class="frm-grp"><label class="frm-lbl">Prix Exclusif ($)</label><input class="form-inp" id="ePe" type="number"></div>
+    </div>
+    <input type="hidden" id="eId">
+    <button class="btn-primary" style="margin-top:20px;width:100%;justify-content:center" onclick="saveEdit()"><i class="fas fa-save"></i> <span data-i18n="admin_save_btn">Sauvegarder</span></button>
+  </div>
+</div>
+ 
+<!-- ═══════════ PAYMENT MODAL ═══════════ -->
+<div class="modal-bg" id="paymentModal">
+  <div class="modal-box payment-modal-box">
+    <div class="modal-head">
+      <div class="modal-title"><i class="fas fa-lock" style="color:var(--cyan);font-size:1.2rem;margin-right:10px"></i><span id="payModalTitle" data-i18n-pay="payModalTitle">Choisir un moyen de paiement</span></div>
+      <button class="modal-close" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
+    </div>
+ 
+    <!-- Order Summary -->
+    <div class="pay-summary" id="paySummary"></div>
+ 
+    <!-- Step 1: Choose method -->
+    <div id="payStep1">
+      <div class="pay-section-lbl"><i class="fas fa-credit-card"></i> <span id="payLblIntl">Payment</span></div>
+      <div class="pay-methods-grid">
+        <button class="pay-method-btn" onclick="selectPayMethod('geniuspay')">
+          <div class="pay-method-icon" style="background:linear-gradient(135deg,#12b4ff,#0c6ef8);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:1.2rem;font-weight:800;color:white">G</span>
+          </div>
+          <div class="pay-method-name">GeniusPay</div>
+          <div class="pay-method-sub">Fast, secure checkout</div>
+        </button>
+      </div>
+      <div class="pay-secure-badge">
+        <i class="fas fa-shield-alt" style="color:var(--cyan)"></i>
+        <span id="paySecureLabel">Paiement 100% sécurisé · Livraison digitale immédiate</span>
+      </div>
+    </div>
+ 
+    <!-- Step 2: Payment form -->
+    <div id="payStep2" style="display:none">
+      <button class="pay-back-btn" onclick="backToMethods()"><i class="fas fa-arrow-left"></i> <span id="payBackLabel">Retour</span></button>
+ 
+      <!-- GeniusPay form -->
+      <div id="payFormGeniuspay" class="pay-form" style="display:none">
+        <div class="pay-form-title">
+          <svg viewBox="0 0 90 36" xmlns="http://www.w3.org/2000/svg" style="height:30px;margin-right:8px;vertical-align:middle">
+            <rect width="90" height="36" rx="8" fill="#12b4ff"/>
+            <text x="45" y="23" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">GeniusPay</text>
+          </svg>
+        </div>
+        <p class="pay-redirect-msg" id="payGeniusMsg">Pay with GeniusPay for the fastest and most secure checkout.</p>
+        <button class="btn-primary pay-submit-btn" id="payGeniusButton" onclick="simulatePay('geniuspay')">
+          <i class="fas fa-lock"></i> <span id="payGeniusBtnLabel">Pay with GeniusPay</span>
+        </button>
+        <div class="pay-note" id="payGeniusNote">If GeniusPay is unavailable, contact support.</div>
+      </div>
+
+    </div> 
+    <!-- Step 3: Success -->
+    <div id="payStep3" style="display:none">
+      <div class="pay-success-box">
+        <div class="pay-success-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="pay-success-title" id="paySuccessTitle">Paiement réussi !</div>
+        <p class="pay-success-msg" id="paySuccessMsg">Merci pour votre achat. Vous allez recevoir un email avec le lien de téléchargement de votre beat.</p>
+        <div class="pay-success-order" id="paySuccessOrder"></div>
+        <button class="btn-primary" style="margin-top:24px" onclick="closePaymentModal()"><i class="fas fa-music"></i> <span id="paySuccessBtn">Continuer l'écoute</span></button>
+      </div>
+    </div>
+ 
+  </div>
+</div>
+ 
+<script src="script.js?v=20260623"></script>
+<!-- Studio Pro Scripts -->
+<script src="studio-pro-engine.js?v=20260623"></script>
+<script src="studio-pro-integration.js?v=20260623"></script>
+
+</body>
+</html>

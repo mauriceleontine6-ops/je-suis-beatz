@@ -1,0 +1,167 @@
+// ═══════════════════════════════════════════════════════════════════
+// FIRESTORE SECURITY RULES — Je Suis Beatz  [VERSION CORRIGÉE]
+// Déployer avec : firebase deploy --only firestore:rules
+// ═══════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Fonctions utilitaires ──────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isValidString(field, maxLen) {
+      return field is string && field.size() > 0 && field.size() <= maxLen;
+    }
+
+    function isValidUrl(url) {
+      return url is string && url.matches('https://.*');
+    }
+
+    // ── Collection : beats ─────────────────────────────────────────
+    match /beats/{beatId} {
+      // Tout le monde peut lire les beats (catalogue public)
+      allow read: if true;
+
+      // Seul l'admin peut créer ou modifier un beat (champs complets)
+      allow create, update: if isAdmin()
+        && isValidString(request.resource.data.title, 100)
+        && request.resource.data.bpm is number
+        && request.resource.data.bpm > 0
+        && request.resource.data.bpm < 300;
+
+      // Seul l'admin peut supprimer
+      allow delete: if isAdmin();
+
+      // ── Incrément de streams : utilisateur authentifié uniquement ──
+      // FAILLE CORRIGÉE : règle update séparée plus précise
+      // Un utilisateur connecté peut incrémenter "streams" de exactement +1
+      // et ne peut toucher AUCUN autre champ
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['streams'])
+        && request.resource.data.streams == resource.data.streams + 1
+        && request.resource.data.title == resource.data.title
+        && request.resource.data.bpm == resource.data.bpm
+        && request.resource.data.genre == resource.data.genre;
+    }
+
+    // ── Collection : users ─────────────────────────────────────────
+    match /users/{userId} {
+      // ✅ FAILLE CORRIGÉE : Pas d'énumération d'utilisateurs !
+      // Les utilisateurs ne peuvent lire que leur propre document
+      // Les admins peuvent tout lire
+      // Recherche par username = Cloud Function sécurisée (getUserEmailByUsername)
+      
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Création : uniquement son propre document, role forcé à 'user'
+      allow create: if isOwner(userId)
+        && isValidString(request.resource.data.username, 30)
+        && isValidString(request.resource.data.email, 200)
+        && request.resource.data.role == 'user'
+        && request.resource.data.uid == request.auth.uid;
+
+      // Mise à jour : ne peut pas modifier role, uid, email
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'uid', 'email', 'createdAt']);
+    }
+
+    // ── Collection : profiles ──────────────────────────────────────
+    match /profiles/{userId} {
+      // Profils publics lisibles par tous (noms d'artistes, genres…)
+      allow read: if true;
+
+      // Modification : uniquement son propre profil, username validé
+      allow write: if isOwner(userId)
+        && isValidString(request.resource.data.username, 30)
+        && (!('instagram' in request.resource.data) || isValidUrl(request.resource.data.instagram))
+        && (!('youtube'   in request.resource.data) || isValidUrl(request.resource.data.youtube))
+        && (!('tiktok'    in request.resource.data) || isValidUrl(request.resource.data.tiktok))
+        && (!('soundcloud'in request.resource.data) || isValidUrl(request.resource.data.soundcloud))
+        && (!('spotify'   in request.resource.data) || isValidUrl(request.resource.data.spotify));
+    }
+
+    // ── Collection : posts ─────────────────────────────────────────
+    match /posts/{postId} {
+      // Posts lisibles par tous
+      allow read: if true;
+
+      // Création : utilisateur authentifié, champs validés
+      // Le username doit correspondre au display name du token Firebase
+      allow create: if isAuthenticated()
+        && isValidString(request.resource.data.title, 200)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.likes == 0;
+
+      // Suppression : uniquement ses propres posts
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // Modification interdite côté client
+      allow update: if false;
+    }
+
+    // ── Collection : orders ────────────────────────────────────────
+    match /orders/{orderId} {
+      // Un utilisateur peut lire ses propres commandes, l'admin peut tout lire
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+
+      // FAILLE CORRIGÉE : status forcé à 'pending', jamais 'PAID' côté client
+      // La confirmation vient exclusivement du webhook serveur (Cloud Function)
+      allow create: if isAuthenticated()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.total is number
+        && request.resource.data.total > 0;
+
+      // Aucune modification côté client — uniquement via Cloud Function (admin SDK)
+      allow update, delete: if false;
+    }
+
+    // ── Collection : transactions ──────────────────────────────────
+    match /transactions/{txId} {
+      // Un utilisateur peut lire ses propres transactions
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // FAILLE CORRIGÉE : status forcé à 'PENDING' (majuscules CinetPay), jamais 'SUCCESS'
+      allow create: if isAuthenticated()
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.totalUSD is number
+        && request.resource.data.totalUSD > 0;
+
+      // Modification interdite côté client
+      allow update, delete: if false;
+    }
+
+    // ── Collection : carts ─────────────────────────────────────────
+    match /carts/{userId} {
+      // Chaque utilisateur ne peut accéder qu'à son propre panier
+      allow read, write: if isOwner(userId);
+    }
+
+    // ── Collection : _stream_rate_limits ──────────────────────────
+    // Gérée exclusivement par la Cloud Function registerStream (admin SDK)
+    match /_stream_rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
+    // ── Toutes les autres collections : accès refusé par défaut ───
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

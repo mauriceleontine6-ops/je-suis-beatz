@@ -1,0 +1,34 @@
+type User @table {
+  email: String!
+  displayName: String!
+  isProducer: Boolean!
+}
+
+type Beat @table {
+  title: String!
+  genre: String!
+  previewUrl: String!
+  producer: User!
+  bpm: Int
+  key: String
+  description: String
+}
+
+type LicenseType @table {
+  name: String!
+  price: Float!
+  beat: Beat!
+}
+
+type Purchase @table {
+  artist: User!
+  licenseType: LicenseType!
+  purchaseDate: Timestamp!
+  downloadUrl: String!
+}
+
+type FileAsset @table {
+  fileType: String!
+  storageUrl: String!
+  beat: Beat!
+}

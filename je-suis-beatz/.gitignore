@@ -1,0 +1,39 @@
+# Ignore Firebase config files (config local)
+.firebaserc
+.firebase/
+firebase-debug.log
+
+# Ignore Cloud Functions (dépendances)
+functions/node_modules/
+functions/.env
+functions/.env.local
+
+# Ignore IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore OS
+.DS_Store
+Thumbs.db
+
+# Ignore secrets & keys (TRÈS IMPORTANT)
+*.key
+*.pem
+*.env
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+
+# Ignore build outputs
+dist/
+build/
+*.log
+
+# Ignore temp files
+temp/
+tmp/
+*.tmp

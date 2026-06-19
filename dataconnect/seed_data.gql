@@ -1,0 +1,25 @@
+mutation CreateDemoData @transaction {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      email: "producer1@example.com",
+      displayName: "Producer One",
+      isProducer: true
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      email: "artist1@example.com",
+      displayName: "Artist One",
+      isProducer: false
+    }
+  ])
+  beat_insertMany(data: [
+    {
+      id: "660e8400-e29b-41d4-a716-446655440000",
+      title: "Lo-fi Dreams",
+      genre: "Lo-fi",
+      previewUrl: "https://storage.googleapis.com/beats/lofi.mp3",
+      producerId: "550e8400-e29b-41d4-a716-446655440000"
+    }
+  ])
+}
