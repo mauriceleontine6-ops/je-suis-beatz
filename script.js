@@ -408,9 +408,23 @@ function resolveFsBeatProxyURL(source) {
 
 async function fetchAudioBufferForBeatUrl(url) {
   if (!url || !studioInstance || !studioInstance.engine || typeof studioInstance.engine.getContext !== 'function') return null;
+  const fetchWithRetries = async (u, attempts = 2, delayMs = 500) => {
+    let lastErr = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const resp = await fetch(u, { mode: 'cors', cache: 'no-store' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp;
+      } catch (e) {
+        lastErr = e;
+        await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+      }
+    }
+    throw lastErr;
+  };
+
   try {
-    const response = await fetch(url, { mode: 'cors', cache: 'no-store' });
-    if (!response.ok) throw new Error('Beat fetch failed: ' + response.status);
+    const response = await fetchWithRetries(url, 2, 500);
     const arrayBuffer = await response.arrayBuffer();
     const ctx = studioInstance.engine.getContext();
     return await ctx.decodeAudioData(arrayBuffer);
