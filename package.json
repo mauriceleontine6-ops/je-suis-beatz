@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start-proxy": "node proxy/server.js"
+    "start-proxy": "node proxy/server.js",
+    "test:e2e": "npx playwright test",
+    "test": "echo \"No unit tests defined. Run \"npm run test:e2e\" for E2E.\" && exit 0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
   },
   "dependencies": {
     "@genkit-ai/ai": "^1.37.0",

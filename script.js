@@ -400,7 +400,12 @@ function resolveFsBeatURL(source) {
 function resolveFsBeatProxyURL(source) {
   const direct = resolveBeatPlaybackURL(source);
   if (!direct) return '';
-  if (/firebasestorage\.googleapis\.com|storage\.googleapis\.com/i.test(direct)) {
+  const isStorage = /firebasestorage\.googleapis\.com|storage\.googleapis\.com/i.test(direct);
+  // Prefer a local proxy when developing locally (localhost / 127.0.0.1)
+  const devHost = (window && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+  const localProxy = (window && window.__JSB_PROXY) ? window.__JSB_PROXY : (devHost ? 'http://localhost:8080/' : null);
+  if (isStorage) {
+    if (localProxy) return `${localProxy}?u=${encodeURIComponent(direct)}`;
     return `https://audioproxy-qyfkwosfca-uc.a.run.app?u=${encodeURIComponent(direct)}`;
   }
   return direct;
