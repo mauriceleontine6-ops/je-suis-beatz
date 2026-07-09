@@ -167,7 +167,7 @@ class BeatPlayer {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ══════��════════════════════════════════════════════════════════════
 // 3. VOCAL RECORDER — Enregistrement micro avec sync
 // ═══════════════════════════════════════════════════════════════════
 
@@ -956,7 +956,7 @@ class StudioManager {
 
       // Step 2: Initialize mixer (needs audio context)
       await this.mixer.initialize();
-      console.log('✅ Mixer initialized');
+      console.log('��� Mixer initialized');
 
       // Step 3: Le micro sera initialisé au premier clic (geste utilisateur requis)
       console.log('✅ Studio Manager ready');
@@ -1115,6 +1115,7 @@ class StudioManager {
     beatGain.gain.value = beatVol / 100;
     beatSource.connect(beatGain);
     beatGain.connect(offline.destination);
+    const offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
     if (offsetSeconds && offsetSeconds > 0 && offsetSeconds < beatBuffer.duration) {
       beatSource.start(0, offsetSeconds);
     } else {

@@ -1,5 +1,4 @@
-let fsRecordingStartBeat = 0;
-// Firebase est déjà initialisé dans index.html
+﻿// Firebase est déjà initialisé dans index.html
 
 // ═══ SÉCURITÉ — Rate Limiting pour Connexion ═══
 const loginAttempts = {};
@@ -404,20 +403,6 @@ function resolveFsBeatProxyURL(source) {
     return `https://audioproxy-qyfkwosfca-uc.a.run.app?u=${encodeURIComponent(direct)}`;
   }
   return direct;
-}
-
-async function fetchAudioBufferForBeatUrl(url) {
-  if (!url || !studioInstance || !studioInstance.engine || typeof studioInstance.engine.getContext !== 'function') return null;
-  try {
-    const response = await fetch(url, { mode: 'cors', cache: 'no-store' });
-    if (!response.ok) throw new Error('Beat fetch failed: ' + response.status);
-    const arrayBuffer = await response.arrayBuffer();
-    const ctx = studioInstance.engine.getContext();
-    return await ctx.decodeAudioData(arrayBuffer);
-  } catch (error) {
-    console.warn('fetchAudioBufferForBeatUrl failed:', error, url);
-    return null;
-  }
 }
 
 function audioSrcMatches(audioEl, targetUrl) {
@@ -1091,22 +1076,6 @@ async function saveAdminSettings() {
 }
  
 // ═══ PROFILS (Firestore) ═══
-function cleanProfileData(data) {
-  const cleaned = {};
-  Object.entries(data).forEach(([key, value]) => {
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      if (trimmed.length) cleaned[key] = trimmed;
-    } else if (value != null) {
-      cleaned[key] = value;
-    }
-  });
-  return cleaned;
-}
-function isValidProfileUrl(url) {
-  if (!url || !url.trim()) return true;
-  return /^https:\/\//i.test(url.trim());
-}
 async function loadProfiles() {
   try {
     const snap = await db.collection('profiles').get();
@@ -1114,14 +1083,8 @@ async function loadProfiles() {
   } catch(e) { return []; }
 }
 async function saveProfileToFirestore(uid, data) {
-  try {
-    await db.collection('profiles').doc(uid).set(data, {merge:true});
-    return true;
-  } catch(e) {
-    console.error('Erreur save profil', e);
-    showToast('⚠ Erreur de sauvegarde du profil');
-    return false;
-  }
+  try { await db.collection('profiles').doc(uid).set(data, {merge:true}); }
+  catch(e) { console.error('Erreur save profil', e); showToast('⚠ Erreur de sauvegarde du profil'); }
 }
 async function loadMyProfile(uid) {
   try {
@@ -1592,33 +1555,32 @@ function renderStats() {
   }
 }
 
-async function renderAdminUsers(force = false, limit = 1000) {
+async function renderAdminUsers(force = false) {
   const tbl = document.getElementById('adminUsersTbl');
   const note = document.getElementById('adminUsersNote');
   if (!tbl) return;
   if (adminUserStatsLoaded && !force) return;
   try {
     const fn = cloudFunctions().httpsCallable('getAdminUserStats');
-    const result = await fn({ limit });
-    const { count, users, partial, limit: returnedLimit } = result.data || {};
+    const result = await fn();
+    const { count, users, partial } = result.data || {};
     const countEl = document.getElementById('adminUserCount');
     if (countEl) countEl.textContent = count ?? '—';
     if (note) {
       note.textContent = currentLang === 'en'
-        ? `Showing ${users?.length || 0} users${partial ? ` of ${count}` : ''}`
-        : `Affichage de ${users?.length || 0} utilisateurs${partial ? ` sur ${count}` : ''}`;
+        ? 'Latest registered users are shown here. Total count may be larger.'
+        : 'Les derniers utilisateurs inscrits sont affichés ici. Le nombre total peut être plus important.';
     }
     if (!users?.length) {
-      tbl.innerHTML = `<tbody><tr><td colspan="4" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
+      tbl.innerHTML = `<tbody><tr><td colspan="3" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
       adminUserStatsLoaded = true;
       return;
     }
     tbl.innerHTML = `
-      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
+      <thead><tr><th>Username</th><th>Email</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
       <tbody>${users.map(u => `<tr>
         <td><strong>${sanitize(u.username)}</strong></td>
         <td>${sanitize(u.email)}</td>
-        <td>${sanitize(u.role || 'user')}</td>
         <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
       </tr>`).join('')}</tbody>`;
     if (partial && note) {
@@ -2798,16 +2760,6 @@ function sanitizeIconClass(icon) {
   const val = String(icon || '').trim();
   return /^(fa[srb]?\s+fa-[a-z0-9-]+)(\s+fa-[a-z0-9-]+)*$/i.test(val) ? val : '';
 }
-function safeImageUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  const normalized = url.trim();
-  if (!/^https:\/\//i.test(normalized)) return '';
-  try {
-    return new URL(normalized).toString();
-  } catch (err) {
-    return normalized.replace(/ /g, '%20');
-  }
-}
 // Validation email simple
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 // Validation username (alphanumérique + tirets, 3-20 chars)
@@ -3076,22 +3028,7 @@ function updateAuth() {
   const firebaseEmail = auth.currentUser?.email || currentUser?.email || '';
   const showAdmin = (currentUser && currentUser.role === 'admin') || isOwnerEmail(firebaseEmail);
   document.getElementById('adminBtn').style.display = showAdmin ? 'flex' : 'none';
-  const showAccountBtn = currentUser && !showAdmin;
-  const accountBtn = document.getElementById('accountBtn');
-  if (accountBtn) {
-    accountBtn.style.display = showAccountBtn ? 'flex' : 'none';
-  }
-  if (currentUser) {
-    const avatarUrl = safeImageUrl(currentUser.photoURL);
-    if (accountBtn) {
-      accountBtn.innerHTML = avatarUrl
-        ? `<img class="nav-account-avatar" src="${avatarUrl}" alt="Avatar de ${sanitize(currentUser.username)}">`
-        : '<i class="fas fa-user-circle"></i>';
-    }
-    document.getElementById('logoutName').textContent = sanitize(currentUser.username);
-  } else {
-    if (accountBtn) accountBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
-  }
+  if (currentUser) document.getElementById('logoutName').textContent = sanitize(currentUser.username);
   renderStats();
   if (document.getElementById('page-beats')?.classList.contains('active') || document.getElementById('page-admin')?.classList.contains('active')) {
     renderAll();
@@ -3104,23 +3041,18 @@ auth.onAuthStateChanged(async (firebaseUser) => {
     try {
       const isAdmin = await syncAdminRole(firebaseUser);
       let stored = JSON.parse(sessionStorage.getItem('jsb_user2') || 'null');
-      let userData = {};
-      if (!stored || stored.uid !== firebaseUser.uid || !stored.photoURL) {
-        const doc = await db.collection('users').doc(firebaseUser.uid).get();
-        userData = doc.exists ? doc.data() : {};
-      }
       if (!stored || stored.uid !== firebaseUser.uid) {
+        const doc = await db.collection('users').doc(firebaseUser.uid).get();
+        const userData = doc.exists ? doc.data() : {};
         stored = {
           username: sanitize(userData.username || firebaseUser.email),
           email: firebaseUser.email,
-          photoURL: userData.photoURL || firebaseUser.photoURL || '',
           role: (isAdmin || isOwnerEmail(firebaseUser.email)) ? 'admin' : 'user',
           uid: firebaseUser.uid,
         };
       } else {
         stored.role = (isAdmin || isOwnerEmail(firebaseUser.email)) ? 'admin' : 'user';
         stored.email = firebaseUser.email || stored.email;
-        stored.photoURL = stored.photoURL || userData.photoURL || firebaseUser.photoURL || '';
       }
       currentUser = stored;
       sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
@@ -3191,9 +3123,6 @@ function showPage(name) {
       sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
       updateAuth();
     }
-  }
-  if (name === 'community') {
-    communityTab('profiles');
   }
   if (name === 'login') rememberLastPageBeforeLogin();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -3316,13 +3245,6 @@ function showToast(msg) {
 }
 
 function showWarningToast(messageKey, fallback) {
-  // Suppress noisy studio init toasts; these are often caused by autoplay/user-gesture
-  // restrictions and are recoverable via a user gesture. Log to console instead.
-  if (messageKey === 'studio_error_init') {
-    const fallbackMsg = fallback || (typeof t === 'function' ? t(messageKey) : '') || 'Studio init failed';
-    console.warn('Studio init suppressed toast:', fallbackMsg);
-    return;
-  }
   const msg = (typeof t === 'function' ? t(messageKey) : null) || fallback || '';
   showToast(msg.startsWith('⚠') ? msg : `⚠ ${msg}`);
 }
@@ -3334,223 +3256,11 @@ fsAudio.setAttribute('playsinline', '');
 fsAudio.setAttribute('webkit-playsinline', '');
 window.fsAudio = fsAudio;
 fsAudio.preload = 'auto';
+let fsPlaybackAttempt = false;
 
 function clearFsAudioCrossOrigin() {
   fsAudio.removeAttribute('crossorigin');
   fsAudio.crossOrigin = null;
-}
-
-const FS_RECORDINGS_STORAGE_KEY = 'jsb_recordings';
-let fsPlaybackAttempt = false;
-
-function safeFsRecordingForStorage(rec) {
-  if (!rec) return null;
-  if (isBlobUrl(rec.url) && !isRemoteUrl(rec.url)) {
-    return null;
-  }
-  const copy = { ...rec };
-  delete copy.blob;
-  return copy;
-}
-
-function loadFsRecordingsFromStorage() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(FS_RECORDINGS_STORAGE_KEY) || '[]');
-    if (!Array.isArray(stored)) return [];
-    // Exclude blob: URLs because they are not valid across sessions.
-    return stored
-      .filter(r => r && typeof r.url === 'string')
-      .filter(r => !/^blob:/i.test(r.url))
-      .map(r => ({ ...r, blob: null }));
-  } catch (e) {
-    console.warn('Unable to load freestyle recordings from storage:', e);
-    return [];
-  }
-}
-
-function saveFsRecordingsToStorage() {
-  try {
-    const safeRecords = fsRecordings.map(r => safeFsRecordingForStorage(r)).filter(Boolean);
-    localStorage.setItem(FS_RECORDINGS_STORAGE_KEY, JSON.stringify(safeRecords));
-  } catch (e) {
-    console.warn('Unable to save freestyle recordings:', e);
-  }
-}
-
-function addFsRecording(rec) {
-  fsRecordings.unshift(rec);
-  saveFsRecordingsToStorage();
-  renderRecordingsList();
-  // Auto-upload to Firebase for persistence (especially on mobile)
-  if (currentUser && rec.blob && !isRemoteUrl(rec.url)) {
-    uploadFreestyleRecording(rec).then(uploadedUrl => {
-      if (uploadedUrl) {
-        console.log('Recording auto-uploaded to Firebase:', uploadedUrl);
-        renderRecordingsList(); // re-render with new URL
-      }
-    }).catch(err => {
-      console.warn('Auto-upload failed, blob URL will work until page refresh:', err);
-    });
-  }
-}
-
-function isRemoteUrl(url) {
-  return typeof url === 'string' && /^https?:\/\//i.test(url);
-}
-
-function isValidAudioFile(file) {
-  return file && file.type && /^audio\//i.test(file.type);
-}
-
-async function uploadFreestyleRecording(record) {
-  if (!currentUser) {
-    showToast(t('dyn_login_first'));
-    return null;
-  }
-  if (isRemoteUrl(record.url) && !record.url.startsWith('blob:')) {
-    return record.url;
-  }
-  const file = record.blob instanceof File ? record.blob : new File([record.blob], `freestyle-${record.id}.${record.mimeType?.split('/')[1]||'webm'}`, { type: record.mimeType || 'audio/webm' });
-  const ext = record.mimeType ? record.mimeType.split('/')[1] : 'webm';
-  const path = `freestyles/${currentUser.uid}/${record.id || Date.now()}.${ext}`;
-  try {
-    const downloadUrl = await uploadFileToStorage(file, path);
-    record.url = downloadUrl;
-    record.uploadedAt = new Date().toISOString();
-    saveFsRecordingsToStorage();
-    return downloadUrl;
-  } catch (e) {
-    console.error('uploadFreestyleRecording failed', e);
-    showToast('⚠ ' + (e.message || t('dyn_play_error')));
-    return null;
-  }
-}
-
-async function importFreestyleFile(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  if (!isValidAudioFile(file)) {
-    showToast('⚠ ' + t('err_invalid_audio') || 'Format audio invalide');
-    input.value = '';
-    return;
-  }
-
-  let url = URL.createObjectURL(file);
-  let uploadedUrl = null;
-  if (currentUser) {
-    const ext = (file.name.split('.').pop() || 'webm').toLowerCase();
-    const safeExt = /^(mp3|wav|m4a|ogg|webm|aac|flac)$/i.test(ext) ? ext : 'webm';
-    try {
-      uploadedUrl = await uploadFileToStorage(file, `freestyles/${currentUser.uid}/import-${Date.now()}.${safeExt}`);
-      url = uploadedUrl;
-    } catch (e) {
-      console.warn('importFreestyleFile upload failed, keeping local preview:', e);
-    }
-  }
-
-  const rec = {
-    id: Date.now(),
-    beatTitle: file.name,
-    beatId: null,
-    url,
-    blob: uploadedUrl ? null : file,
-    mimeType: file.type,
-    duration: 0,
-    date: new Date().toLocaleDateString('fr'),
-    label: file.name,
-    uploadedAt: uploadedUrl ? new Date().toISOString() : null,
-    remote: Boolean(uploadedUrl)
-  };
-
-  addFsRecording(rec);
-  showToast(t('dyn_audio_imported') || 'Audio importé');
-  input.value = '';
-}
-
-async function publishFsRecording(index = 0) {
-  if (!currentUser) { showToast(t('dyn_login_first')); return; }
-  if (!fsRecordings.length) { showToast(t('dyn_no_sound_pub')); return; }
-  const record = fsRecordings[index] || fsRecordings[0];
-  if (!record) { showToast(t('dyn_no_sound_pub')); return; }
-  let finalUrl = record.url;
-  if (!isRemoteUrl(finalUrl) || isBlobUrl(finalUrl)) {
-    finalUrl = await uploadFreestyleRecording(record);
-    if (!finalUrl) return;
-  }
-  const post = {
-    type: 'freestyle',
-    username: currentUser.username,
-    beatTitle: record.beatTitle || t('fs_no_beat_selected'),
-    date: new Date().toLocaleDateString('fr'),
-    url: finalUrl,
-    likes: 0,
-    comments: []
-  };
-  await addPostToFirestore(post);
-  showToast(t('dyn_freestyle_published'));
-  // Navigate to Community → My Profile so the user immediately sees their published freestyle
-  showPage('community');
-  communityTab('my-profile');
-  renderMyProfile();
-}
-
-function createFsRecordingFromFile(file) {
-  const url = URL.createObjectURL(file);
-  const rec = {
-    id: Date.now(),
-    beatTitle: file.name,
-    beatId: null,
-    url,
-    blob: file,
-    mimeType: file.type,
-    duration: 0,
-    date: new Date().toLocaleDateString('fr'),
-    label: file.name
-  };
-  addFsRecording(rec);
-  return rec;
-}
-
-function loadFsFileFromInput(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  if (!isValidAudioFile(file)) {
-    showToast('⚠ ' + t('err_invalid_audio') || 'Format audio invalide');
-    input.value = '';
-    return;
-  }
-  createFsRecordingFromFile(file);
-  input.value = '';
-}
-
-function setupFsImportInput(inputId) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  input.addEventListener('change', () => loadFsFileFromInput(input));
-}
-
-function isBlobUrl(url) {
-  return typeof url === 'string' && url.startsWith('blob:');
-}
-
-function isUrlRemote(url) {
-  return typeof url === 'string' && /^https?:\/\//i.test(url);
-}
-
-function renderFsRecordingActions(record, index) {
-  const buttonLabel = record.blob || isBlobUrl(record.url)
-    ? t('fs_upload_to_profile')
-    : t('fs_publish_profile');
-  const publishOnClick = `publishFsRecording(${index})`;
-  return `<button onclick="${publishOnClick}" class="btn-ghost" style="font-size:0.75rem;padding:8px 12px">${buttonLabel}</button>`;
-}
-
-function getFileNameFromUrl(url) {
-  try {
-    return new URL(url).pathname.split('/').pop() || url;
-  } catch (e) {
-    return url;
-  }
 }
 
 function bindFsAudioElementEvents(audioEl) {
@@ -3607,7 +3317,7 @@ let fsPlaying = false;
 let fsBeatVolume = 1.0;
 let fsMediaRecorder = null;
 let fsChunks = [];
-let fsRecordings = loadFsRecordingsFromStorage();
+let fsRecordings = JSON.parse(localStorage.getItem('jsb_recordings') || '[]');
 let fsSelectedBeat = null;
 window.fsSelectedBeat = fsSelectedBeat;
 window.pendingStudioBeat = null;
@@ -3617,11 +3327,6 @@ let fsSeconds = 0;
 let micStream = null;
 let analyserNode = null;
 let micAnimFrame = null;
-let fsAudioCtx = null;
-let fsMicSourceNode = null;
-let fsBeatSourceNode = null;
-let fsDestinationNode = null;
-let fsRecordingDestinationStream = null;
  
 async function ensureFsAudioGraph() {
   // Lecture simple via <audio> — pas de graphe Web Audio requis pour le freestyle.
@@ -3662,23 +3367,17 @@ window.selectFsBeat = async function(idx) {
     return;
   }
   console.log('selectFsBeat URL:', beatUrl, 'audioSource:', audioSource, 'beatId:', fsSelectedBeat?.id);
-  fsAudio.crossOrigin = 'anonymous';
+  clearFsAudioCrossOrigin();
   fsAudio.src = beatUrl;
   fsAudio.loop = true;
   fsAudio.preload = 'auto';
   fsAudio.muted = false;
   fsAudio.volume = fsBeatVolume > 0.05 ? fsBeatVolume : 1.0;
   try {
-    await fsAudio.load();
+    fsAudio.load();
   } catch(e) {
     console.warn('Audio load:', e);
   }
-  fsAudio.addEventListener('error', function(e) {
-    console.warn('fsAudio element error after load:', e, fsAudio.error);
-    if (/CORS|Failed to fetch|NetworkError/i.test(String(fsAudio.error?.message || e))) {
-      showWarningToast('dyn_play_error', 'Beat CORS / réseau introuvable');
-    }
-  }, { once: true });
   const nameEl = document.getElementById('fsBeatName');
   const metaEl = document.getElementById('fsBeatMeta');
   const coverEl = document.getElementById('fsBeatCover');
@@ -3716,43 +3415,18 @@ window.loadStudioSelectedBeat = async function(beat) {
     };
     const directUrl = resolveBeatPlaybackURL(audioSource);
     const proxyUrl = resolveFsBeatProxyURL(audioSource);
-    let beatLoaded = false;
-    let lastError = null;
-
     try {
       await studioInstance.loadBeatFromURL(directUrl, beatInfo);
-      beatLoaded = true;
       console.log('✅ Studio loaded beat from freestyle selector:', beatInfo.name, directUrl);
     } catch (directErr) {
-      lastError = directErr;
       console.warn('Studio direct load failed, trying proxy:', directErr);
-    }
-
-    if (!beatLoaded && proxyUrl && proxyUrl !== directUrl) {
-      try {
+      if (proxyUrl && proxyUrl !== directUrl) {
         await studioInstance.loadBeatFromURL(proxyUrl, beatInfo);
-        beatLoaded = true;
         console.log('✅ Studio loaded beat via proxy:', beatInfo.name, proxyUrl);
-      } catch (proxyErr) {
-        lastError = proxyErr;
-        console.warn('Studio proxy load failed:', proxyErr);
+      } else {
+        throw directErr;
       }
     }
-
-    if (!beatLoaded) {
-      const fallbackUrl = proxyUrl || directUrl;
-      const buffer = await fetchAudioBufferForBeatUrl(fallbackUrl);
-      if (buffer) {
-        await studioInstance.loadBeat(buffer, beatInfo);
-        beatLoaded = true;
-        console.log('✅ Studio loaded beat from decoded buffer:', fallbackUrl);
-      }
-    }
-
-    if (!beatLoaded) {
-      throw lastError || new Error('Studio beat load failed');
-    }
-
     window.pendingStudioBeat = null;
   } catch (error) {
     console.warn('Studio beat load failed:', error);
@@ -3780,7 +3454,7 @@ async function toggleFsBeat() {
 }
 
 async function loadFsAudioSource(url) {
-  fsAudio.crossOrigin = 'anonymous';
+  clearFsAudioCrossOrigin();
   fsAudio.src = url;
   fsAudio.currentTime = 0;
   fsAudio.load();
@@ -3820,47 +3494,11 @@ async function ensureFsBeatPlayback() {
     await tryPlay(directUrl);
   } catch (err) {
     console.warn('ensureFsBeatPlayback direct URL failed:', err);
-    let played = false;
-
-    // Try proxy URL first if available
     if (proxyUrl && proxyUrl !== directUrl) {
-      try {
-        await tryPlay(proxyUrl);
-        played = true;
-      } catch (proxyErr) {
-        console.warn('ensureFsBeatPlayback proxy URL failed:', proxyErr);
-      }
+      await tryPlay(proxyUrl);
+    } else {
+      throw err;
     }
-
-    // If direct/proxy element playback failed, try decoding the audio with fetch and play from a generated WAV blob
-    if (!played) {
-      const fallbackUrl = proxyUrl || directUrl;
-      try {
-        const audioBuffer = await fetchAudioBufferForBeatUrl(fallbackUrl);
-        if (audioBuffer) {
-          try {
-            const wavBlob = audioBufferToWav(audioBuffer);
-            const blobUrl = URL.createObjectURL(wavBlob);
-            try {
-              await loadFsAudioSource(blobUrl);
-              await fsAudio.play();
-              played = true;
-            } catch (playErr) {
-              console.warn('Playback from decoded buffer failed:', playErr);
-            } finally {
-              // Revoke object URL after a short delay to keep audio available for immediate playback
-              setTimeout(() => { try { URL.revokeObjectURL(blobUrl); } catch (e) {} }, 60000);
-            }
-          } catch (convErr) {
-            console.warn('Failed to convert AudioBuffer to WAV blob:', convErr);
-          }
-        }
-      } catch (decodeErr) {
-        console.warn('Decoded buffer fetch failed:', decodeErr);
-      }
-    }
-
-    if (!played) throw err;
   } finally {
     fsPlaybackAttempt = false;
   }
@@ -3928,8 +3566,6 @@ async function toggleRecord() {
  
 async function startRecord() {
   if (!fsSelectedBeat) { showToast(t('dyn_select_beat_first')); return; }
-  // capture beat offset at recording start to allow synced playback later
-  try { fsRecordingStartBeat = (typeof fsAudio.currentTime === 'number') ? fsAudio.currentTime : 0; } catch(e) { fsRecordingStartBeat = 0; }
   const preservedFsAudioVolume = (typeof fsAudio.volume === 'number' && fsAudio.volume > 0) ? fsAudio.volume : 1.0;
   try {
     const constraints = getMicConstraints();
@@ -3962,71 +3598,28 @@ async function startRecord() {
       showWarningToast('dyn_play_error', 'Lecture impossible');
       return;
     }
-  } else if (fsPlaying && fsAudio.paused && fsAudioSource) {
-    try {
-      await ensureFsBeatPlayback();
-      fsAudio.volume = preservedFsAudioVolume;
-      fsBeatVolume = preservedFsAudioVolume;
-      fsPlaying = true;
-      document.getElementById('fsBeatPlayBtn').innerHTML = `<i class='fas fa-pause'></i> ${t('dyn_pause_beat')}`;
-    } catch (e) {
-      console.warn('Unable to resume freestyle beat on record:', e);
-    }
   }
   if (typeof fsAudio.volume === 'number') {
     fsAudio.volume = preservedFsAudioVolume;
     fsBeatVolume = preservedFsAudioVolume;
   }
-  let recordStream = micStream;
   try {
-    if (!fsAudioCtx || fsAudioCtx.state === 'closed') {
-      fsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (fsAudioCtx.state === 'suspended') await fsAudioCtx.resume();
-
-    const micSource = fsAudioCtx.createMediaStreamSource(micStream);
-    const beatSource = fsAudioCtx.createMediaElementSource(fsAudio);
-    const destination = fsAudioCtx.createMediaStreamDestination();
-
-    micSource.connect(destination);
-    beatSource.connect(destination);
-    beatSource.connect(fsAudioCtx.destination);
-
-    fsMicSourceNode = micSource;
-    fsBeatSourceNode = beatSource;
-    fsDestinationNode = destination;
-    fsRecordingDestinationStream = destination.stream;
-    recordStream = destination.stream;
-    fsAudio.muted = true;
-  } catch (mixError) {
-    console.warn('Freestyle mix recording fallback to mic-only:', mixError);
-    if (fsAudioCtx && typeof fsAudioCtx.close === 'function') {
-      try { fsAudioCtx.close(); } catch (closeErr) { console.warn('AudioContext close failed:', closeErr); }
-      fsAudioCtx = null;
-    }
-    fsAudio.muted = false;
-  }
-
-  try {
-    const analyserCtx = fsAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (analyserCtx.state === 'suspended') await analyserCtx.resume();
-    analyserNode = analyserCtx.createAnalyser(); analyserNode.fftSize = 256;
-    const src = analyserCtx.createMediaStreamSource(micStream);
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const src = ctx.createMediaStreamSource(micStream);
+    analyserNode = ctx.createAnalyser(); analyserNode.fftSize = 256;
     src.connect(analyserNode);
     animMicLevel();
-  } catch (e) {
-    console.warn('Mic level analyzer failed:', e);
-  }
-
+  } catch(e) {}
   fsChunks = [];
   const selectedMimeType = getSupportedRecorderMimeType() || (isIOS() ? 'audio/mp4' : 'audio/webm');
   try {
     fsMediaRecorder = selectedMimeType
-      ? new MediaRecorder(recordStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
-      : new MediaRecorder(recordStream);
+      ? new MediaRecorder(micStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
+      : new MediaRecorder(micStream);
   } catch (e) {
     try {
-      fsMediaRecorder = new MediaRecorder(recordStream);
+      fsMediaRecorder = new MediaRecorder(micStream);
     } catch (fallbackError) {
       console.error('MediaRecorder init failed:', fallbackError);
       showToast(t('dyn_recording_error') || 'Enregistrement impossible');
@@ -4048,10 +3641,9 @@ async function startRecord() {
       duration: fsSeconds,
       date: new Date().toLocaleDateString('fr'),
       label: 'Take ' + (fsRecordings.length + 1)
-      ,
-      beatOffset: fsRecordingStartBeat || 0
     };
-    addFsRecording(rec);
+    fsRecordings.unshift(rec);
+    renderRecordingsList();
     document.getElementById('mixSection').style.display = 'block';
     showToast(t('dyn_recording_saved'));
     if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
@@ -4075,12 +3667,6 @@ async function startRecord() {
 function stopRecord() {
   if (fsMediaRecorder && fsMediaRecorder.state!=='inactive') fsMediaRecorder.stop();
   if (micStream) micStream.getTracks().forEach(t=>t.stop());
-  if (fsMicSourceNode) { try { fsMicSourceNode.disconnect(); } catch (e) {} fsMicSourceNode = null; }
-  if (fsBeatSourceNode) { try { fsBeatSourceNode.disconnect(); } catch (e) {} fsBeatSourceNode = null; }
-  if (fsDestinationNode) { try { fsDestinationNode.disconnect(); } catch (e) {} fsDestinationNode = null; }
-  if (fsAudioCtx) { try { fsAudioCtx.close(); } catch (e) {} fsAudioCtx = null; }
-  fsRecordingDestinationStream = null;
-  fsAudio.muted = false;
   clearInterval(fsTimerInterval);
   fsRecording = false;
   const rb = document.getElementById('recBtn');
@@ -4110,27 +3696,21 @@ function renderRecordingsList() {
     return;
   }
   el.innerHTML = fsRecordings.slice(0,10).map((r,i)=>`
-    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:12px">
-      <button onclick="playRecording(${JSON.stringify(r.url)})" style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.8rem">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:12px">
+      <button onclick="playRecording('${r.url}')" style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem">
         <i class="fas fa-play" style="margin-left:2px"></i>
       </button>
-      <div style="min-width:0">
-        <div style="font-family:var(--font-mono);font-size:0.7rem;color:#fff">${sanitize(r.label || getFileNameFromUrl(r.url))}</div>
-        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim)">${sanitize(r.beatTitle || t('fs_no_beat_selected'))} · ${sanitize(r.date || '')} · ${fmt(r.duration || 0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:#fff">${r.label}</div>
+        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim)">${r.beatTitle} · ${r.date} · ${fmt(r.duration)}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        <div style="display:flex;gap:8px;align-items:center">
-          <a href="${r.url || '#'}" download="freestyle.webm" style="color:var(--cyan);font-size:0.85rem;text-decoration:none" title="${t('fs_download_voice')}"><i class="fas fa-download"></i></a>
-          <button onclick="deleteRecording(${i})" style="background:none;border:none;color:rgba(255,100,100,0.75);cursor:pointer;font-size:0.85rem"><i class="fas fa-trash"></i></button>
-        </div>
-        ${renderFsRecordingActions(r, i)}
-      </div>
+      <a href="${r.url}" download="freestyle.webm" style="color:var(--cyan);font-size:0.85rem;text-decoration:none" title="${t('fs_download_voice')}"><i class="fas fa-download"></i></a>
+      <button onclick="deleteRecording(${i})" style="background:none;border:none;color:rgba(255,100,100,0.5);cursor:pointer;font-size:0.85rem"><i class="fas fa-trash"></i></button>
     </div>`).join('');
+  // Refresh studio waveform if studio is open
   if (document.getElementById('studioPanel') && document.getElementById('studioPanel').style.display !== 'none') {
     setTimeout(drawStudioWaveform, 200);
   }
-  // Re-apply translations for dynamically generated recording list
-  if (typeof applyTranslations === 'function') applyTranslations();
 }
 
 // Attach passive touchstart handlers to freestyle controls to ensure immediate responsiveness on mobile/touch devices
@@ -4150,54 +3730,9 @@ function bindFsTouchHandlers() {
   });
 }
  
-function playRecording(url) {
-  if (!url) { showToast('⚠ ' + (currentLang==='en'?'No recording':'Pas d\'enregistrement')); return; }
-  try {
-    const a = new Audio(url);
-    a.setAttribute('controls', 'controls');
-    a.preload = 'auto';
-    a.setAttribute('playsinline', '');
-    a.crossOrigin = 'anonymous';
-    a.volume = 1.0;
-    
-    a.addEventListener('canplay', () => {
-      const playPromise = a.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(err => {
-          console.warn('playRecording audio error:', err);
-          if (err.name === 'NotAllowedError') {
-            showToast('⚠ ' + (currentLang==='en'?'Audio play denied':'Lecture audio refusée'));
-          }
-        });
-      }
-    });
-    
-    a.addEventListener('error', (e) => {
-      console.error('Recording playback error:', e.target?.error);
-      showToast('⚠ ' + (currentLang==='en'?'Cannot play recording':'Impossible de lire l\'enregistrement'));
-    });
-    
-    a.addEventListener('loadstart', () => {
-      document.querySelectorAll('audio').forEach(el => {
-        if (el !== a) { try { el.pause(); } catch(e) {} }
-      });
-    });
-    
-    const playPromise = a.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(err => {
-        console.warn('playRecording deferred error:', err);
-      });
-    }
-  } catch(e) {
-    console.error('playRecording failed:', e);
-    showToast('⚠ ' + (currentLang==='en'?'Play error':'Erreur lecture'));
-  }
-}
+function playRecording(url) { const a=new Audio(url); a.play(); }
 function deleteRecording(i) {
-  fsRecordings.splice(i,1);
-  saveFsRecordingsToStorage();
-  renderRecordingsList();
+  fsRecordings.splice(i,1); renderRecordingsList();
   if (!fsRecordings.length) document.getElementById('mixSection').style.display='none';
 }
 function downloadLastRecording() {
@@ -4206,9 +3741,7 @@ function downloadLastRecording() {
 }
 async function playMix() {
   if (!fsRecordings.length || !fsSelectedBeat) { showToast(t('dyn_no_freestyle')); return; }
-  const rec = fsRecordings[0];
-  if (!rec.url) { showToast('⚠ ' + (currentLang==='en'?'No recording URL':'URL enregistrement manquante')); return; }
-  const voiceEl = new Audio(rec.url);
+  const voiceEl = new Audio(fsRecordings[0].url);
   voiceEl.preload = 'auto';
   voiceEl.setAttribute('playsinline', '');
   voiceEl.setAttribute('webkit-playsinline', '');
@@ -4226,63 +3759,29 @@ async function playMix() {
     fsAudio.load();
   }
 
-  // If the recording contains a beat offset, seek the beat to that offset
-  try { fsAudio.currentTime = (typeof rec.beatOffset === 'number') ? rec.beatOffset : 0; } catch(e) { fsAudio.currentTime = 0; }
+  fsAudio.currentTime = 0;
   fsAudio.loop = false;
   fsAudio.muted = false;
-  const beatVolElem = document.getElementById('beatVolSlider');
-  const beatVol = beatVolElem ? Math.max(0.1, Math.min(1, parseFloat(beatVolElem.value) / 100)) : 0.7;
-  fsAudio.volume = beatVol;
+  fsAudio.volume = fsBeatVolume > 0.05 ? fsBeatVolume : 1.0;
 
   const playBtn = document.getElementById('mixPlayBtn');
-  if (playBtn) {
-    playBtn.disabled = true;
-    playBtn.innerHTML = `<i class='fas fa-spinner fa-spin'></i> ${t('fs_loading') || 'Chargement...'}`;
-  }
-
-  if (window.fsMixAudio instanceof HTMLAudioElement) {
-    try {
-      window.fsMixAudio.pause();
-      window.fsMixAudio.src = '';
-      window.fsMixAudio.remove();
-    } catch (cleanupErr) {
-      console.warn('Cleanup previous mix audio failed:', cleanupErr);
-    }
-    window.fsMixAudio = null;
-  }
-
-  const recordedMix = new Audio(rec.url);
-  recordedMix.preload = 'auto';
-  recordedMix.setAttribute('playsinline', '');
-  recordedMix.setAttribute('webkit-playsinline', '');
-  recordedMix.crossOrigin = 'anonymous';
-  recordedMix.volume = 1.0;
-  recordedMix.loop = false;
-  recordedMix.style.display = 'none';
-  recordedMix.dataset.fsMix = 'true';
-  window.fsMixAudio = recordedMix;
-  document.body.appendChild(recordedMix);
-
-  recordedMix.addEventListener('ended', () => {
-    if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
-  });
-  recordedMix.addEventListener('pause', () => {
-    if (playBtn && recordedMix.currentTime > 0 && recordedMix.currentTime < recordedMix.duration) {
-      playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
-    }
-  });
-  recordedMix.addEventListener('error', (e) => {
-    console.error('playMix mix audio error:', e, recordedMix.error);
-    showToast('⚠ ' + (currentLang==='en' ? 'Unable to play mix' : 'Impossible de lire le mix'));
-    if (playBtn) playBtn.disabled = false;
-  });
+  if (playBtn) playBtn.disabled = true;
 
   try {
-    await waitForAudioReady(recordedMix, 2500);
-    await recordedMix.play();
-    if (recordedMix.paused) {
-      await recordedMix.play();
-    }
+    await waitForAudioReady(fsAudio, 2500);
+    await waitForAudioReady(voiceEl, 2500);
+
+    const beatPromise = fsAudio.play().catch(err => {
+      console.warn('Beat playback failed:', err);
+      return null;
+    });
+    const voicePromise = voiceEl.play().catch(err => {
+      console.warn('Voice playback failed:', err);
+      return null;
+    });
+
+    await Promise.all([beatPromise, voicePromise]);
+
     if (playBtn) {
       playBtn.disabled = false;
       playBtn.innerHTML = `<i class='fas fa-pause'></i> ${t('fs_playing')}`;
@@ -4291,31 +3790,19 @@ async function playMix() {
     console.warn('playMix error:', err);
     if (playBtn) playBtn.disabled = false;
   }
+
+  voiceEl.onended = () => {
+    try { fsAudio.pause(); } catch (e) {}
+    if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
+  };
 }
-async function postFreestyleToProfile(index = 0) {
+async function postFreestyleToProfile() {
   if (!currentUser) { showToast(t('dyn_login_first')); showPage('login'); return; }
   if (!fsRecordings.length) { showToast(t('dyn_no_sound_pub')); return; }
-  const record = fsRecordings[index] || fsRecordings[0];
-  if (!record) { showToast(t('dyn_no_sound_pub')); return; }
-  let audioUrl = record.url;
-  if (!isRemoteUrl(audioUrl) || isBlobUrl(audioUrl)) {
-    audioUrl = await uploadFreestyleRecording(record);
-    if (!audioUrl) return;
-  }
-  const post = {
-    type: 'freestyle',
-    username: currentUser.username,
-    beatTitle: record.beatTitle || t('fs_no_beat_selected'),
-    date: new Date().toLocaleDateString('fr'),
-    url: audioUrl,
-    likes: 0,
-    comments: []
-  };
+  const post = { type:'freestyle', username:currentUser.username, beatTitle:fsRecordings[0].beatTitle, date:new Date().toLocaleDateString('fr'), url:fsRecordings[0].url, likes:0, comments:[] };
   await addPostToFirestore(post);
   showToast(t('dyn_freestyle_published'));
-  // Ensure user lands on their profile in the community view
   showPage('community');
-  communityTab('my-profile');
 }
  
 // ═══ COMMUNITY ═══
@@ -4349,17 +3836,13 @@ function artistCard(p) {
   const safeLocation = sanitize(p.location || 'International');
   const safeBio      = sanitize(p.bio || t('dyn_no_bio'));
   const safeJoined   = sanitize(String(p.joined || '2026'));
-  const photoUrl = safeImageUrl(p.photoURL);
-  const avatarHtml = photoUrl
-    ? `<img class="artist-avatar" src="${photoUrl}" alt="Avatar ${safeUsername}">`
-    : `<div class="artist-avatar artist-avatar-fallback">${safeUsername.charAt(0).toUpperCase()}</div>`;
   // URLs des réseaux sociaux : on vérifie qu'elles commencent par https://
   const safeUrl = (url) => (url && /^https:\/\//.test(url)) ? encodeURI(url) : '#';
   const postCount = p.postCount || 0;
   return `<div style="background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(0,229,255,0.12);border-radius:20px;overflow:hidden;transition:all 0.3s" onmouseover="this.style.borderColor='rgba(0,229,255,0.3)'" onmouseout="this.style.borderColor='rgba(0,229,255,0.12)'">
     <div style="height:90px;background:linear-gradient(135deg,rgba(0,100,180,0.3),rgba(0,229,255,0.1));position:relative"></div>
     <div style="padding:12px 20px 20px;margin-top:-28px">
-      ${avatarHtml}
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#0070a0);border:3px solid rgba(3,8,15,0.9);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--dark);font-family:var(--font-display);margin-bottom:10px">${safeUsername.charAt(0).toUpperCase()}</div>
       <div style="font-family:var(--font-display);font-size:1.2rem;color:#fff;letter-spacing:1px">${safeUsername}</div>
       <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin:4px 0 10px">${safeGenre} · ${safeLocation}</div>
       <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px">${safeBio}</p>
@@ -4386,11 +3869,6 @@ async function renderMyProfile() {
     return;
   }
   const myP = currentUser.uid ? await loadMyProfile(currentUser.uid) : {};
-  const profilePhoto = safeImageUrl(myP.photoURL || currentUser.photoURL || '');
-  const profileInitial = sanitize(currentUser.username).charAt(0).toUpperCase();
-  const profileAvatar = profilePhoto
-    ? `<img class="profile-avatar-large" src="${profilePhoto}" alt="Avatar de ${sanitize(currentUser.username)}">`
-    : `<div class="profile-avatar-large profile-avatar-fallback">${profileInitial}</div>`;
   const allPosts = await loadPosts();
   const myPosts = allPosts.filter(p=>p.username===currentUser.username);
   el.innerHTML=`
@@ -4399,7 +3877,7 @@ async function renderMyProfile() {
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.15);border-radius:20px;overflow:hidden;margin-bottom:20px">
         <div style="height:80px;background:linear-gradient(135deg,rgba(0,100,180,0.4),rgba(0,229,255,0.15))"></div>
         <div style="padding:0 20px 20px;margin-top:-30px">
-          ${profileAvatar}
+          <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#0070a0);border:3px solid var(--dark);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.6rem;color:var(--dark);margin-bottom:10px">${currentUser.username.charAt(0).toUpperCase()}</div>
           <div style="font-family:var(--font-display);font-size:1.3rem;color:#fff">${currentUser.username}</div>
           <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin-bottom:10px">${myP.genre||t('comm_artist_label')} · ${myP.location||''}</div>
           <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">${myP.bio||t('dyn_no_bio')}</p>
@@ -4450,29 +3928,10 @@ async function renderMyProfile() {
 }
  
 async function saveProfile() {
-  if (!currentUser) return;
-  const prof = {
-    username: document.getElementById('pUsername').value || currentUser.username,
-    genre: document.getElementById('pGenre').value,
-    location: document.getElementById('pLocation').value,
-    bio: document.getElementById('pBio').value,
-    instagram: document.getElementById('pInsta').value,
-    youtube: document.getElementById('pYt').value,
-    tiktok: document.getElementById('pTk').value,
-    soundcloud: document.getElementById('pSc').value,
-    spotify: document.getElementById('pSpotify').value,
-    joined: new Date().getFullYear().toString()
-  };
-  for (const key of ['instagram', 'youtube', 'tiktok', 'soundcloud', 'spotify']) {
-    if (!isValidProfileUrl(prof[key])) {
-      showToast('⚠ ' + t('err_invalid_url'));
-      return;
-    }
-  }
+   if (!currentUser) return;
+  const prof = { username:document.getElementById('pUsername').value||currentUser.username, genre:document.getElementById('pGenre').value, location:document.getElementById('pLocation').value, bio:document.getElementById('pBio').value, instagram:document.getElementById('pInsta').value, youtube:document.getElementById('pYt').value, tiktok:document.getElementById('pTk').value, soundcloud:document.getElementById('pSc').value, spotify:document.getElementById('pSpotify').value, joined:new Date().getFullYear().toString() };
   const uid = currentUser.uid || currentUser.username;
-  const cleanedProfile = cleanProfileData(prof);
-  const saved = await saveProfileToFirestore(uid, cleanedProfile);
-  if (!saved) return;
+  await saveProfileToFirestore(uid, prof);
   showToast(t('dyn_profile_saved'));
   renderMyProfile();
 }
@@ -4553,26 +4012,18 @@ const translations = {
     nav_artists: 'Artistes',
     nav_licenses: 'Licences',
     nav_login: 'Connexion',
-    nav_account: 'Mon Compte',
     nav_freestyle: 'Freestyle',
     // Hero
     hero_badge: "Côte d'Ivoire · Distribution Internationale",
-    hero_title: 'Le Studio<br><span class="cyan">du Beatmaker</span>',
-    hero_slogan: 'Je suis le son que vous cherchez',
     hero_explore: 'Explorer les Beats',
     hero_licenses: 'Voir les Licences',
     // Stats
-    stat_beats: 'Beats',
     stat_available: 'Disponible',
-    stat_international: 'International',
-    // Footer Genres
-    footer_genres: 'Genres',
-    footer_made_with: 'Fait avec <i class="fas fa-heart" style="color:var(--cyan)"></i> par Je Suis Beatz',
     // Featured
     featured_chip: 'Nouveau drop',
     featured_title: 'Beat en Vedette',
     // Footer
-    footer_desc: "Producteur basé en Côte d'Ivoire. Des sons premium conçus pour dominer les charts internationaux. <em style=\"color:var(--cyan);font-style:italic\">Je suis le son que vous cherchez.</em>",
+    footer_desc: "Producteur basé en Côte d'Ivoire. Des sons premium conçus pour dominer les charts internationaux. <em style=\"color:var(--cyan);font-style:italic\">I am the sound you are looking for.</em>",
     footer_nav: 'Navigation',
     footer_catalog: 'Catalogue Beats',
     footer_freestyle: 'Mode Freestyle',
@@ -4754,56 +4205,6 @@ const translations = {
     comm_feed: 'Fil d\'actualité',
     fs_my_rec: 'Mes enregistrements',
     dyn_no_rec_static: 'Aucun enregistrement',
-    // Account page
-    account_chip: 'Mon Compte',
-    account_title: 'Bienvenue dans votre espace client',
-    account_sub: 'Gérez vos achats, licences, favoris, factures et paramètres de profil.',
-    account_view_purchases: 'Voir mes achats',
-    account_dashboard_title: 'Tableau de bord',
-    account_tab_purchases: 'Mes Achats',
-    account_tab_licenses: 'Licences & Contrats',
-    account_tab_favorites: 'Favoris',
-    account_tab_billing: 'Facturation',
-    account_tab_settings: 'Paramètres',
-    account_panel_purchases_title: 'Mes Achats / Téléchargements',
-    account_panel_purchases_desc: 'Retrouvez tous vos beats, téléchargements et licences associées.',
-    account_panel_licenses_title: 'Mes Licences & Contrats',
-    account_panel_licenses_desc: 'Résumé des droits d\'utilisation pour chaque beat acheté.',
-    account_panel_favorites_title: 'Mes Favoris',
-    account_panel_favorites_desc: 'Beats sauvegardés pour réécoute ou achat ultérieur.',
-    account_panel_billing_title: 'Historique de Facturation',
-    account_panel_billing_desc: 'Reçus, factures et détails de vos transactions passées.',
-    account_panel_settings_title: 'Paramètres du Profil',
-    account_panel_settings_desc: 'Modifiez votre nom, email, photo et mot de passe.',
-    account_profile_title: 'Profil',
-    account_profile_name: 'Nom',
-    account_profile_email: 'Email',
-    account_profile_photo: 'Photo de profil',
-    account_profile_save: 'Enregistrer',
-    account_email_placeholder: 'votre@email.com',
-    account_password_title: 'Mot de passe',
-    account_password_current: 'Mot de passe actuel',
-    account_password_new: 'Nouveau mot de passe',
-    account_password_change: 'Changer le mot de passe',
-    account_name_placeholder: 'Votre nom',
-    account_current_password_placeholder: '••••••••',
-    account_new_password_placeholder: '••••••••',
-    account_profile_saved: 'Profil enregistré.',
-    account_profile_error: 'Erreur lors de la sauvegarde du profil.',
-    account_no_purchases: 'Aucun achat trouvé pour le moment.',
-    account_no_licenses: 'Aucune licence trouvée.',
-    account_no_favorites: 'Aucun favori enregistré. Ajoutez des beats aux favoris pour les retrouver ici.',
-    account_no_billing: 'Aucun historique de facturation disponible.',
-    account_order: 'Commande',
-    account_license: 'Licence',
-    account_status: 'Statut',
-    account_payment_method: 'Paiement',
-    account_total: 'Total',
-    account_favorite: 'Favori',
-    account_beat: 'Beat',
-    account_unknown_genre: 'Genre inconnu',
-    account_total_spent: 'Dépenses totales',
-    admin_client_space: 'Espace client',
     // Admin panel
     admin_add_beat: 'Ajouter un Beat',
     admin_manage_beats: 'Gérer les Beats',
@@ -4919,11 +4320,6 @@ const translations = {
     dyn_no_active_recording: 'Aucun enregistrement en cours',
     dyn_recording_discarded: 'Enregistrement supprimé',
     dyn_playback_failed: '⚠ Utilise le lecteur audio pour écouter',
-    err_invalid_audio: 'Fichier audio invalide',
-    dyn_audio_imported: 'Audio importé',
-    fs_upload_to_profile: 'Uploader vers mon profil',
-    fs_import_audio: 'Importer un freestyle',
-    fs_saved_recordings: 'Freestyles sauvegardés',
     studio_mic_error: 'Impossible d\'accéder au microphone',
     studio_spectral_analyzer: 'Analyseur Spectral',
     studio_export_title: 'Export & Partage',
@@ -4961,8 +4357,8 @@ const translations = {
     pay_loading_paypal: 'Loading PayPal...',
     pay_paypal_note: 'Secure payment via PayPal · Visa, Mastercard, PayPal account accepted.',
     // Featured (dynamic)
-    feat_listen: 'Écouter',
-    feat_add_cart: 'Ajouter au panier',
+    feat_listen: 'Listen',
+    feat_add_cart: 'Add to Cart',
     // Register form
     reg_title: 'Create account',
     reg_sub: 'Join Je Suis Beatz',
@@ -5053,24 +4449,13 @@ const translations = {
     // Nav
     nav_home: 'Home',
     nav_artists: 'Artists',
-    nav_beats: 'Beats',
     nav_licenses: 'Licenses',
     nav_login: 'Login',
-    nav_account: 'Account',
-    nav_contact: 'Contact',
     nav_freestyle: 'Freestyle',
     // Hero
     hero_badge: "Ivory Coast · International Distribution",
-    hero_title: 'The Beat<br><span class="cyan">Maker\'s Studio</span>',
-    hero_slogan: 'I am the sound you are looking for',
     hero_explore: 'Explore Beats',
     hero_licenses: 'View Licenses',
-    // Stats
-    stat_beats: 'Beats',
-    stat_international: 'International',
-    // Footer Genres
-    footer_genres: 'Genres',
-    footer_made_with: 'Made with <i class="fas fa-heart" style="color:var(--cyan)"></i> by Je Suis Beatz',
     // Licenses page
     lic_title: 'Choose your License',
     lic_sub: 'Licenses for every project — from amateur releases to international commercial distribution.',
@@ -5217,13 +4602,8 @@ const translations = {
     fs_title: 'Spit on the Beat',
     fs_sub: 'Choose a beat, record your freestyle directly from the site, listen back and share it.',
     fs_select_hint: 'Select a beat above',
-    fs_saved_recordings: 'Saved Freestyles',
-    fs_import_audio: 'Import a freestyle',
     fs_play_beat: 'Play Beat',
     fs_rec_hint: 'Press to record',
-    fs_mic_denied_title: 'Microphone Access Denied',
-    fs_mic_ready: 'Microphone ready',
-    fs_ready_record: 'Ready to record',
     // Community
     comm_title: 'Artists Space',
     comm_sub: 'Create your artist profile, share your socials, publish your tracks made with Je Suis Beatz beats.',
@@ -5313,56 +4693,6 @@ const translations = {
     comm_feed: 'News Feed',
     fs_my_rec: 'My recordings',
     dyn_no_rec_static: 'No recordings',
-    // Account page
-    account_chip: 'Customer Dashboard',
-    account_title: 'Welcome to your customer space',
-    account_sub: 'Manage your purchases, licenses, favorites, invoices and profile settings.',
-    account_view_purchases: 'View my purchases',
-    account_dashboard_title: 'Dashboard',
-    account_tab_purchases: 'Purchases',
-    account_tab_licenses: 'Licenses & Contracts',
-    account_tab_favorites: 'Favorites',
-    account_tab_billing: 'Billing',
-    account_tab_settings: 'Settings',
-    account_panel_purchases_title: 'My Purchases / Downloads',
-    account_panel_purchases_desc: 'Find all your beats, downloads and associated licenses.',
-    account_panel_licenses_title: 'My Licenses & Contracts',
-    account_panel_licenses_desc: 'Summary of usage rights for each purchased beat.',
-    account_panel_favorites_title: 'My Favorites',
-    account_panel_favorites_desc: 'Saved beats for replay or later purchase.',
-    account_panel_billing_title: 'Billing History',
-    account_panel_billing_desc: 'Receipts, invoices and details of your past transactions.',
-    account_panel_settings_title: 'Profile Settings',
-    account_panel_settings_desc: 'Change your name, email, photo and password.',
-    account_profile_title: 'Profile',
-    account_profile_name: 'Name',
-    account_profile_email: 'Email',
-    account_profile_photo: 'Profile photo',
-    account_profile_save: 'Save',
-    account_email_placeholder: 'your@email.com',
-    account_password_title: 'Password',
-    account_password_current: 'Current password',
-    account_password_new: 'New password',
-    account_password_change: 'Change password',
-    account_name_placeholder: 'Your name',
-    account_current_password_placeholder: '••••••••',
-    account_new_password_placeholder: '••••••••',
-    account_profile_saved: 'Profile saved.',
-    account_profile_error: 'Error saving profile.',
-    account_no_purchases: 'No purchases found yet.',
-    account_no_licenses: 'No licenses found.',
-    account_no_favorites: 'No favorites saved. Add beats to favorites to find them here.',
-    account_no_billing: 'No billing history available.',
-    account_order: 'Order',
-    account_license: 'License',
-    account_status: 'Status',
-    account_payment_method: 'Payment',
-    account_total: 'Total',
-    account_favorite: 'Favorite',
-    account_beat: 'Beat',
-    account_unknown_genre: 'Unknown genre',
-    account_total_spent: 'Total spent',
-    admin_client_space: 'Customer space',
     // Admin panel
     admin_add_beat: 'Add a Beat',
     admin_manage_beats: 'Manage Beats',
@@ -5609,17 +4939,9 @@ function applyTranslations() {
   // Scan attributes on all elements and apply translations for any attribute that starts with 'data-i18n-'
   document.querySelectorAll('*').forEach(el => {
     Array.from(el.attributes).forEach(attr => {
-      if (!attr.name.startsWith('data-i18n-') || attr.name === 'data-i18n' || attr.name === 'data-i18n-ph') return;
-      const key = attr.value;
-      if (!key) return;
-      if (attr.name === 'data-i18n-title') {
-        el.title = t(key);
-      } else if (attr.name === 'data-i18n-alt') {
-        el.alt = t(key);
-      } else if (attr.name === 'data-i18n-value') {
-        el.value = t(key);
-      } else {
-        el.textContent = t(key);
+      if (attr.name.startsWith('data-i18n-') && attr.name !== 'data-i18n' && attr.name !== 'data-i18n-ph') {
+        const key = attr.value;
+        if (key) el.textContent = t(key);
       }
     });
   });
@@ -5632,8 +4954,6 @@ function applyTranslations() {
     if (currentLang === 'fr') { flag.textContent = '🇬🇧'; label.textContent = 'EN'; }
     else { flag.textContent = '🇫🇷'; label.textContent = 'FR'; }
   }
-  const accountBtn = document.getElementById('accountBtn');
-  if (accountBtn) accountBtn.title = t('nav_account');
   // Update dynamic UI strings that are rendered via JS
   updateDynamicStrings();
 }
@@ -5774,8 +5094,6 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTranslations();
   initBeatUploadZones();
   initCurrencyRateUpdater();
-  setupFsImportInput('fsImportInput');
-  if (document.getElementById('recordingsList')) renderRecordingsList();
 });
 // Also apply after a short delay to catch late-rendered elements
 setTimeout(applyTranslations, 300);
@@ -5944,19 +5262,17 @@ async function buildStudioChain() {
   // ─ Beat : on utilise l'élément Audio existant (fsAudio) via MediaElementSource
   //   car l'URL Firebase peut bloquer fetch(). On ne décode pas le beat en buffer.
   studioGainVoice = studioCtx.createGain();
-  const vocalVolElem = document.getElementById('vocalVolSlider');
-  studioGainVoice.gain.value = (vocalVolElem ? parseFloat(vocalVolElem.value) : 80) / 100;
+  studioGainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 
   studioGainBeat = studioCtx.createGain();
-  const beatVolElem = document.getElementById('beatVolSlider');
-  studioGainBeat.gain.value = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
+  studioGainBeat.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
 
   // ─ Compresseur ─
   studioCompressor = studioCtx.createDynamicsCompressor();
-  studioCompressor.threshold.value = -50;
-  studioCompressor.ratio.value = 12;
-  studioCompressor.attack.value = 0.003;
-  studioCompressor.release.value = 0.25;
+  studioCompressor.threshold.value = parseFloat(document.getElementById('compThreshold').value);
+  studioCompressor.ratio.value = parseFloat(document.getElementById('compRatio').value);
+  studioCompressor.attack.value = parseFloat(document.getElementById('compAttack').value) / 1000;
+  studioCompressor.release.value = parseFloat(document.getElementById('compRelease').value) / 1000;
   studioCompressor.knee.value = 10;
 
   // ─ EQ (BiquadFilters) sur la voix ─
@@ -5967,7 +5283,6 @@ async function buildStudioChain() {
   for (const [id, freq] of Object.entries(eqFreqs)) {
     const filter = studioCtx.createBiquadFilter();
     filter.type = eqTypes[id];
-    filter.gain.value = 0;
     filter.frequency.value = freq;
     filter.Q.value = 1.4;
     filter.gain.value = parseFloat(document.getElementById(id).value);
@@ -6051,8 +5366,7 @@ async function studioPlayMix() {
         // Si déjà connecté ou autre erreur, on joue le beat normalement en parallèle
         console.warn('MediaElementSource beat:', e.message);
         fsAudio.currentTime = 0;
-        const beatVolElem = document.getElementById('beatVolSlider');
-        fsAudio.volume = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
+        fsAudio.volume = parseFloat(document.getElementById('beatVolStudio').value) / 100;
         fsAudio.play().catch(() => {});
       }
     }
@@ -6139,17 +5453,11 @@ function updatePitch() {
 }
 
 function updateVocalGain() {
-  if (studioGainVoice) {
-    const vocalVolElem = document.getElementById('vocalVolSlider');
-    studioGainVoice.gain.value = (vocalVolElem ? parseFloat(vocalVolElem.value) : 80) / 100;
-  }
+  if (studioGainVoice) studioGainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 }
 
 function updateBeatVolStudio() {
-  if (studioGainBeat) {
-    const beatVolElem = document.getElementById('beatVolSlider');
-    studioGainBeat.gain.value = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
-  }
+  if (studioGainBeat) studioGainBeat.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
 }
 
 // ─── Presets ───
@@ -6340,10 +5648,6 @@ async function renderAccountDashboard() {
 
   if (userData.username && nameInput) nameInput.value = sanitize(userData.username);
   const previewUrl = (userData.photoURL || currentUser.photoURL) || '';
-  if (previewUrl) {
-    currentUser.photoURL = previewUrl;
-    sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
-  }
   if (photoPreview) updateAccountPhotoPreview(previewUrl);
 
   const orders = [];
@@ -6367,36 +5671,30 @@ async function renderAccountDashboard() {
     return `<div class="account-placeholder">${sanitize(text)}</div>`;
   }
 
-  const dateLocale = currentLang === 'en' ? 'en-US' : 'fr-FR';
-  const orderLabel = t('account_order');
-  const paymentLabel = t('account_payment_method');
-  const totalLabel = t('account_total');
-  const favoriteLabel = t('account_favorite');
-
   if (purchasesEl) {
     purchasesEl.innerHTML = sortedOrders.length ? sortedOrders.map(order => {
       const createdAt = order.createdAt && order.createdAt.toDate ? order.createdAt.toDate() : new Date();
       const subtotal = Array.isArray(order.cartItems) ? order.cartItems.reduce((sum, item) => sum + Number(item.price || 0), 0) : Number(order.total || order.totalUSD || 0);
       const itemsHtml = Array.isArray(order.cartItems) ? order.cartItems.map(item => `
         <div class="account-subitem">
-          <div class="account-subitem-title">${sanitize(item.title)} · ${sanitize(item.license || t('account_license'))}</div>
+          <div class="account-subitem-title">${sanitize(item.title)} · ${sanitize(item.license || 'Licence')}</div>
           <div class="account-subitem-meta">${sanitize(item.price ? '$' + item.price : '—')}</div>
         </div>`).join('') : '';
       return `
         <div class="account-card">
           <div class="account-item-row">
             <div>
-              <div class="account-item-title">${sanitize(orderLabel)} ${sanitize(order.orderId || order.id)}</div>
-              <div class="account-item-meta">${sanitize(createdAt.toLocaleDateString(dateLocale))} · ${sanitize(order.paymentMethod || '')}</div>
+              <div class="account-item-title">Commande ${sanitize(order.orderId || order.id)}</div>
+              <div class="account-item-meta">${sanitize(createdAt.toLocaleDateString('fr-FR'))} · ${sanitize(order.paymentMethod || '')}</div>
             </div>
-            <span class="account-badge">${sanitize(order.status || t('account_status'))}</span>
+            <span class="account-badge">${sanitize(order.status || 'En attente')}</span>
           </div>
           ${itemsHtml}
           <div class="account-item-row" style="margin-top:12px;justify-content:flex-end;">
-            <strong>${sanitize(totalLabel)} : $${subtotal.toFixed(2)}</strong>
+            <strong>Total : $${subtotal.toFixed(2)}</strong>
           </div>
         </div>`;
-    }).join('') : emptyPlaceholder(t('account_no_purchases'));
+    }).join('') : emptyPlaceholder('Aucun achat trouvé pour le moment.');
   }
 
   const licenseItems = [];
@@ -6418,12 +5716,12 @@ async function renderAccountDashboard() {
         <div class="account-item-row">
           <div>
             <div class="account-item-title">${sanitize(item.title)}</div>
-            <div class="account-item-meta">${sanitize(item.license || t('account_license'))} · ${sanitize(orderLabel)} ${sanitize(item.orderId)}</div>
+            <div class="account-item-meta">${sanitize(item.license || 'Licence')} · Commande ${sanitize(item.orderId)}</div>
           </div>
-          <span class="account-badge">${sanitize(item.date.toLocaleDateString(dateLocale))}</span>
+          <span class="account-badge">${sanitize(item.date.toLocaleDateString('fr-FR'))}</span>
         </div>
-        <div class="account-item-meta">${sanitize(totalLabel)} : $${Number(item.price || 0).toFixed(2)}</div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_licenses'));
+        <div class="account-item-meta">Prix : $${Number(item.price || 0).toFixed(2)}</div>
+      </div>`).join('') : emptyPlaceholder('Aucune licence trouvée.');
   }
 
   if (favoritesEl) {
@@ -6431,32 +5729,32 @@ async function renderAccountDashboard() {
       <div class="account-card">
         <div class="account-item-row">
           <div>
-            <div class="account-item-title">${sanitize(beat.title || beat.name || t('account_beat'))}</div>
-            <div class="account-item-meta">${sanitize(beat.genre || t('account_unknown_genre'))}</div>
+            <div class="account-item-title">${sanitize(beat.title || beat.name || 'Beat')}</div>
+            <div class="account-item-meta">${sanitize(beat.genre || 'Genre inconnu')}</div>
           </div>
-          <span class="account-badge">${sanitize(favoriteLabel)}</span>
+          <span class="account-badge">Favori</span>
         </div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_favorites'));
+      </div>`).join('') : emptyPlaceholder('Aucun favori enregistré. Ajoutez des beats aux favoris pour les retrouver ici.');
   }
 
   if (billingEl) {
     const totalSpent = licenseItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
     const summaryHtml = totalSpent ? `
       <div class="account-card">
-        <div class="account-item-title">${sanitize(t('account_total_spent'))}</div>
+        <div class="account-item-title">Dépenses totales</div>
         <div class="account-item-meta">$${totalSpent.toFixed(2)}</div>
       </div>` : '';
     billingEl.innerHTML = summaryHtml + (sortedOrders.length ? sortedOrders.map(order => `
       <div class="account-card">
         <div class="account-item-row">
           <div>
-            <div class="account-item-title">${sanitize(orderLabel)} ${sanitize(order.orderId || order.id)}</div>
-            <div class="account-item-meta">${sanitize(order.paymentMethod || t('account_payment_method'))}</div>
+            <div class="account-item-title">Commande ${sanitize(order.orderId || order.id)}</div>
+            <div class="account-item-meta">${sanitize(order.paymentMethod || 'Paiement')}</div>
           </div>
-          <span class="account-badge">${sanitize(order.status || t('account_status'))}</span>
+          <span class="account-badge">${sanitize(order.status || 'pending')}</span>
         </div>
-        <div class="account-item-meta">${sanitize(order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleDateString(dateLocale) : '')}</div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_billing')));
+        <div class="account-item-meta">${sanitize(order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleDateString('fr-FR') : '')}</div>
+      </div>`).join('') : emptyPlaceholder('Aucun historique de facturation disponible.'));
   }
 }
 
@@ -6471,12 +5769,6 @@ async function saveAccountProfile() {
   }
   let photoURL = currentUser.photoURL || '';
   try {
-    if (!photoURL) {
-      const existingDoc = await db.collection('users').doc(currentUser.uid).get();
-      if (existingDoc.exists) {
-        photoURL = existingDoc.data()?.photoURL || photoURL;
-      }
-    }
     if (photoFile) {
       const ext = (photoFile.name.split('.').pop() || 'jpg').toLowerCase();
       const safeExt = /^(jpg|jpeg|png|webp|gif)$/i.test(ext) ? ext : 'jpg';
@@ -6493,11 +5785,11 @@ async function saveAccountProfile() {
     if (document.getElementById('accountPhotoFile')) document.getElementById('accountPhotoFile').value = '';
     if (document.getElementById('accountPhotoPreview')) updateAccountPhotoPreview(photoURL || '');
     updateAuth();
-    if (msgEl) msgEl.textContent = t('account_profile_saved');
-    showToast(t('account_profile_saved'));
+    if (msgEl) msgEl.textContent = 'Profil enregistré.';
+    showToast('✓ Profil mis à jour.');
   } catch (e) {
     console.warn('saveAccountProfile failed', e);
-    if (msgEl) msgEl.textContent = t('account_profile_error');
+    if (msgEl) msgEl.textContent = 'Erreur lors de la sauvegarde du profil.';
   }
 }
 
@@ -6562,62 +5854,21 @@ function applyPreset(name) {
   if (!p) return;
   // EQ
   ['eq60','eq250','eq1k','eq4k','eq12k'].forEach(id => {
-    const elem = document.getElementById(id);
-    if (elem) elem.value = p[id];
+    document.getElementById(id).value = p[id];
   });
-  try { updateEQ(); } catch(e) {}
+  updateEQ();
   // Compressor
-  const compThreshElem = document.getElementById('compThreshold');
-  if (compThreshElem) {
-    compThreshElem.value = p.compThreshold;
-    const threshVal = document.getElementById('compThreshVal');
-    if (threshVal) threshVal.textContent = p.compThreshold + 'dB';
-  }
-  const compRatioElem = document.getElementById('compRatio');
-  if (compRatioElem) {
-    compRatioElem.value = p.compRatio;
-    const ratioVal = document.getElementById('compRatioVal');
-    if (ratioVal) ratioVal.textContent = p.compRatio + ':1';
-  }
-  const compAttackElem = document.getElementById('compAttack');
-  if (compAttackElem) {
-    compAttackElem.value = p.compAttack;
-    const attackVal = document.getElementById('compAttackVal');
-    if (attackVal) attackVal.textContent = p.compAttack + 'ms';
-  }
-  const compReleaseElem = document.getElementById('compRelease');
-  if (compReleaseElem) {
-    compReleaseElem.value = p.compRelease;
-    const releaseVal = document.getElementById('compReleaseVal');
-    if (releaseVal) releaseVal.textContent = p.compRelease + 'ms';
-  }
+  document.getElementById('compThreshold').value = p.compThreshold; document.getElementById('compThreshVal').textContent = p.compThreshold + 'dB';
+  document.getElementById('compRatio').value = p.compRatio; document.getElementById('compRatioVal').textContent = p.compRatio + ':1';
+  document.getElementById('compAttack').value = p.compAttack; document.getElementById('compAttackVal').textContent = p.compAttack + 'ms';
+  document.getElementById('compRelease').value = p.compRelease; document.getElementById('compReleaseVal').textContent = p.compRelease + 'ms';
   // Reverb
-  const reverbSizeElem = document.getElementById('reverbSize');
-  if (reverbSizeElem) {
-    reverbSizeElem.value = p.reverbSize;
-    const reverbSizeVal = document.getElementById('reverbSizeVal');
-    if (reverbSizeVal) reverbSizeVal.textContent = p.reverbSize + '%';
-  }
-  const reverbWetElem = document.getElementById('reverbWet');
-  if (reverbWetElem) {
-    reverbWetElem.value = p.reverbWet;
-    const reverbWetVal = document.getElementById('reverbWetVal');
-    if (reverbWetVal) reverbWetVal.textContent = p.reverbWet + '%';
-  }
-  const reverbDelayElem = document.getElementById('reverbDelay');
-  if (reverbDelayElem) {
-    reverbDelayElem.value = p.reverbDelay;
-    const reverbDelayVal = document.getElementById('reverbDelayVal');
-    if (reverbDelayVal) reverbDelayVal.textContent = p.reverbDelay + 'ms';
-  }
+  document.getElementById('reverbSize').value = p.reverbSize; document.getElementById('reverbSizeVal').textContent = p.reverbSize + '%';
+  document.getElementById('reverbWet').value = p.reverbWet; document.getElementById('reverbWetVal').textContent = p.reverbWet + '%';
+  document.getElementById('reverbDelay').value = p.reverbDelay; document.getElementById('reverbDelayVal').textContent = p.reverbDelay + 'ms';
   // Pitch
-  const pitchShiftElem = document.getElementById('pitchShift');
-  if (pitchShiftElem) {
-    pitchShiftElem.value = p.pitchShift;
-    const pitchVal = document.getElementById('pitchVal');
-    if (pitchVal) pitchVal.textContent = (p.pitchShift > 0 ? '+' : '') + p.pitchShift + ' st';
-  }
-  try { updateCompressor(); } catch(e) {}
+  document.getElementById('pitchShift').value = p.pitchShift; document.getElementById('pitchVal').textContent = (p.pitchShift > 0 ? '+' : '') + p.pitchShift + ' st';
+  updateCompressor();
   document.querySelectorAll('.studio-preset-btn').forEach(b => b.classList.remove('active'));
   event && event.target && event.target.classList.add('active');
   showToast((currentLang==='en'?'✓ Preset ':'✓ Preset ') + name.toUpperCase() + (currentLang==='en'?' applied!':' appliqué !'));
@@ -6725,8 +5976,7 @@ async function exportOfflineRender(format, quality) {
 
   // Gain vocal
   const gainVoice = offlineCtx.createGain();
-  const vocalVolElem2 = document.getElementById('vocalVolSlider');
-  gainVoice.gain.value = Math.max(0.1, Math.min(1, (vocalVolElem2 ? parseFloat(vocalVolElem2.value) : 80) / 100));
+  gainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 
   // EQ chain
   const eqDefs = [
@@ -6740,21 +5990,16 @@ async function exportOfflineRender(format, quality) {
   for (const eq of eqDefs) {
     const f = offlineCtx.createBiquadFilter();
     f.type = eq.type; f.frequency.value = eq.freq; f.Q.value = 1.4;
-    const eqElem = document.getElementById(eq.id);
-    f.gain.value = eqElem ? parseFloat(eqElem.value) : 0;  // Default to 0dB if slider missing
+    f.gain.value = parseFloat(document.getElementById(eq.id).value);
     chain.connect(f); chain = f;
   }
 
   // Compressor
   const comp = offlineCtx.createDynamicsCompressor();
-  const compThreshElem = document.getElementById('compThreshold');
-  const compRatioElem = document.getElementById('compRatio');
-  const compAttackElem = document.getElementById('compAttack');
-  const compReleaseElem = document.getElementById('compRelease');
-  comp.threshold.value = compThreshElem ? parseFloat(compThreshElem.value) : -50;
-  comp.ratio.value = compRatioElem ? parseFloat(compRatioElem.value) : 12;
-  comp.attack.value = (compAttackElem ? parseFloat(compAttackElem.value) : 3) / 1000;
-  comp.release.value = (compReleaseElem ? parseFloat(compReleaseElem.value) : 250) / 1000;
+  comp.threshold.value = parseFloat(document.getElementById('compThreshold').value);
+  comp.ratio.value = parseFloat(document.getElementById('compRatio').value);
+  comp.attack.value = parseFloat(document.getElementById('compAttack').value) / 1000;
+  comp.release.value = parseFloat(document.getElementById('compRelease').value) / 1000;
   comp.knee.value = 10;
   chain.connect(comp);
   comp.connect(offlineCtx.destination);
@@ -6779,8 +6024,7 @@ async function exportOfflineRender(format, quality) {
       const beatSource = offlineCtx.createBufferSource();
       beatSource.buffer = beatBuf;
       const gainBeat2 = offlineCtx.createGain();
-      const beatVolElem2 = document.getElementById('beatVolSlider');
-      gainBeat2.gain.value = Math.max(0.1, Math.min(1, (beatVolElem2 ? parseFloat(beatVolElem2.value) : 70) / 100));
+      gainBeat2.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
       beatSource.connect(gainBeat2);
       gainBeat2.connect(offlineCtx.destination);
       beatSource.start(0);

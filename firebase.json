@@ -31,6 +31,12 @@
       "firebase-hosting-config.json",
       "skills-lock.json"
     ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
     "headers": [
       {
         "source": "**",
@@ -44,7 +50,7 @@
           { "key": "Cross-Origin-Resource-Policy", "value": "same-site" },
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; connect-src 'self' https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+            "value": "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app; connect-src 'self' https://www.gstatic.com https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci https://open.er-api.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
           }
         ]
       },

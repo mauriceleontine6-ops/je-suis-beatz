@@ -28,7 +28,12 @@ async function callerIsAdmin(context) {
 
   const uid = context.auth.uid;
   const adminDoc = await db.collection('admins').doc(uid).get();
-  if (adminDoc.exists && adminDoc.data().isAdmin === true) return true;
+  if (adminDoc.exists) {
+    const adminData = adminDoc.data();
+    if (adminData.isAdmin === true || adminData.admin === true) {
+      return true;
+    }
+  }
 
   const userDoc = await db.collection('users').doc(uid).get();
   if (userDoc.exists && userDoc.data().role === 'admin') return true;
@@ -392,7 +397,14 @@ exports.ensureAdminClaim = functions.https.onCall(async (data, context) => {
   }
 
   const adminDoc = await db.collection('admins').doc(uid).get();
-  let isAdmin = adminDoc.exists && adminDoc.data().isAdmin === true;
+  let isAdmin = false;
+  if (adminDoc.exists) {
+    const adminData = adminDoc.data();
+    isAdmin = adminData.isAdmin === true || adminData.admin === true;
+    if (adminData.admin === true && adminData.isAdmin !== true) {
+      await db.collection('admins').doc(uid).set({ isAdmin: true }, { merge: true });
+    }
+  }
 
   const userDoc = await db.collection('users').doc(uid).get();
   if (!email && userDoc.exists) {
@@ -404,7 +416,7 @@ exports.ensureAdminClaim = functions.https.onCall(async (data, context) => {
     const legacyAdmin = userDoc.exists && userDoc.data().role === 'admin';
     const bootstrapAdmin = BOOTSTRAP_ADMIN_EMAILS.includes(email);
     if (legacyAdmin || bootstrapAdmin) {
-      await db.collection('admins').doc(uid).set({ isAdmin: true, email }, { merge: true });
+      await db.collection('admins').doc(uid).set({ isAdmin: true, admin: true, email }, { merge: true });
       await db.collection('users').doc(uid).set({ role: 'admin', email }, { merge: true });
       isAdmin = true;
     }
@@ -432,6 +444,32 @@ exports.ensureAdminClaim = functions.https.onCall(async (data, context) => {
 });
 
 // URL signée pour téléverser cover/audio (contourne les règles Storage client)
+function normalizeBeatTitle(title) {
+  return String(title || '').trim().toUpperCase();
+}
+
+function isValidPublicUrl(url) {
+  return typeof url === 'string' && /^https?:\/\/.+/.test(url);
+}
+
+function validateBeatPayload(beat) {
+  if (!beat || typeof beat !== 'object') return 'Beat invalide';
+  const title = normalizeBeatTitle(beat.title);
+  if (!title || title.length > 100) return 'Titre invalide';
+  const bpm = Number(beat.bpm);
+  if (!Number.isInteger(bpm) || bpm < 1 || bpm > 300) return 'BPM invalide';
+  const prices = ['priceBasic', 'pricePremium', 'priceWav', 'priceUnlimited', 'priceExclusive'];
+  for (const key of prices) {
+    if (beat[key] != null) {
+      const value = Number(beat[key]);
+      if (!Number.isFinite(value) || value < 0 || value > 100000) return `Prix ${key} invalide`;
+    }
+  }
+  if (beat.cover && !isValidPublicUrl(beat.cover)) return 'Cover URL invalide';
+  if (beat.audio && !isValidPublicUrl(beat.audio)) return 'Audio URL invalide';
+  return null;
+}
+
 exports.getBeatUploadUrl = functions.https.onCall(async (data, context) => {
   if (!(await callerIsAdmin(context))) {
     throw new functions.https.HttpsError('permission-denied', 'Admin only');
@@ -442,6 +480,15 @@ exports.getBeatUploadUrl = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Chemin invalide');
   }
 
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+    'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/m4a', 'audio/flac', 'audio/ogg'
+  ];
+  const finalContentType = String(contentType || '').trim().toLowerCase();
+  if (!allowedTypes.includes(finalContentType)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Type de contenu invalide');
+  }
+
   const bucket = adminSdk.storage().bucket();
   const file = bucket.file(path);
   const expires = Date.now() + 20 * 60 * 1000;
@@ -449,7 +496,7 @@ exports.getBeatUploadUrl = functions.https.onCall(async (data, context) => {
     version: 'v4',
     action: 'write',
     expires,
-    contentType: contentType || 'application/octet-stream',
+    contentType: finalContentType,
   });
 
   const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media`;
@@ -463,23 +510,83 @@ exports.adminSaveBeat = functions.https.onCall(async (data, context) => {
   }
 
   const { beat, beatId } = data || {};
-  if (!beat || typeof beat !== 'object' || !beat.title || !beat.bpm) {
+  if (!beat || typeof beat !== 'object') {
     throw new functions.https.HttpsError('invalid-argument', 'Données beat invalides');
   }
 
   const payload = { ...beat };
   delete payload.id;
+  payload.title = normalizeBeatTitle(payload.title);
+
+  const validationError = validateBeatPayload(payload);
+  if (validationError) {
+    throw new functions.https.HttpsError('invalid-argument', validationError);
+  }
+
+  const serverTs = adminSdk.firestore.FieldValue.serverTimestamp();
 
   if (beatId && typeof beatId === 'string' && !beatId.startsWith('catalog-')) {
-    await db.collection('beats').doc(beatId).set(payload, { merge: true });
+    const docRef = db.collection('beats').doc(beatId);
+    const existing = await docRef.get();
+    const patch = { ...payload, updatedAt: serverTs };
+    if (!existing.exists || !existing.data()?.createdAt) {
+      patch.createdAt = serverTs;
+    }
+    await docRef.set(patch, { merge: true });
     return { id: beatId, action: 'updated' };
   }
 
   const ref = await db.collection('beats').add({
     ...payload,
-    createdAt: adminSdk.firestore.FieldValue.serverTimestamp(),
+    createdAt: serverTs,
+    updatedAt: serverTs,
   });
   return { id: ref.id, action: 'created' };
+});
+
+exports.purgeDuplicateBeats = functions.https.onCall(async (data, context) => {
+  if (!(await callerIsAdmin(context))) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin only');
+  }
+
+  const collectionName = String(data?.collection || 'beats');
+  if (collectionName !== 'beats') {
+    throw new functions.https.HttpsError('invalid-argument', 'Collection non autorisée');
+  }
+
+  const snap = await db.collection(collectionName).get();
+  const keeper = new Map();
+  const duplicates = [];
+
+  for (const doc of snap.docs) {
+    const beat = doc.data();
+    const title = normalizeBeatTitle(beat.title);
+    if (!title) continue;
+    const current = keeper.get(title);
+    const currentTs = current?.createdAt?.toMillis?.() || current?.createdAt?.seconds * 1000 || 0;
+    const candidateTs = beat.createdAt?.toMillis?.() || beat.createdAt?.seconds * 1000 || 0;
+    if (!current || candidateTs > currentTs) {
+      keeper.set(title, doc);
+    }
+  }
+
+  for (const doc of snap.docs) {
+    const beat = doc.data();
+    const title = normalizeBeatTitle(beat.title);
+    if (!title) continue;
+    const keeperDoc = keeper.get(title);
+    if (keeperDoc && keeperDoc.id !== doc.id) {
+      duplicates.push(doc.id);
+    }
+  }
+
+  const deleted = [];
+  for (const docId of duplicates) {
+    await db.collection(collectionName).doc(docId).delete();
+    deleted.push(docId);
+  }
+
+  return { success: true, deleted, count: deleted.length };
 });
 
 exports.getAdminUserStats = functions.https.onCall(async (data, context) => {
@@ -489,9 +596,10 @@ exports.getAdminUserStats = functions.https.onCall(async (data, context) => {
 
   const totalSnapshot = await db.collection('users').count().get();
   const totalCount = totalSnapshot.data()?.count || 0;
+  const limit = Math.min(Math.max(Number(data?.limit) || 500, 50), 2000);
   const usersSnap = await db.collection('users')
     .orderBy('createdAt', 'desc')
-    .limit(50)
+    .limit(limit)
     .get();
 
   const users = usersSnap.docs.map((doc) => {
@@ -500,11 +608,12 @@ exports.getAdminUserStats = functions.https.onCall(async (data, context) => {
       uid: doc.id,
       username: d.username || '—',
       email: d.email || '—',
+      role: d.role || 'user',
       createdAt: d.createdAt?.toMillis?.() || d.createdAt?._seconds * 1000 || null,
     };
   });
 
-  return { count: totalCount, users, partial: users.length < totalCount };
+  return { count: totalCount, users, partial: users.length < totalCount, limit };
 });
 
 exports.setAdminClaim = functions.https.onCall(async (data, context) => {
@@ -819,6 +928,56 @@ exports.geniuspayWebhook = functions.https.onRequest(async (req, res) => {
   }
 });
 
+// Export translateText separately so the function is always registered.
+exports.translateText = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Connexion requise');
+  if (!(await callerIsAdmin(context))) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin only');
+  }
+
+  const text = (data && data.text) ? String(data.text) : '';
+  const target = (data && data.target) ? String(data.target) : 'en';
+  if (!text || text.length < 1) {
+    throw new functions.https.HttpsError('invalid-argument', 'text missing');
+  }
+
+  // Try configured Google Translate API key first
+  let apiKey = null;
+  try { apiKey = cfgOptional('translate.api_key') || process.env.GOOGLE_TRANSLATE_API_KEY || null; } catch (e) { apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || null; }
+  if (!apiKey) {
+    // Try Secret Manager
+    const s = await getSecretFromSecretManager('GOOGLE_TRANSLATE_API_KEY');
+    if (s) apiKey = s;
+  }
+
+  try {
+    if (apiKey) {
+      // Use Google Translate REST endpoint
+      const url = 'https://translation.googleapis.com/language/translate/v2';
+      const params = { q: text, target, format: 'text', key: apiKey };
+      const resp = await axios.post(url, null, { params, timeout: 15000 });
+      const translated = resp.data && resp.data.data && resp.data.data.translations && resp.data.data.translations[0] && resp.data.data.translations[0].translatedText;
+      if (translated) return { translated };
+    }
+
+    // Fallback: LibreTranslate public instance
+    try {
+      const fallback = await axios.post('https://libretranslate.de/translate', { q: text, source: 'auto', target }, { headers: { 'Content-Type': 'application/json' }, timeout: 12000 });
+      if (fallback && fallback.data && fallback.data.translatedText) {
+        return { translated: fallback.data.translatedText };
+      }
+    } catch (e) {
+      console.warn('LibreTranslate fallback failed:', e.message || e);
+    }
+
+    throw new functions.https.HttpsError('internal', 'Translation unavailable');
+  } catch (e) {
+    console.error('translateText error:', e && e.message ? e.message : e);
+    if (e instanceof functions.https.HttpsError) throw e;
+    throw new functions.https.HttpsError('internal', 'Translation failed');
+  }
+});
+
 // ─── Catalogue initial (GHOST) — sync Firestore via Admin SDK ───
 const HOSTING_ORIGIN = 'https://je-suis-beatz.web.app';
 const INITIAL_CATALOG_BEATS = [{
@@ -829,11 +988,12 @@ const INITIAL_CATALOG_BEATS = [{
   priceBasic: 25,
   pricePremium: 50,
   priceWav: 100,
-  priceExclusive: 300,
+  priceUnlimited: 150,
+  priceExclusive: 499,
   cover: 'image_beat_Ghost.jpeg',
-  audio: 'Ghost.mpeg',
+  audio: 'Ghost.mp3',
   coverStorage: 'covers/ghost.jpeg',
-  audioStorage: 'beats/ghost.mpeg',
+  audioStorage: 'beats/ghost.mp3',
   status: 'available',
   desc_fr: 'Un beat Drill/Afro sombre et hypnotique, parfait pour les punchlines et le storytelling cinématique.',
   desc_en: 'A dark and hypnotic Drill/Afro beat, perfect for punchlines and cinematic storytelling.',
@@ -935,8 +1095,10 @@ exports.ensureCatalogBeats = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('permission-denied', 'Admin only');
   }
 
+  const action = String(data?.action || '').trim();
+
   // action: delete — supprimer un beat (Admin SDK, contourne les règles client)
-  if (data?.action === 'delete') {
+  if (action === 'delete') {
     const { beatId, title } = data;
     let deleted = 0;
 
@@ -962,22 +1124,25 @@ exports.ensureCatalogBeats = functions.https.onCall(async (data, context) => {
     return { success: true, deleted };
   }
 
-  if (data?.action === 'purgeTrap') {
+  if (action === 'purgeTrap') {
     return { success: true, ...(await purgeTrapBeatsFromFirestore()) };
   }
 
-  const results = [];
-  const syncAssets = data?.syncAssets !== false;
-  for (const beat of INITIAL_CATALOG_BEATS) {
-    try {
-      results.push(await upsertCatalogBeat(beat, syncAssets));
-    } catch (assetErr) {
-      console.error('ensureCatalogBeats failed:', beat.title, assetErr.message || assetErr);
-      results.push({ title: beat.title, action: 'error', error: assetErr.message || String(assetErr) });
+  if (action === 'seedGhost' || action === 'syncCatalog') {
+    const results = [];
+    const syncAssets = data?.syncAssets !== false;
+    for (const beat of INITIAL_CATALOG_BEATS) {
+      try {
+        results.push(await upsertCatalogBeat(beat, syncAssets));
+      } catch (assetErr) {
+        console.error('ensureCatalogBeats failed:', beat.title, assetErr.message || assetErr);
+        results.push({ title: beat.title, action: 'error', error: assetErr.message || String(assetErr) });
+      }
     }
+    return { success: true, results };
   }
 
-  return { success: true, results };
+  throw new functions.https.HttpsError('invalid-argument', 'Action must be delete, purgeTrap or seedGhost');
 });
 
 // Bootstrap one-shot : POST avec en-tête X-Seed-Key (téléverse assets + Firestore)
@@ -1021,6 +1186,46 @@ exports.purgeTrapHttp = functions.https.onRequest(async (req, res) => {
   } catch (e) {
     console.error('purgeTrapHttp:', e);
     res.status(500).json({ error: e.message || String(e) });
+  }
+});
+
+// Audio proxy: relaie une URL distante (ex: Firebase Storage) et ajoute les en-têtes CORS
+// Usage: https://us-central1-je-suis-beatz.cloudfunctions.net/audioProxy?u=<ENCODED_URL>
+exports.audioProxy = functions.https.onRequest(async (req, res) => {
+  // CORS headers — allow both production and development origins
+  try {
+    const origin = req.get('origin') || req.get('Origin') || '';
+    const allowedOrigins = [
+      'https://je-suis-beatz.web.app',
+      'https://je-suis-beatz.firebaseapp.com',
+      'http://localhost:8000',
+      'http://localhost:3000',
+      'http://127.0.0.1:8000',
+      'http://127.0.0.1:3000'
+    ];
+    
+    if (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      res.set('Access-Control-Allow-Origin', origin || HOSTING_ORIGIN);
+    } else {
+      res.set('Access-Control-Allow-Origin', HOSTING_ORIGIN);
+    }
+    
+    res.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Origin,Accept,Content-Type');
+    if (req.method === 'OPTIONS') return res.status(204).send('');
+
+    const remoteUrl = String(req.query.u || req.query.url || '').trim();
+    if (!remoteUrl) return res.status(400).send('Missing url parameter (u)');
+
+    // Fetch remote resource as stream and pipe back to client
+    const resp = await axios.get(remoteUrl, { responseType: 'stream', timeout: 30000 });
+    const contentType = resp.headers['content-type'] || 'audio/mpeg';
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', 'public, max-age=3600');
+    resp.data.pipe(res);
+  } catch (err) {
+    console.error('audioProxy error:', err && err.message ? err.message : err);
+    try { return res.status(502).send('Bad gateway'); } catch(e) { /* noop */ }
   }
 });
 

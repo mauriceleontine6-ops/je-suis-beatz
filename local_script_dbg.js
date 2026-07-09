@@ -1,7 +1,6 @@
-let fsRecordingStartBeat = 0;
-// Firebase est déjà initialisé dans index.html
+﻿// Firebase est dÃ©jÃ  initialisÃ© dans index.html
 
-// ═══ SÉCURITÉ — Rate Limiting pour Connexion ═══
+// â•â•â• SÃ‰CURITÃ‰ â€” Rate Limiting pour Connexion â•â•â•
 const loginAttempts = {};
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_ATTEMPT_RESET_MS = 15 * 60 * 1000; // 15 minutes
@@ -33,7 +32,7 @@ function clearLoginAttempts(identifier) {
   delete loginAttempts[key];
 }
 
-// ═══ SÉCURITÉ — Toggle Password Visibility ═══
+// â•â•â• SÃ‰CURITÃ‰ â€” Toggle Password Visibility â•â•â•
 function togglePasswordVisibility(fieldId) {
   const field = document.getElementById(fieldId);
   const toggleBtn = document.getElementById(fieldId + 'Toggle');
@@ -42,13 +41,13 @@ function togglePasswordVisibility(fieldId) {
   const isPassword = field.type === 'password';
   field.type = isPassword ? 'text' : 'password';
   
-  // Changer l'icône
+  // Changer l'icÃ´ne
   if (toggleBtn) {
     toggleBtn.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
   }
 }
 
-// Cloud Functions — région explicite (2nd gen, us-central1)
+// Cloud Functions â€” rÃ©gion explicite (2nd gen, us-central1)
 function cloudFunctions() {
   if (!window._cloudFns) {
     window._cloudFns = firebase.app().functions('us-central1');
@@ -56,7 +55,7 @@ function cloudFunctions() {
   return window._cloudFns;
 }
 
-// Attend que Firebase Auth soit prêt (évite "Connexion requise" si session pas encore restaurée)
+// Attend que Firebase Auth soit prÃªt (Ã©vite "Connexion requise" si session pas encore restaurÃ©e)
 function waitForAuthUser(timeoutMs = 10000) {
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
   return new Promise((resolve, reject) => {
@@ -74,7 +73,7 @@ function waitForAuthUser(timeoutMs = 10000) {
   });
 }
 
-// Appel Cloud Function — SDK Firebase (auth auto) + repli fetch Bearer
+// Appel Cloud Function â€” SDK Firebase (auth auto) + repli fetch Bearer
 async function callCloudFunction(name, data) {
   const user = await waitForAuthUser();
   await user.getIdToken(true);
@@ -158,21 +157,21 @@ const GENIUSPAY_CONFIG = {
   apiKey: 'pk_live_xUKpaVadschoOZPS5F7jcKUAdmiNZZh9',
   environment: 'production',
   // URL publique de vos Cloud Functions (projet fourni)
-  // Utiliser l'URL Run fournie par le déploiement (fonctions 2nd gen)
+  // Utiliser l'URL Run fournie par le dÃ©ploiement (fonctions 2nd gen)
   cloudFunctionURL: 'https://creategeniuspayment-qyfkwosfca-uc.a.run.app',
-  // URL de callback pour redirection après paiement
+  // URL de callback pour redirection aprÃ¨s paiement
   successURL: window.location.origin + '/?payment_status=success',
   failureURL: window.location.origin + '/?payment_status=failure'
 };
 
-// ═══ DEVISES — taux mid-market (1 USD = 566,677 XOF → 300 $ = 170 003,10 FCFA)
+// â•â•â• DEVISES â€” taux mid-market (1 USD = 566,677 XOF â†’ 300 $ = 170 003,10 FCFA)
 const CURRENCY_RATES = {
-  USD: { symbol: '$', rate: 1, flag: '🇺🇸', label: 'USD', decimals: 0 },
-  EUR: { symbol: '€', rate: 0.8578, flag: '🇪🇺', label: 'EUR', decimals: 2 },
-  XOF: { symbol: 'FCFA', rate: 566.677, flag: '🇨🇮', label: 'XOF', decimals: 2 },
-  GNF: { symbol: 'GNF', rate: 8640, flag: '🇬🇳', label: 'GNF', decimals: 0 },
-  GHS: { symbol: '₵', rate: 15.5, flag: '🇬🇭', label: 'GHS', decimals: 2 },
-  NGN: { symbol: '₦', rate: 1580, flag: '🇳🇬', label: 'NGN', decimals: 2 }
+  USD: { symbol: '$', rate: 1, flag: 'ðŸ‡ºðŸ‡¸', label: 'USD', decimals: 0 },
+  EUR: { symbol: 'â‚¬', rate: 0.8578, flag: 'ðŸ‡ªðŸ‡º', label: 'EUR', decimals: 2 },
+  XOF: { symbol: 'FCFA', rate: 566.677, flag: 'ðŸ‡¨ðŸ‡®', label: 'XOF', decimals: 2 },
+  GNF: { symbol: 'GNF', rate: 8640, flag: 'ðŸ‡¬ðŸ‡³', label: 'GNF', decimals: 0 },
+  GHS: { symbol: 'â‚µ', rate: 15.5, flag: 'ðŸ‡¬ðŸ‡­', label: 'GHS', decimals: 2 },
+  NGN: { symbol: 'â‚¦', rate: 1580, flag: 'ðŸ‡³ðŸ‡¬', label: 'NGN', decimals: 2 }
 };
 
 const CURRENCY_RATE_FEED_URL = 'https://open.er-api.com/v6/latest/USD';
@@ -188,8 +187,8 @@ function getRateChangeClass(code) {
 
 function getRateChangeLabel(code) {
   const change = currencyRateChange[code];
-  if (change > 0) return ` <span style="color:#4ade80">▲ ${change.toFixed(3)}</span>`;
-  if (change < 0) return ` <span style="color:#f87171">▼ ${Math.abs(change).toFixed(3)}</span>`;
+  if (change > 0) return ` <span style="color:#4ade80">â–² ${change.toFixed(3)}</span>`;
+  if (change < 0) return ` <span style="color:#f87171">â–¼ ${Math.abs(change).toFixed(3)}</span>`;
   return '';
 }
 
@@ -238,7 +237,7 @@ function updateCurrencyDisplays() {
   const cartTotVal = document.getElementById('cartTotVal');
   if (cartTotVal) {
     const total = cartTotalUsd();
-    cartTotVal.textContent = '$' + total + ' · ' + formatUsdAsCurrency(total, 'XOF');
+    cartTotVal.textContent = '$' + total + ' Â· ' + formatUsdAsCurrency(total, 'XOF');
     cartTotVal.style.cssText = getRateChangeClass('XOF');
   }
 
@@ -293,7 +292,7 @@ function cartTotalUsd() {
   return cart.reduce((s, c) => s + c.price, 0);
 }
 
-// ═══ DATA ═══
+// â•â•â• DATA â•â•â•
 const DEFAULT_BEAT_COVER = 'image_beat.jpeg';
 
 // Fallback catalog with essential beats for testing/demo
@@ -316,7 +315,7 @@ const INITIAL_CATALOG_BEATS = [
 function normalizeBeatAsset(path) {
   if (!path || typeof path !== 'string') return '';
   let asset = path.trim();
-  // Ne pas réécrire .mpeg → .mp3 dans les URLs Storage (le fichier reste .mpeg)
+  // Ne pas rÃ©Ã©crire .mpeg â†’ .mp3 dans les URLs Storage (le fichier reste .mpeg)
   if (!/^https?:\/\//i.test(asset) && /\.mpeg$/i.test(asset)) {
     asset = asset.replace(/\.mpeg$/i, '.mp3');
   }
@@ -404,20 +403,6 @@ function resolveFsBeatProxyURL(source) {
     return `https://audioproxy-qyfkwosfca-uc.a.run.app?u=${encodeURIComponent(direct)}`;
   }
   return direct;
-}
-
-async function fetchAudioBufferForBeatUrl(url) {
-  if (!url || !studioInstance || !studioInstance.engine || typeof studioInstance.engine.getContext !== 'function') return null;
-  try {
-    const response = await fetch(url, { mode: 'cors', cache: 'no-store' });
-    if (!response.ok) throw new Error('Beat fetch failed: ' + response.status);
-    const arrayBuffer = await response.arrayBuffer();
-    const ctx = studioInstance.engine.getContext();
-    return await ctx.decodeAudioData(arrayBuffer);
-  } catch (error) {
-    console.warn('fetchAudioBufferForBeatUrl failed:', error, url);
-    return null;
-  }
 }
 
 function audioSrcMatches(audioEl, targetUrl) {
@@ -579,14 +564,14 @@ function sanitizeCartItems(items) {
   return clean;
 }
 
-// Panier : on garde une copie locale pour l'UX temps réel, mais on sync avec Firestore
+// Panier : on garde une copie locale pour l'UX temps rÃ©el, mais on sync avec Firestore
 let cart = sanitizeCartItems(JSON.parse(localStorage.getItem('jsb_cart2') || '[]'));
 let currentUser = JSON.parse(sessionStorage.getItem('jsb_user2') || 'null');
-// ⚠️ Le mot de passe admin n'est PLUS stocké en localStorage.
+// âš ï¸ Le mot de passe admin n'est PLUS stockÃ© en localStorage.
 // L'admin se connecte uniquement via Firebase Auth + custom claim "admin:true".
-// Pour définir le claim admin, utilise Firebase Admin SDK côté serveur (Cloud Function).
+// Pour dÃ©finir le claim admin, utilise Firebase Admin SDK cÃ´tÃ© serveur (Cloud Function).
 let currentFilter = 'Tous';
-// Global audio element used for playback — expose it on `window` so other scripts/devtools can access it.
+// Global audio element used for playback â€” expose it on `window` so other scripts/devtools can access it.
 let audioEl = new Audio();
 window.audioEl = audioEl;
 audioEl.id = 'jsbAudio';
@@ -605,7 +590,7 @@ try {
 let isPlaying = false;
 let currentIdx = -1;
  
-// ═══ FIRESTORE HELPERS ═══
+// â•â•â• FIRESTORE HELPERS â•â•â•
 
 async function seedInitialCatalogIfEmpty() {
   for (const beat of INITIAL_CATALOG_BEATS) {
@@ -650,7 +635,7 @@ function subscribeBeatsFromFirestore() {
   );
 }
 
-// Charger les beats depuis Firestore (catalogue réel uniquement)
+// Charger les beats depuis Firestore (catalogue rÃ©el uniquement)
 async function loadBeatsFromFirestore() {
   try {
     let snap;
@@ -677,14 +662,14 @@ function getBeatDesc(b) {
   return b.desc || '';
 }
  
-// Vérifie la session Firebase avant toute action admin
+// VÃ©rifie la session Firebase avant toute action admin
 async function ensureAdminAuth() {
   let user;
   try {
     user = await waitForAuthUser();
     await user.getIdToken(true);
   } catch {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Please log in first' : 'Connectez-vous d\'abord'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Please log in first' : 'Connectez-vous d\'abord'));
     return false;
   }
 
@@ -753,11 +738,11 @@ async function ensureAdminAuth() {
     console.warn('ensureAdminClaim:', e.message);
   }
 
-  showToast('⚠ ' + (currentLang === 'en' ? 'Admin access denied' : 'Accès admin refusé'));
+  showToast('âš  ' + (currentLang === 'en' ? 'Admin access denied' : 'AccÃ¨s admin refusÃ©'));
   return false;
 }
 
-// Sauvegarder un beat (ajout ou mise à jour)
+// Sauvegarder un beat (ajout ou mise Ã  jour)
 async function saveBeatToFirestore(beatData, docId) {
   if (!(await ensureAdminAuth())) return null;
   const title = normalizeBeatTitle(beatData.title);
@@ -766,7 +751,7 @@ async function saveBeatToFirestore(beatData, docId) {
 
   const validationError = validateAdminBeatPayload(payload);
   if (validationError) {
-    showToast('⚠ ' + validationError);
+    showToast('âš  ' + validationError);
     return null;
   }
 
@@ -801,7 +786,7 @@ async function saveBeatToFirestore(beatData, docId) {
     if (result.data?.id) return result.data.id;
   } catch (cloudErr) {
     console.error('Erreur save beat', cloudErr);
-    showToast('⚠ Erreur de sauvegarde : ' + (cloudErr.message || cloudErr.code || 'permission refusée'));
+    showToast('âš  Erreur de sauvegarde : ' + (cloudErr.message || cloudErr.code || 'permission refusÃ©e'));
   }
   return null;
 }
@@ -810,7 +795,7 @@ function isCatalogOnlyId(id) {
   return String(id).startsWith('catalog-');
 }
 
-// ═══ ADMIN — TÉLÉVERSEMENT BEATS (Firebase Storage) ═══
+// â•â•â• ADMIN â€” TÃ‰LÃ‰VERSEMENT BEATS (Firebase Storage) â•â•â•
 const ADMIN_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ADMIN_AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/m4a', 'audio/flac', 'audio/ogg'];
 let pendingCoverFile = null;
@@ -844,7 +829,7 @@ function resolveStorageContentType(file) {
 
 async function uploadFileToStorage(file, path) {
   const contentType = resolveStorageContentType(file);
-  // Upload direct Storage (règles admin par email)
+  // Upload direct Storage (rÃ¨gles admin par email)
   try {
     const user = await waitForAuthUser();
     await user.getIdToken(true);
@@ -860,10 +845,10 @@ async function uploadFileToStorage(file, path) {
         }
       );
     });
-    setUploadProgress(100, '✓');
+    setUploadProgress(100, 'âœ“');
     return url;
   } catch (directErr) {
-    console.warn('Upload direct indisponible, repli URL signée:', directErr.message);
+    console.warn('Upload direct indisponible, repli URL signÃ©e:', directErr.message);
   }
   try {
     const res = await callCloudFunction('getBeatUploadUrl', { path, contentType });
@@ -874,7 +859,7 @@ async function uploadFileToStorage(file, path) {
       body: file,
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    setUploadProgress(100, '✓');
+    setUploadProgress(100, 'âœ“');
     return downloadUrl;
   } catch (signedErr) {
     throw signedErr;
@@ -885,12 +870,12 @@ function onCoverFileSelected(input) {
   const file = input.files?.[0];
   if (!file) return;
   if (!ADMIN_IMAGE_TYPES.includes(file.type)) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Invalid image format' : 'Format image invalide'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Invalid image format' : 'Format image invalide'));
     input.value = '';
     return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Image max 10 MB' : 'Image max 10 Mo'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Image max 10 MB' : 'Image max 10 Mo'));
     input.value = '';
     return;
   }
@@ -913,12 +898,12 @@ function onAudioFileSelected(input) {
     || file.type === 'video/mpeg'
     || /\.(mp3|wav|mpeg|m4a|flac|ogg)$/i.test(file.name);
   if (!okType) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Invalid audio format' : 'Format audio invalide'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Invalid audio format' : 'Format audio invalide'));
     input.value = '';
     return;
   }
   if (file.size > 50 * 1024 * 1024) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Audio max 50 MB' : 'Audio max 50 Mo'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Audio max 50 MB' : 'Audio max 50 Mo'));
     input.value = '';
     return;
   }
@@ -977,15 +962,15 @@ async function uploadBeatAssets(title) {
   const urls = { cover: null, audio: null };
   if (pendingCoverFile) {
     const ext = pendingCoverFile.name.split('.').pop().toLowerCase();
-    setUploadProgress(5, currentLang === 'en' ? 'Uploading cover…' : 'Envoi image…');
+    setUploadProgress(5, currentLang === 'en' ? 'Uploading coverâ€¦' : 'Envoi imageâ€¦');
     urls.cover = await uploadFileToStorage(pendingCoverFile, `covers/${slug}.${ext}`);
   }
   if (pendingAudioFile) {
     const ext = pendingAudioFile.name.split('.').pop().toLowerCase();
-    setUploadProgress(pendingCoverFile ? 50 : 5, currentLang === 'en' ? 'Uploading audio…' : 'Envoi audio…');
+    setUploadProgress(pendingCoverFile ? 50 : 5, currentLang === 'en' ? 'Uploading audioâ€¦' : 'Envoi audioâ€¦');
     urls.audio = await uploadFileToStorage(pendingAudioFile, `beats/${slug}.${ext}`);
   }
-  if (pendingCoverFile || pendingAudioFile) setUploadProgress(100, '✓');
+  if (pendingCoverFile || pendingAudioFile) setUploadProgress(100, 'âœ“');
   return urls;
 }
 
@@ -1045,15 +1030,15 @@ async function deleteBeatFromFirestore(docId, title) {
     if (result.data?.success && (result.data.deleted || 0) > 0) return true;
   } catch (e) {
     console.error('Erreur delete beat', e);
-    showToast('⚠ Suppression impossible : ' + (e.message || e.code || 'permission refusée'));
+    showToast('âš  Suppression impossible : ' + (e.message || e.code || 'permission refusÃ©e'));
     return false;
   }
 
-  showToast('⚠ Beat introuvable');
+  showToast('âš  Beat introuvable');
   return false;
 }
 
-// ═══ PARAMÈTRES SITE (Admin) ═══
+// â•â•â• PARAMÃˆTRES SITE (Admin) â•â•â•
 async function loadAdminSettings() {
   try {
     const doc = await db.collection('settings').doc('site').get();
@@ -1065,13 +1050,13 @@ async function loadAdminSettings() {
     set('adminWhatsapp', d.whatsapp);
     set('adminInstagram', d.instagram);
   } catch (e) {
-    console.warn('Chargement paramètres admin:', e);
+    console.warn('Chargement paramÃ¨tres admin:', e);
   }
 }
 
 async function saveAdminSettings() {
   if (!currentUser || currentUser.role !== 'admin') {
-    showToast('⚠ Accès admin requis');
+    showToast('âš  AccÃ¨s admin requis');
     return;
   }
   const data = {
@@ -1083,30 +1068,14 @@ async function saveAdminSettings() {
   };
   try {
     await db.collection('settings').doc('site').set(data, { merge: true });
-    showToast('✓ ' + t('admin_saved_toast'));
+    showToast('âœ“ ' + t('admin_saved_toast'));
   } catch (e) {
     console.error('Erreur save settings', e);
-    showToast('⚠ Erreur de sauvegarde');
+    showToast('âš  Erreur de sauvegarde');
   }
 }
  
-// ═══ PROFILS (Firestore) ═══
-function cleanProfileData(data) {
-  const cleaned = {};
-  Object.entries(data).forEach(([key, value]) => {
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      if (trimmed.length) cleaned[key] = trimmed;
-    } else if (value != null) {
-      cleaned[key] = value;
-    }
-  });
-  return cleaned;
-}
-function isValidProfileUrl(url) {
-  if (!url || !url.trim()) return true;
-  return /^https:\/\//i.test(url.trim());
-}
+// â•â•â• PROFILS (Firestore) â•â•â•
 async function loadProfiles() {
   try {
     const snap = await db.collection('profiles').get();
@@ -1114,14 +1083,8 @@ async function loadProfiles() {
   } catch(e) { return []; }
 }
 async function saveProfileToFirestore(uid, data) {
-  try {
-    await db.collection('profiles').doc(uid).set(data, {merge:true});
-    return true;
-  } catch(e) {
-    console.error('Erreur save profil', e);
-    showToast('⚠ Erreur de sauvegarde du profil');
-    return false;
-  }
+  try { await db.collection('profiles').doc(uid).set(data, {merge:true}); }
+  catch(e) { console.error('Erreur save profil', e); showToast('âš  Erreur de sauvegarde du profil'); }
 }
 async function loadMyProfile(uid) {
   try {
@@ -1130,7 +1093,7 @@ async function loadMyProfile(uid) {
   } catch(e) { return {}; }
 }
  
-// ═══ PUBLICATIONS (Firestore) ═══
+// â•â•â• PUBLICATIONS (Firestore) â•â•â•
 async function loadPosts() {
   try {
     const snap = await db.collection('posts').orderBy('createdAt','desc').get();
@@ -1140,14 +1103,14 @@ async function loadPosts() {
 async function addPostToFirestore(post) {
   try {
     await db.collection('posts').add({...post, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-  } catch(e) { console.error('Erreur post Firestore', e); showToast('⚠ Erreur de publication'); }
+  } catch(e) { console.error('Erreur post Firestore', e); showToast('âš  Erreur de publication'); }
 }
 async function deletePostFromFirestore(docId) {
   try { await db.collection('posts').doc(String(docId)).delete(); }
   catch(e) { console.error('Erreur delete post', e); }
 }
  
-// ═══ PANIER (Firestore) ═══
+// â•â•â• PANIER (Firestore) â•â•â•
 async function saveCartToFirestore(uid, cartData) {
   cartData = sanitizeCartItems(cartData);
   try { await db.collection('carts').doc(uid).set({items: cartData, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}); }
@@ -1162,7 +1125,7 @@ async function loadCartFromFirestore(uid) {
   } catch(e) { return sanitizeCartItems(JSON.parse(localStorage.getItem('jsb_cart2') || '[]')); }
 }
  
-// ═══ INIT ═══
+// â•â•â• INIT â•â•â•
 window.addEventListener('load', async () => {
   buildWave();
   updateAuth();
@@ -1172,9 +1135,9 @@ window.addEventListener('load', async () => {
   window.addEventListener('scroll', () => {
     document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 40);
   });
-  // Catalogue beats en temps réel depuis Firestore
+  // Catalogue beats en temps rÃ©el depuis Firestore
   subscribeBeatsFromFirestore();
-  // Charger le panier depuis Firestore si connecté
+  // Charger le panier depuis Firestore si connectÃ©
   if (currentUser && currentUser.uid) {
     cart = await loadCartFromFirestore(currentUser.uid);
     cart = sanitizeCartItems(cart);
@@ -1194,8 +1157,8 @@ function buildWave() {
   });
 }
  
-// ═══ BEATS ═══
-function saveBeats() { /* Remplacé par Firestore — voir saveBeatToFirestore() */ }
+// â•â•â• BEATS â•â•â•
+function saveBeats() { /* RemplacÃ© par Firestore â€” voir saveBeatToFirestore() */ }
  
 function renderAll() {
   renderBeatsGrid();
@@ -1292,7 +1255,7 @@ function renderFeatured() {
       <div class="featured-title">${b.title}</div>
       <div class="featured-meta">
         <span><i class="fas fa-tachometer-alt" style="color:var(--cyan)"></i> ${b.bpm} BPM</span>
-        <span><i class="fas fa-tag" style="color:var(--cyan)"></i> ${b.genre}${b.subgenre?' · '+b.subgenre:''}</span>
+        <span><i class="fas fa-tag" style="color:var(--cyan)"></i> ${b.genre}${b.subgenre?' Â· '+b.subgenre:''}</span>
       </div>
       <p class="featured-desc">${getBeatDesc(b)}</p>
       <div class='featured-price'>$${b.priceBasic} <small>/ ${t('lic_basic_tag')}</small></div>
@@ -1315,11 +1278,11 @@ async function addBeat() {
   if (!(await ensureAdminAuth())) return;
   const title = document.getElementById('nTitle').value.trim();
   const bpm = parseInt(document.getElementById('nBpm').value);
-  if (!title || !bpm) { showToast('⚠ '+t('err_title_bpm_required')); return; }
+  if (!title || !bpm) { showToast('âš  '+t('err_title_bpm_required')); return; }
 
   const btn = document.getElementById('addBeatBtn');
   const origBtnHtml = btn?.innerHTML;
-  if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${currentLang==='en'?'Uploading…':'Téléversement…'}`; }
+  if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${currentLang==='en'?'Uploadingâ€¦':'TÃ©lÃ©versementâ€¦'}`; }
 
   let coverUrl = document.getElementById('nCover').value.trim();
   let audioUrl = document.getElementById('nAudio').value.trim();
@@ -1333,15 +1296,15 @@ async function addBeat() {
   } catch (e) {
     console.error('Upload error:', e);
     const detail = e.code === 'storage/unauthorized'
-      ? (currentLang === 'en' ? 'Admin rights missing — log out and log back in' : 'Droits admin manquants — déconnectez-vous puis reconnectez-vous')
+      ? (currentLang === 'en' ? 'Admin rights missing â€” log out and log back in' : 'Droits admin manquants â€” dÃ©connectez-vous puis reconnectez-vous')
       : (e.message || e.code || '');
-    showToast('⚠ ' + (currentLang === 'en' ? 'Upload failed' : 'Échec du téléversement') + (detail ? ' : ' + detail : ''));
+    showToast('âš  ' + (currentLang === 'en' ? 'Upload failed' : 'Ã‰chec du tÃ©lÃ©versement') + (detail ? ' : ' + detail : ''));
     if (btn) { btn.disabled = false; btn.innerHTML = origBtnHtml; }
     return;
   }
 
   if (!audioUrl && !pendingAudioFile) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Please upload or provide an audio file' : 'Téléversez ou indiquez un fichier audio'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Please upload or provide an audio file' : 'TÃ©lÃ©versez ou indiquez un fichier audio'));
     if (btn) { btn.disabled = false; btn.innerHTML = origBtnHtml; }
     return;
   }
@@ -1363,7 +1326,7 @@ async function addBeat() {
     desc_en: document.getElementById('nDescEn').value || document.getElementById('nDesc').value,
   };
   if (isForbiddenBeat(b)) {
-    showToast('⚠ ' + (currentLang === 'en' ? 'Forbidden beat removed' : 'Beat interdit supprimé'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Forbidden beat removed' : 'Beat interdit supprimÃ©'));
     if (btn) { btn.disabled = false; btn.innerHTML = origBtnHtml; }
     resetBeatUploadForm();
     return;
@@ -1384,7 +1347,7 @@ async function addBeat() {
   try {
     const savedDoc = await db.collection('beats').doc(String(newId)).get();
     if (!savedDoc.exists) {
-      showToast('⚠ ' + (currentLang === 'en' ? 'Beat saved but not found — retry refresh' : 'Beat enregistré introuvable — actualisez la page'));
+      showToast('âš  ' + (currentLang === 'en' ? 'Beat saved but not found â€” retry refresh' : 'Beat enregistrÃ© introuvable â€” actualisez la page'));
     }
   } catch (verifyErr) {
     console.warn('Beat verify after save:', verifyErr);
@@ -1393,7 +1356,7 @@ async function addBeat() {
   resetBeatUploadForm();
   await loadBeatsFromFirestore();
   if (btn) { btn.disabled = false; btn.innerHTML = origBtnHtml; }
-  showToast('✓ ' + t('dyn_beat_added').replace('%s', b.title));
+  showToast('âœ“ ' + t('dyn_beat_added').replace('%s', b.title));
   adminPanel('manage');
 }
 
@@ -1401,7 +1364,7 @@ async function repairBeatsFromStorage() {
   if (!(await ensureAdminAuth())) return;
   const btn = document.getElementById('btnRepairStorage');
   const origHtml = btn?.innerHTML;
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> …'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> â€¦'; }
   try {
     const folder = firebase.storage().ref('beats');
     const listing = await folder.listAll();
@@ -1439,11 +1402,11 @@ async function repairBeatsFromStorage() {
     }
     await loadBeatsFromFirestore();
     showToast(repaired
-      ? `✓ ${repaired} beat(s) récupéré(s) depuis Storage`
-      : (currentLang === 'en' ? '✓ Catalog already synced with Storage' : '✓ Catalogue déjà synchronisé avec Storage'));
+      ? `âœ“ ${repaired} beat(s) rÃ©cupÃ©rÃ©(s) depuis Storage`
+      : (currentLang === 'en' ? 'âœ“ Catalog already synced with Storage' : 'âœ“ Catalogue dÃ©jÃ  synchronisÃ© avec Storage'));
   } catch (err) {
     console.error('repairBeatsFromStorage:', err);
-    showToast('⚠ ' + (currentLang === 'en' ? 'Storage sync failed' : 'Synchronisation Storage impossible'));
+    showToast('âš  ' + (currentLang === 'en' ? 'Storage sync failed' : 'Synchronisation Storage impossible'));
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
   }
@@ -1464,7 +1427,7 @@ async function deleteBeat(id) {
     beats = beats.filter(b => String(b.id) !== idStr);
   }
   await loadBeatsFromFirestore();
-  showToast('✓ ' + t('dyn_beat_deleted'));
+  showToast('âœ“ ' + t('dyn_beat_deleted'));
 }
 
 async function openEdit(id) {
@@ -1490,7 +1453,7 @@ async function saveEdit() {
   if (!b) return;
   const bpm = parseInt(document.getElementById('eBpm').value, 10);
   if (!document.getElementById('eTitle').value.trim() || !bpm || bpm < 1) {
-    showToast('⚠ ' + t('err_title_bpm_required'));
+    showToast('âš  ' + t('err_title_bpm_required'));
     return;
   }
   const updates = {
@@ -1516,7 +1479,7 @@ async function saveEdit() {
   Object.assign(b, updates);
   renderAll();
   closeEdit();
-  showToast('✓ '+t('admin_beat_edited'));
+  showToast('âœ“ '+t('admin_beat_edited'));
 }
  
 function renderAdminTables() {
@@ -1569,9 +1532,9 @@ function autoTranslateBeatsUI() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...'; }
   autoTranslateBeats().then(res => {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-language"></i> Auto-translate missing'; }
-    if (res && res.ok) showToast('✓ Traduction automatique terminée');
-    else showToast('⚠ Traduction impossible');
-  }).catch(e => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-language"></i> Auto-translate missing'; } showToast('⚠ Erreur traduction'); });
+    if (res && res.ok) showToast('âœ“ Traduction automatique terminÃ©e');
+    else showToast('âš  Traduction impossible');
+  }).catch(e => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-language"></i> Auto-translate missing'; } showToast('âš  Erreur traduction'); });
 }
  
 function renderStats() {
@@ -1585,41 +1548,40 @@ function renderStats() {
 
   if (currentUser?.role === 'admin') {
     el.innerHTML = `
-      <div class="stat-g-card"><div class="stat-g-num" id="adminUserCount">…</div><div class="stat-g-lbl"><i class="fas fa-users"></i> ${t('admin_stat_users')}</div></div>
+      <div class="stat-g-card"><div class="stat-g-num" id="adminUserCount">â€¦</div><div class="stat-g-lbl"><i class="fas fa-users"></i> ${t('admin_stat_users')}</div></div>
       ${baseCards}`;
   } else {
     el.innerHTML = baseCards;
   }
 }
 
-async function renderAdminUsers(force = false, limit = 1000) {
+async function renderAdminUsers(force = false) {
   const tbl = document.getElementById('adminUsersTbl');
   const note = document.getElementById('adminUsersNote');
   if (!tbl) return;
   if (adminUserStatsLoaded && !force) return;
   try {
     const fn = cloudFunctions().httpsCallable('getAdminUserStats');
-    const result = await fn({ limit });
-    const { count, users, partial, limit: returnedLimit } = result.data || {};
+    const result = await fn();
+    const { count, users, partial } = result.data || {};
     const countEl = document.getElementById('adminUserCount');
-    if (countEl) countEl.textContent = count ?? '—';
+    if (countEl) countEl.textContent = count ?? 'â€”';
     if (note) {
       note.textContent = currentLang === 'en'
-        ? `Showing ${users?.length || 0} users${partial ? ` of ${count}` : ''}`
-        : `Affichage de ${users?.length || 0} utilisateurs${partial ? ` sur ${count}` : ''}`;
+        ? 'Latest registered users are shown here. Total count may be larger.'
+        : 'Les derniers utilisateurs inscrits sont affichÃ©s ici. Le nombre total peut Ãªtre plus important.';
     }
     if (!users?.length) {
-      tbl.innerHTML = `<tbody><tr><td colspan="4" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
+      tbl.innerHTML = `<tbody><tr><td colspan="3" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
       adminUserStatsLoaded = true;
       return;
     }
     tbl.innerHTML = `
-      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
+      <thead><tr><th>Username</th><th>Email</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
       <tbody>${users.map(u => `<tr>
         <td><strong>${sanitize(u.username)}</strong></td>
         <td>${sanitize(u.email)}</td>
-        <td>${sanitize(u.role || 'user')}</td>
-        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : 'â€”'}</td>
       </tr>`).join('')}</tbody>`;
     if (partial && note) {
       note.textContent += currentLang === 'en' ? ' (partial list)' : ' (liste partielle)';
@@ -1627,14 +1589,14 @@ async function renderAdminUsers(force = false, limit = 1000) {
     adminUserStatsLoaded = true;
   } catch (e) {
     const countEl = document.getElementById('adminUserCount');
-    if (countEl) countEl.textContent = '—';
+    if (countEl) countEl.textContent = 'â€”';
     if (note) note.textContent = currentLang === 'en' ? 'Unable to load user list.' : 'Impossible de charger la liste.';
     tbl.innerHTML = '';
     console.warn('getAdminUserStats failed:', e);
   }
 }
  
-// ═══ AUDIO ═══
+// â•â•â• AUDIO â•â•â•
 
 async function playBeat(idx) {
   const b = beats[idx];
@@ -1756,7 +1718,7 @@ audioEl.addEventListener('timeupdate', () => {
 });
 audioEl.addEventListener('ended', () => { isPlaying=false; document.getElementById('playBtn').innerHTML='<i class="fas fa-play"></i>'; nextTrack(); });
  
-// ═══ CART ═══
+// â•â•â• CART â•â•â•
  
 // License selector modal
 function selectLicenseAndShop(licenseKey) {
@@ -1801,8 +1763,8 @@ function addToCart(idx) {
       icon: 'fas fa-seedling',
       color: 'var(--cyan)',
       labelFr: 'Basic', labelEn: 'Basic',
-      descFr: 'MP3 taggé · 10 000 streams · Non commercial',
-      descEn: 'Tagged MP3 · 10,000 streams · Non-commercial'
+      descFr: 'MP3 taggÃ© Â· 10 000 streams Â· Non commercial',
+      descEn: 'Tagged MP3 Â· 10,000 streams Â· Non-commercial'
     },
     {
       key: 'Premium',
@@ -1810,8 +1772,8 @@ function addToCart(idx) {
       icon: 'fas fa-star',
       color: '#f9c74f',
       labelFr: 'Premium', labelEn: 'Premium',
-      descFr: 'WAV + MP3 · 500K streams · Commercial · Radio',
-      descEn: 'WAV + MP3 · 500K streams · Commercial · Radio'
+      descFr: 'WAV + MP3 Â· 500K streams Â· Commercial Â· Radio',
+      descEn: 'WAV + MP3 Â· 500K streams Â· Commercial Â· Radio'
     },
     {
       key: 'WAV + Stems',
@@ -1819,8 +1781,8 @@ function addToCart(idx) {
       icon: 'fas fa-layer-group',
       color: '#D4AF37',
       labelFr: 'WAV + Stems', labelEn: 'WAV + Stems',
-      descFr: 'WAV HD + Stems · 100K streams · Mixage pro',
-      descEn: 'HD WAV + Stems · 100K streams · Pro mixing'
+      descFr: 'WAV HD + Stems Â· 100K streams Â· Mixage pro',
+      descEn: 'HD WAV + Stems Â· 100K streams Â· Pro mixing'
     },
     {
       key: 'UNLIMITED',
@@ -1828,8 +1790,8 @@ function addToCart(idx) {
       icon: 'fas fa-infinity',
       color: '#00d084',
       labelFr: 'UNLIMITED', labelEn: 'UNLIMITED',
-      descFr: 'Streams illimités · Beat en catalogue · Usage commercial',
-      descEn: 'Unlimited streams · Beat stays in catalog · Commercial use'
+      descFr: 'Streams illimitÃ©s Â· Beat en catalogue Â· Usage commercial',
+      descEn: 'Unlimited streams Â· Beat stays in catalog Â· Commercial use'
     },
     {
       key: 'Exclusif',
@@ -1837,8 +1799,8 @@ function addToCart(idx) {
       icon: 'fas fa-crown',
       color: '#ff6b6b',
       labelFr: 'Exclusif', labelEn: 'Exclusive',
-      descFr: 'Propriété totale · Streams illimités · Retiré du catalogue',
-      descEn: 'Full ownership · Unlimited streams · Removed from catalog'
+      descFr: 'PropriÃ©tÃ© totale Â· Streams illimitÃ©s Â· RetirÃ© du catalogue',
+      descEn: 'Full ownership Â· Unlimited streams Â· Removed from catalog'
     }
   ];
  
@@ -1865,7 +1827,7 @@ function addToCart(idx) {
  
       <div style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:6px"><i class="fas fa-file-contract"></i> ${isEn ? 'Choose your license' : 'Choisissez votre licence'}</div>
       <div style="font-family:var(--font-display);font-size:1.4rem;color:#fff;letter-spacing:2px;margin-bottom:4px">${b.title}</div>
-      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:20px">${b.genre}${b.subgenre ? ' · ' + b.subgenre : ''} · ${b.bpm} BPM</div>
+      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:20px">${b.genre}${b.subgenre ? ' Â· ' + b.subgenre : ''} Â· ${b.bpm} BPM</div>
  
       <!-- Currency picker -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
@@ -1876,7 +1838,7 @@ function addToCart(idx) {
  
       <div id="licCardsWrap">${renderLicCards(window.currentLicenseCurrency || 'USD')}</div>
  
-      <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);text-align:center;margin-top:6px"><i class="fas fa-info-circle" style="color:var(--cyan)"></i> ${isEn ? 'Prices shown in selected currency · 1 USD = ' + CURRENCY_RATES[window.currentLicenseCurrency || 'USD'].rate + ' ' + (window.currentLicenseCurrency || 'USD') : 'Prix affichés en devise sélectionnée · 1 USD = ' + CURRENCY_RATES[window.currentLicenseCurrency || 'USD'].rate.toLocaleString('fr-FR') + ' ' + (window.currentLicenseCurrency || 'USD')} ${getRateChangeLabel(window.currentLicenseCurrency || 'USD')}</div>
+      <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);text-align:center;margin-top:6px"><i class="fas fa-info-circle" style="color:var(--cyan)"></i> ${isEn ? 'Prices shown in selected currency Â· 1 USD = ' + CURRENCY_RATES[window.currentLicenseCurrency || 'USD'].rate + ' ' + (window.currentLicenseCurrency || 'USD') : 'Prix affichÃ©s en devise sÃ©lectionnÃ©e Â· 1 USD = ' + CURRENCY_RATES[window.currentLicenseCurrency || 'USD'].rate.toLocaleString('fr-FR') + ' ' + (window.currentLicenseCurrency || 'USD')} ${getRateChangeLabel(window.currentLicenseCurrency || 'USD')}</div>
     </div>`;
  
   // Make renderLicCards accessible from onclick
@@ -1931,7 +1893,7 @@ async function confirmAddToCart(idx, licenseKey, price) {
     localStorage.setItem('jsb_cart2', JSON.stringify(cart));
   }
   updateCartBadge();
-  showToast((currentLang === 'en' ? '✓ Added: ' : '✓ Ajouté : ') + b.title + ' · ' + licenseKey);
+  showToast((currentLang === 'en' ? 'âœ“ Added: ' : 'âœ“ AjoutÃ© : ') + b.title + ' Â· ' + licenseKey);
 }
 async function removeFromCart(id) {
   cart = cart.filter(c => String(c.id) !== String(id));
@@ -1974,14 +1936,14 @@ function renderCartItems() {
       <img src="${c.cover || 'image_beat.jpeg'}" alt="${c.title}" onerror="this.src='image_beat.jpeg'">
       <div class="cart-item-inf">
         <div class="cart-item-nm">${c.title}</div>
-        <div class="cart-item-pr">$${c.price} · ${c.license} · ${formatUsdAsCurrency(c.price, 'XOF')}</div>
+        <div class="cart-item-pr">$${c.price} Â· ${c.license} Â· ${formatUsdAsCurrency(c.price, 'XOF')}</div>
       </div>
       <button type="button" class="cart-rm" data-cart-id="${String(c.id).replace(/"/g, '&quot;')}"><i class="fas fa-times"></i></button>
     </div>`).join('');
 
   const total = cartTotalUsd();
   if (cartTotVal) {
-    cartTotVal.textContent = '$' + total + ' · ' + formatUsdAsCurrency(total, 'XOF');
+    cartTotVal.textContent = '$' + total + ' Â· ' + formatUsdAsCurrency(total, 'XOF');
   }
 }
 function checkout() {
@@ -1991,9 +1953,9 @@ function checkout() {
   openPaymentModal();
 }
  
-// ═══════════════════════════════════════════
-// ═══  SYSTÈME DE PAIEMENT MULTI-MÉTHODES ══
-// ═══════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  SYSTÃˆME DE PAIEMENT MULTI-MÃ‰THODES â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
 let selectedPayMethod = null;
 let selectedCrypto = 'BTC';
@@ -2017,7 +1979,7 @@ function closePaymentModal() {
   document.getElementById('paymentModal').classList.remove('show');
   document.getElementById('payStep3').style.display = 'none';
   window._selectedPayCurrency = 'USD';
-  // Réinitialiser les boutons PayPal pour la prochaine ouverture
+  // RÃ©initialiser les boutons PayPal pour la prochaine ouverture
   paypalButtonsRendered = false;
   const container = document.getElementById('paypal-button-container');
   if (container) container.innerHTML = '';
@@ -2032,13 +1994,13 @@ function renderPaySummary() {
   function buildSummaryHTML(currency) {
     return `
       <div style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:10px">
-        <i class="fas fa-shopping-bag"></i> ${isEn ? 'Order summary' : 'Récapitulatif'}
+        <i class="fas fa-shopping-bag"></i> ${isEn ? 'Order summary' : 'RÃ©capitulatif'}
       </div>
       ${cart.map(c=>`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
           <div>
             <div style="font-family:var(--font-display);font-size:0.9rem;color:#fff;letter-spacing:1px">${c.title}</div>
-            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${c.license} ${isEn?'License':'Licence'} · <span style="color:rgba(0,229,255,0.6)">$${c.price} USD</span></div>
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">${c.license} ${isEn?'License':'Licence'} Â· <span style="color:rgba(0,229,255,0.6)">$${c.price} USD</span></div>
           </div>
           <div style="text-align:right">
             <div style="font-family:var(--font-display);font-size:1rem;color:var(--cyan)">${formatUsdAsCurrency(c.price, currency)}</div>
@@ -2048,7 +2010,7 @@ function renderPaySummary() {
         <span style="color:#fff">Total</span>
         <div style="text-align:right">
           <div style="color:var(--cyan)">${formatUsdAsCurrency(total, currency)}</div>
-          ${currency !== 'USD' ? `<div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim)">≈ $${total} USD</div>` : `<div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim)">≈ ${formatUsdAsCurrency(total, 'XOF')} (GeniusPay)</div>`}
+          ${currency !== 'USD' ? `<div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim)">â‰ˆ $${total} USD</div>` : `<div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim)">â‰ˆ ${formatUsdAsCurrency(total, 'XOF')} (GeniusPay)</div>`}
         </div>
       </div>
       <!-- Currency picker -->
@@ -2096,7 +2058,7 @@ function selectPayMethod(method) {
     const val = (total * cryptoRates[selectedCrypto]).toFixed(6);
     document.getElementById('cryptoAmount').textContent = `${val} ${selectedCrypto}`;
   }
-  // ── Init PayPal buttons quand on sélectionne PayPal ──
+  // â”€â”€ Init PayPal buttons quand on sÃ©lectionne PayPal â”€â”€
   if (method === 'paypal') {
     setTimeout(initPayPalButtons, 100);
   }
@@ -2118,13 +2080,13 @@ function selectCrypto(coin, btn) {
   document.getElementById('cryptoAmount').textContent = `${val} ${coin}`;
   const networks = { BTC: 'Bitcoin (BTC)', ETH: 'Ethereum (ERC-20)', USDT: 'Tron (TRC-20)' };
   const isEn = currentLang === 'en';
-  document.getElementById('cryptoNetworkLabel').textContent = `${isEn?'Network':'Réseau'} : ${networks[coin]}`;
+  document.getElementById('cryptoNetworkLabel').textContent = `${isEn?'Network':'RÃ©seau'} : ${networks[coin]}`;
 }
  
 function copyCryptoAddr() {
   const addr = cryptoAddresses[selectedCrypto];
   navigator.clipboard.writeText(addr).then(() => {
-    showToast(currentLang==='en' ? '✓ Address copied!' : '✓ Adresse copiée !');
+    showToast(currentLang==='en' ? 'âœ“ Address copied!' : 'âœ“ Adresse copiÃ©e !');
   });
 }
  
@@ -2138,19 +2100,19 @@ function formatExp(input) {
   input.value = v;
 }
  
-// ═══════════════════════════════════════════════════════
-// ═══  CONFIGURATION PAIEMENTS — À REMPLIR            ═══
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  CONFIGURATION PAIEMENTS â€” Ã€ REMPLIR            â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
-// 🔑 CinetPay — récupère ces valeurs sur dashboard.cinetpay.com
+// ðŸ”‘ CinetPay â€” rÃ©cupÃ¨re ces valeurs sur dashboard.cinetpay.com
 const CINETPAY_APIKEY  = 'VOTRE_APIKEY_CINETPAY';   // ex: "174323661757617531bf99c9.80613927"
 const CINETPAY_SITE_ID = 0;                           // ex: 393509  (nombre entier)
-const CINETPAY_MODE    = 'TEST';                      // 'TEST' → sandbox | 'PRODUCTION' → vrai argent
+const CINETPAY_MODE    = 'TEST';                      // 'TEST' â†’ sandbox | 'PRODUCTION' â†’ vrai argent
  
-// 🔑 Firebase Cloud Functions URL (après "firebase deploy --only functions")
+// ðŸ”‘ Firebase Cloud Functions URL (aprÃ¨s "firebase deploy --only functions")
 const CLOUD_FUNCTIONS_BASE_URL = 'https://YOUR_REGION-je-suis-beatz.cloudfunctions.net';
  
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
 async function payCinetPay() {
   const isEn = currentLang === 'en';
@@ -2159,13 +2121,13 @@ async function payCinetPay() {
   const fullPhone = (countrySelect?.value || '+225') + (phoneInput?.value?.replace(/\s/g,'') || '');
  
   if (!phoneInput?.value?.trim()) {
-    showToast('⚠ ' + (isEn ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'));
+    showToast('âš  ' + (isEn ? 'Enter your phone number' : 'Entrez votre numÃ©ro de tÃ©lÃ©phone'));
     return;
   }
-  if (cart.length === 0) { showToast('⚠ ' + (isEn ? 'Your cart is empty' : 'Panier vide')); return; }
+  if (cart.length === 0) { showToast('âš  ' + (isEn ? 'Your cart is empty' : 'Panier vide')); return; }
  
   const btn = document.getElementById('cinetPayBtn');
-  if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEn?'Connecting...':'Connexion à CinetPay...'}`; }
+  if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEn?'Connecting...':'Connexion Ã  CinetPay...'}`; }
  
   const totalUSD   = cartTotalUsd();
   const amountXOF  = convertUsdToXofPayment(totalUSD);
@@ -2173,7 +2135,7 @@ async function payCinetPay() {
   const description = cart.map(c => `${c.title} (${c.license})`).join(', ');
  
   // Sauvegarder la transaction ET la commande en attente dans Firestore
-  // Le webhook serveur passera les deux à 'completed'/'SUCCESS'
+  // Le webhook serveur passera les deux Ã  'completed'/'SUCCESS'
   try {
     const batch = db.batch();
 
@@ -2191,7 +2153,7 @@ async function payCinetPay() {
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Document commande (lié à la transaction pour le webhook)
+    // Document commande (liÃ© Ã  la transaction pour le webhook)
     const orderRef = db.collection('orders').doc();
     batch.set(orderRef, {
       orderId:       transactionId,
@@ -2200,7 +2162,7 @@ async function payCinetPay() {
       customerEmail: currentUser?.email || '',
       cartItems:     cart,
       total:         totalUSD,
-      status:        'pending', // ← uniquement pending côté client
+      status:        'pending', // â† uniquement pending cÃ´tÃ© client
       paymentMethod: 'CinetPay',
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -2221,7 +2183,7 @@ async function payCinetPay() {
       amount:      amountXOF,
       currency:    'XOF',
       channels:    'ALL',
-      description: `Je Suis Beatz — ${description}`,
+      description: `Je Suis Beatz â€” ${description}`,
       customer_name:         currentUser?.username?.split(' ')[0] || 'Client',
       customer_surname:      currentUser?.username?.split(' ')[1] || 'Beatz',
       customer_email:        currentUser?.email || 'client@jesuis-beatz.com',
@@ -2233,63 +2195,63 @@ async function payCinetPay() {
       customer_zip_code:     '00225',
     });
  
-    // FAILLE CORRIGÉE : CinetPay.waitResponse ne doit PLUS écrire 'SUCCESS' côté client.
-    // Le webhook serveur (cinetpayWebhook) met à jour Firestore via Admin SDK.
-    // On écoute simplement le résultat CinetPay pour informer l'UX,
+    // FAILLE CORRIGÃ‰E : CinetPay.waitResponse ne doit PLUS Ã©crire 'SUCCESS' cÃ´tÃ© client.
+    // Le webhook serveur (cinetpayWebhook) met Ã  jour Firestore via Admin SDK.
+    // On Ã©coute simplement le rÃ©sultat CinetPay pour informer l'UX,
     // puis on interroge la Cloud Function getOrderStatus pour confirmer.
     CinetPay.waitResponse(async function(payData) {
       if (payData.cpm_result === '00') {
-        // ✅ CinetPay dit succès — on affiche un écran d'attente
-        // La confirmation réelle viendra du webhook serveur (10-30 secondes)
+        // âœ… CinetPay dit succÃ¨s â€” on affiche un Ã©cran d'attente
+        // La confirmation rÃ©elle viendra du webhook serveur (10-30 secondes)
         showPayPendingConfirmation(transactionId, 'cinetpay');
       } else {
-        // ❌ Paiement refusé
-        showToast('❌ ' + (isEn ? 'Payment refused' : 'Paiement refusé') + (payData.cpm_error_message ? ' : ' + payData.cpm_error_message : ''));
+        // âŒ Paiement refusÃ©
+        showToast('âŒ ' + (isEn ? 'Payment refused' : 'Paiement refusÃ©') + (payData.cpm_error_message ? ' : ' + payData.cpm_error_message : ''));
         if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fas fa-coins"></i> <span>${isEn?'Pay with CinetPay':'Payer avec CinetPay'}</span>`; }
       }
     });
  
     CinetPay.onError(function(error) {
-      showToast('❌ CinetPay : ' + (error.message || (isEn ? 'Connection error' : 'Erreur de connexion')));
+      showToast('âŒ CinetPay : ' + (error.message || (isEn ? 'Connection error' : 'Erreur de connexion')));
       if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fas fa-coins"></i> <span>${isEn?'Pay with CinetPay':'Payer avec CinetPay'}</span>`; }
     });
  
   } catch(err) {
-    showToast('❌ ' + (err.message || (isEn ? 'Server error' : 'Erreur serveur')));
+    showToast('âŒ ' + (err.message || (isEn ? 'Server error' : 'Erreur serveur')));
     if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fas fa-coins"></i> <span>${isEn?'Pay with CinetPay':'Payer avec CinetPay'}</span>`; }
   }
 }
  
-// Vérifier si l'utilisateur revient d'une redirection CinetPay (iOS/mobile)
-// CORRIGÉ : on n'affiche plus "Paiement confirmé !" sans vérification serveur
+// VÃ©rifier si l'utilisateur revient d'une redirection CinetPay (iOS/mobile)
+// CORRIGÃ‰ : on n'affiche plus "Paiement confirmÃ© !" sans vÃ©rification serveur
 function checkReturnFromCinetPay() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success' && params.get('tid')) {
     const tid = params.get('tid');
-    // Message neutre — la vraie confirmation vient du webhook serveur par email
+    // Message neutre â€” la vraie confirmation vient du webhook serveur par email
     showToast(currentLang === 'en'
-      ? '⏳ Payment received, verifying... Check your email.'
-      : '⏳ Paiement reçu, vérification en cours... Consultez vos emails.'
+      ? 'â³ Payment received, verifying... Check your email.'
+      : 'â³ Paiement reÃ§u, vÃ©rification en cours... Consultez vos emails.'
     );
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }
 
-// ═══ GENIUSPAY RETURN HANDLER ═══
+// â•â•â• GENIUSPAY RETURN HANDLER â•â•â•
 function checkReturnFromGeniusPay() {
   const params = new URLSearchParams(window.location.search);
   const paymentId = params.get('payment_id');
   
   if (paymentId) {
-    // Récupérer les données de l'order stockées
+    // RÃ©cupÃ©rer les donnÃ©es de l'order stockÃ©es
     const orderData = sessionStorage.getItem('jsb_order_data');
     sessionStorage.removeItem('jsb_payment_id');
     sessionStorage.removeItem('jsb_order_data');
     
-    // Afficher un message de vérification
+    // Afficher un message de vÃ©rification
     showToast(currentLang === 'en'
-      ? '⏳ Payment received, verifying... Check your email.'
-      : '⏳ Paiement reçu, vérification en cours... Consultez vos emails.'
+      ? 'â³ Payment received, verifying... Check your email.'
+      : 'â³ Paiement reÃ§u, vÃ©rification en cours... Consultez vos emails.'
     );
     
     // Nettoyer l'URL
@@ -2297,9 +2259,9 @@ function checkReturnFromGeniusPay() {
   }
 }
  
-// ═══════════════════════════════════════════════════════
-// ═══  PAYPAL — Paiement international par carte      ═══
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  PAYPAL â€” Paiement international par carte      â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
 let paypalButtonsRendered = false;
  
@@ -2308,7 +2270,7 @@ function initPayPalButtons() {
   if (typeof paypal === 'undefined') {
     document.getElementById('paypal-loading').style.display = 'block';
     document.getElementById('paypal-button-container').style.display = 'none';
-    showToast('⚠ SDK PayPal non chargé. Vérifiez votre Client ID.');
+    showToast('âš  SDK PayPal non chargÃ©. VÃ©rifiez votre Client ID.');
     return;
   }
  
@@ -2325,13 +2287,13 @@ function initPayPalButtons() {
       height:  45
     },
  
-    // Création de la commande PayPal
+    // CrÃ©ation de la commande PayPal
     createOrder: function(data, actions) {
       const total = cart.reduce((s,c) => s+c.price, 0);
       const description = cart.map(c => `${c.title} (${c.license})`).join(', ');
       return actions.order.create({
         purchase_units: [{
-          description: `Je Suis Beatz — ${description}`,
+          description: `Je Suis Beatz â€” ${description}`,
           amount: {
             currency_code: 'USD',
             value: total.toFixed(2),
@@ -2340,7 +2302,7 @@ function initPayPalButtons() {
             }
           },
           items: cart.map(c => ({
-            name: `${c.title} — Licence ${c.license}`,
+            name: `${c.title} â€” Licence ${c.license}`,
             unit_amount: { currency_code: 'USD', value: c.price.toFixed(2) },
             quantity: '1',
             category: 'DIGITAL_GOODS'
@@ -2354,17 +2316,17 @@ function initPayPalButtons() {
       });
     },
  
-    // Paiement approuvé par l'utilisateur
+    // Paiement approuvÃ© par l'utilisateur
     onApprove: async function(data, actions) {
-      showToast('⏳ ' + t('pay_validating'));
+      showToast('â³ ' + t('pay_validating'));
       try {
         const details = await actions.order.capture();
         const paypalOrderId = details.id;
         const orderId = 'JSB-PP-' + paypalOrderId;
 
-        // FAILLE CORRIGÉE : statut 'pending' uniquement côté client.
-        // Le webhook PayPal serveur (Cloud Function) passera à 'completed'
-        // après vérification de la signature PayPal.
+        // FAILLE CORRIGÃ‰E : statut 'pending' uniquement cÃ´tÃ© client.
+        // Le webhook PayPal serveur (Cloud Function) passera Ã  'completed'
+        // aprÃ¨s vÃ©rification de la signature PayPal.
         await db.collection('orders').add({
           orderId,
           transactionId:  paypalOrderId,
@@ -2378,15 +2340,15 @@ function initPayPalButtons() {
           createdAt:      firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Afficher l'écran d'attente — pas de succès immédiat
+        // Afficher l'Ã©cran d'attente â€” pas de succÃ¨s immÃ©diat
         showPayPendingConfirmation(orderId, 'paypal');
         paypalButtonsRendered = false;
       } catch(err) {
-        showToast('❌ ' + t('pay_validation_error') + ': ' + err.message);
+        showToast('âŒ ' + t('pay_validation_error') + ': ' + err.message);
       }
     },
  
-    // Paiement annulé
+    // Paiement annulÃ©
     onCancel: function() {
       showToast(t('pay_cancelled'));
     },
@@ -2394,28 +2356,28 @@ function initPayPalButtons() {
     // Erreur PayPal
     onError: function(err) {
       console.error('PayPal error:', err);
-      showToast('❌ PayPal : ' + t('pay_error'));
+      showToast('âŒ PayPal : ' + t('pay_error'));
     }
   }).render('#paypal-button-container');
 }
  
-// ═══════════════════════════════════════════════════════
-// ═══  simulatePay — CORRIGÉ : méthodes non implémentées
-// ═══  Les méthodes ci-dessous affichent un message clair
-// ═══  au lieu de simuler un faux paiement réussi.
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  simulatePay â€” CORRIGÃ‰ : mÃ©thodes non implÃ©mentÃ©es
+// â•â•â•  Les mÃ©thodes ci-dessous affichent un message clair
+// â•â•â•  au lieu de simuler un faux paiement rÃ©ussi.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function simulatePay(method) {
   if (method === 'geniuspay') {
-    // Intégration GeniusPay réelle
+    // IntÃ©gration GeniusPay rÃ©elle
     processGeniusPayment();
     return;
   }
 
   const isEn = currentLang === 'en';
 
-  // FAILLE CORRIGÉE : Ces méthodes ne sont pas encore intégrées.
+  // FAILLE CORRIGÃ‰E : Ces mÃ©thodes ne sont pas encore intÃ©grÃ©es.
   // On informe l'utilisateur de contacter directement le vendeur.
-  // Aucune commande n'est créée, aucun paiement n'est simulé.
+  // Aucune commande n'est crÃ©Ã©e, aucun paiement n'est simulÃ©.
   const methodLabels = {
     card:       isEn ? 'Credit Card (Visa/Mastercard)' : 'Carte Bancaire (Visa/Mastercard)',
     stripe:     'Stripe',
@@ -2430,7 +2392,7 @@ function simulatePay(method) {
 
   const label = methodLabels[method] || method;
 
-  // Afficher un modal d'information (pas de succès !)
+  // Afficher un modal d'information (pas de succÃ¨s !)
   const isEn2 = currentLang === 'en';
   const btn = document.querySelector('.pay-submit-btn');
   if (btn) { btn.disabled = false; }
@@ -2439,14 +2401,14 @@ function simulatePay(method) {
   modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:20px';
   modal.innerHTML = `
     <div style="background:#0f0f1a;border:1px solid rgba(255,165,0,0.4);border-radius:20px;padding:32px;max-width:440px;width:100%;text-align:center">
-      <div style="font-size:2.5rem;margin-bottom:16px">⚙️</div>
+      <div style="font-size:2.5rem;margin-bottom:16px">âš™ï¸</div>
       <div style="font-family:var(--font-display);font-size:1.3rem;color:#f59e0b;letter-spacing:2px;margin-bottom:12px">
-        ${isEn2 ? 'Integration in progress' : 'Intégration en cours'}
+        ${isEn2 ? 'Integration in progress' : 'IntÃ©gration en cours'}
       </div>
       <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin-bottom:20px">
         ${isEn2
           ? `<strong>${label}</strong> is not yet integrated. Please contact us directly to finalize your purchase.`
-          : `<strong>${label}</strong> n'est pas encore intégré. Contactez-nous directement pour finaliser votre achat.`
+          : `<strong>${label}</strong> n'est pas encore intÃ©grÃ©. Contactez-nous directement pour finaliser votre achat.`
         }
       </p>
       <a href="mailto:jesuisthebeatmaker@gmail.com?subject=Achat%20beat%20-%20${encodeURIComponent(label)}&body=Bonjour%2C%20je%20souhaite%20acheter%20%3A%20${encodeURIComponent(cart.map(c=>c.title+' ('+c.license+')').join(', '))}"
@@ -2456,13 +2418,13 @@ function simulatePay(method) {
       <br>
       <button onclick="this.closest('div[style*=\"fixed\"]').remove()"
         style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 20px;border-radius:8px;cursor:pointer;margin-top:8px;font-size:0.85rem">
-        ${isEn2 ? 'Choose another method' : 'Choisir une autre méthode'}
+        ${isEn2 ? 'Choose another method' : 'Choisir une autre mÃ©thode'}
       </button>
     </div>`;
   document.body.appendChild(modal);
 }
 
-// ═══ GENIUSPAY PAYMENT INTEGRATION ═══
+// â•â•â• GENIUSPAY PAYMENT INTEGRATION â•â•â•
 async function processGeniusPayment() {
   try {
     // Validation
@@ -2477,28 +2439,28 @@ async function processGeniusPayment() {
     const isEn = currentLang === 'en';
 
     if (amountXOF < 200) {
-      showToast('⚠ ' + (isEn ? 'Minimum amount is 200 FCFA' : 'Montant minimum : 200 FCFA'));
+      showToast('âš  ' + (isEn ? 'Minimum amount is 200 FCFA' : 'Montant minimum : 200 FCFA'));
       return;
     }
 
     // Afficher un loading
-    showToast('⏳ ' + (isEn ? 'Processing payment...' : 'Traitement du paiement...'));
+    showToast('â³ ' + (isEn ? 'Processing payment...' : 'Traitement du paiement...'));
 
-    const licenseSummary = cart.map(c => `${c.title} (${c.license} · $${c.price})`).join(', ');
+    const licenseSummary = cart.map(c => `${c.title} (${c.license} Â· $${c.price})`).join(', ');
 
-    // Préparer les données de commande — GeniusPay attend le montant en XOF entier (pas en centimes)
+    // PrÃ©parer les donnÃ©es de commande â€” GeniusPay attend le montant en XOF entier (pas en centimes)
     const orderData = {
       amount: amountXOF,
       currency: 'XOF',
       customer_phone: '+225' + (currentUser.phone || '0707000000'),
       customer_name: currentUser.username || 'Customer',
       customer_email: currentUser.email,
-      description: `Je Suis Beatz — ${licenseSummary}`,
+      description: `Je Suis Beatz â€” ${licenseSummary}`,
       items: cart.map(c => ({
-        name: `${c.title} — ${c.license}`,
+        name: `${c.title} â€” ${c.license}`,
         quantity: 1,
         unit_price: convertUsdToXofPayment(c.price),
-        description: `${c.license} License · $${c.price} USD`
+        description: `${c.license} License Â· $${c.price} USD`
       })),
       metadata: {
         total_usd: totalUSD,
@@ -2510,7 +2472,7 @@ async function processGeniusPayment() {
       failure_url: GENIUSPAY_CONFIG.failureURL
     };
 
-    // Appel serveur (Cloud Function) pour créer le paiement en toute sécurité
+    // Appel serveur (Cloud Function) pour crÃ©er le paiement en toute sÃ©curitÃ©
     let data = null;
     let checkoutUrl = null;
 
@@ -2554,14 +2516,14 @@ async function processGeniusPayment() {
     }
   } catch (error) {
     console.error('GeniusPay payment error:', error);
-    showToast('❌ ' + (currentLang === 'en' ? 'Payment failed' : 'Le paiement a échoué'));
+    showToast('âŒ ' + (currentLang === 'en' ? 'Payment failed' : 'Le paiement a Ã©chouÃ©'));
     closePaymentModal();
   }
 }
 
-// FAILLE CORRIGÉE : showPaySuccess remplacée par showPayPendingConfirmation.
-// On n'affiche plus un faux "Paiement réussi !" immédiat côté client.
-// On affiche un écran d'attente pendant que le webhook serveur confirme.
+// FAILLE CORRIGÃ‰E : showPaySuccess remplacÃ©e par showPayPendingConfirmation.
+// On n'affiche plus un faux "Paiement rÃ©ussi !" immÃ©diat cÃ´tÃ© client.
+// On affiche un Ã©cran d'attente pendant que le webhook serveur confirme.
 async function showPayPendingConfirmation(orderId, method) {
   const isEn = currentLang === 'en';
   const total = cart.reduce((s,c)=>s+c.price,0);
@@ -2575,16 +2537,16 @@ async function showPayPendingConfirmation(orderId, method) {
   document.getElementById('payStep3').style.display = 'block';
 
   document.getElementById('paySuccessTitle').textContent =
-    isEn ? '⏳ Verifying payment...' : '⏳ Vérification en cours...';
+    isEn ? 'â³ Verifying payment...' : 'â³ VÃ©rification en cours...';
   document.getElementById('paySuccessMsg').textContent =
     isEn
       ? 'Your payment has been received. We are verifying it with the payment provider. You will receive a download link by email at ' + (currentUser?.email || 'your address') + ' once confirmed (usually under 2 minutes).'
-      : 'Votre paiement a été reçu. Nous le vérifions auprès du prestataire. Vous recevrez le lien de téléchargement par email à ' + (currentUser?.email || 'votre adresse') + ' après confirmation (généralement en moins de 2 minutes).';
+      : 'Votre paiement a Ã©tÃ© reÃ§u. Nous le vÃ©rifions auprÃ¨s du prestataire. Vous recevrez le lien de tÃ©lÃ©chargement par email Ã  ' + (currentUser?.email || 'votre adresse') + ' aprÃ¨s confirmation (gÃ©nÃ©ralement en moins de 2 minutes).';
 
   document.getElementById('paySuccessOrder').innerHTML = `
     <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:12px;padding:16px;margin-top:16px;font-family:var(--font-mono);font-size:0.68rem">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="color:var(--text-dim)">${isEn?'Order ID':'N° commande'}</span>
+        <span style="color:var(--text-dim)">${isEn?'Order ID':'NÂ° commande'}</span>
         <span style="color:var(--cyan)">${orderId}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
@@ -2592,7 +2554,7 @@ async function showPayPendingConfirmation(orderId, method) {
         <span style="color:#fff">$${total}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="color:var(--text-dim)">${isEn?'Method':'Méthode'}</span>
+        <span style="color:var(--text-dim)">${isEn?'Method':'MÃ©thode'}</span>
         <span style="color:#fff">${methodNames[method]||method}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2606,14 +2568,14 @@ async function showPayPendingConfirmation(orderId, method) {
     <div style="margin-top:16px;font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);text-align:center">
       <i class="fas fa-shield-alt" style="color:var(--cyan)"></i>
       ${isEn
-        ? 'Payment verified server-side — your beat will only be delivered after real confirmation.'
-        : 'Paiement vérifié côté serveur — votre beat ne sera livré qu\'après confirmation réelle.'}
+        ? 'Payment verified server-side â€” your beat will only be delivered after real confirmation.'
+        : 'Paiement vÃ©rifiÃ© cÃ´tÃ© serveur â€” votre beat ne sera livrÃ© qu\'aprÃ¨s confirmation rÃ©elle.'}
     </div>`;
 
   document.getElementById('paySuccessBtn').textContent =
-    isEn ? 'Keep listening' : 'Continuer l\'écoute';
+    isEn ? 'Keep listening' : 'Continuer l\'Ã©coute';
 
-  // Vider le panier uniquement après que la commande est enregistrée
+  // Vider le panier uniquement aprÃ¨s que la commande est enregistrÃ©e
   cart = [];
   if (currentUser?.uid) {
     await db.collection('carts').doc(currentUser.uid)
@@ -2623,8 +2585,8 @@ async function showPayPendingConfirmation(orderId, method) {
   localStorage.setItem('jsb_cart2', '[]');
   updateCartBadge();
 
-  // Polling léger : vérifier le statut toutes les 5s pendant 3 minutes max
-  // via la Cloud Function getOrderStatus (lecture sécurisée)
+  // Polling lÃ©ger : vÃ©rifier le statut toutes les 5s pendant 3 minutes max
+  // via la Cloud Function getOrderStatus (lecture sÃ©curisÃ©e)
   if (currentUser?.uid) {
     let attempts = 0;
     const maxAttempts = 36; // 3 minutes
@@ -2638,25 +2600,25 @@ async function showPayPendingConfirmation(orderId, method) {
         if (status === 'completed') {
           clearInterval(pollInterval);
           const badge = document.getElementById('orderStatusBadge');
-          if (badge) badge.innerHTML = `<span style="color:#4ade80">✅ ${isEn?'Confirmed! Check your email.':'Confirmé ! Vérifiez vos emails.'}</span>`;
+          if (badge) badge.innerHTML = `<span style="color:#4ade80">âœ… ${isEn?'Confirmed! Check your email.':'ConfirmÃ© ! VÃ©rifiez vos emails.'}</span>`;
           const titleEl = document.getElementById('paySuccessTitle');
-          if (titleEl) titleEl.textContent = isEn ? '✅ Payment confirmed!' : '✅ Paiement confirmé !';
-          showToast(isEn ? '🎵 Your beat is on its way!' : '🎵 Votre beat arrive dans votre boîte mail !');
+          if (titleEl) titleEl.textContent = isEn ? 'âœ… Payment confirmed!' : 'âœ… Paiement confirmÃ© !';
+          showToast(isEn ? 'ðŸŽµ Your beat is on its way!' : 'ðŸŽµ Votre beat arrive dans votre boÃ®te mail !');
         }
 
         if (attempts >= maxAttempts) {
           clearInterval(pollInterval);
           const badge = document.getElementById('orderStatusBadge');
-          if (badge) badge.innerHTML = `<span style="color:#f59e0b">⏳ ${isEn?'Check your email in a few minutes.':'Vérifiez vos emails dans quelques minutes.'}</span>`;
+          if (badge) badge.innerHTML = `<span style="color:#f59e0b">â³ ${isEn?'Check your email in a few minutes.':'VÃ©rifiez vos emails dans quelques minutes.'}</span>`;
         }
       } catch(e) {
-        // Silencieux — le webhook serveur reste la source de vérité
+        // Silencieux â€” le webhook serveur reste la source de vÃ©ritÃ©
       }
     }, 5000);
   }
 }
 
-// Conservé pour rétrocompatibilité interne (appelé nulle part en production)
+// ConservÃ© pour rÃ©trocompatibilitÃ© interne (appelÃ© nulle part en production)
 async function showPaySuccess(method, transactionId) {
   return showPayPendingConfirmation(transactionId || ('JSB-'+Date.now()), method);
 }
@@ -2669,55 +2631,55 @@ function applyPayTranslations() {
   const setHtml = (id, fr, en) => { const el=document.getElementById(id); if(el) el.innerHTML = isEn?en:fr; };
   setTxt('payModalTitle', 'Choisir un moyen de paiement', 'Choose a payment method');
   setTxt('payLblIntl', 'Paiement', 'Payment');
-  setTxt('payLblAfrica', 'Mobile Money — Afrique', 'Mobile Money — Africa');
-  setTxt('paySecureLabel', 'Paiement 100% sécurisé · Livraison digitale immédiate', '100% secure payment · Instant digital delivery');
+  setTxt('payLblAfrica', 'Mobile Money â€” Afrique', 'Mobile Money â€” Africa');
+  setTxt('paySecureLabel', 'Paiement 100% sÃ©curisÃ© Â· Livraison digitale immÃ©diate', '100% secure payment Â· Instant digital delivery');
   setTxt('payBackLabel', 'Retour', 'Back');
   setTxt('paypalLoadingTxt', 'Chargement PayPal...', 'Loading PayPal...');
   // Card
   setTxt('payCardTitle', 'Carte Bancaire', 'Credit Card');
   setTxt('lblCardName', 'Nom sur la carte', 'Name on card');
-  setTxt('lblCardNum', 'Numéro de carte', 'Card number');
+  setTxt('lblCardNum', 'NumÃ©ro de carte', 'Card number');
   setTxt('lblCardExp', 'Expiration', 'Expiry');
-  setTxt('payNoteCard', 'En cliquant, vous acceptez les conditions de vente. Transaction sécurisée via SSL.', 'By clicking, you accept the terms of sale. SSL secured transaction.');
+  setTxt('payNoteCard', 'En cliquant, vous acceptez les conditions de vente. Transaction sÃ©curisÃ©e via SSL.', 'By clicking, you accept the terms of sale. SSL secured transaction.');
   // PayPal
-  setTxt('payPaypalMsg', 'Vous allez être redirigé vers PayPal pour finaliser votre paiement en toute sécurité.', 'You will be redirected to PayPal to complete your payment securely.');
+  setTxt('payPaypalMsg', 'Vous allez Ãªtre redirigÃ© vers PayPal pour finaliser votre paiement en toute sÃ©curitÃ©.', 'You will be redirected to PayPal to complete your payment securely.');
   setTxt('lblPaypalEmail', 'Email PayPal', 'PayPal email');
   setTxt('payPaypalBtn', 'Continuer avec PayPal', 'Continue with PayPal');
   // Stripe
-  setTxt('lblStripeCard', 'Numéro de carte', 'Card number');
+  setTxt('lblStripeCard', 'NumÃ©ro de carte', 'Card number');
   setTxt('lblStripeExp', 'Expiration', 'Expiry');
   setTxt('payOrLabel', 'ou payer par carte', 'or pay by card');
   setTxt('payStripeBtnLabel', 'Payer avec Stripe', 'Pay with Stripe');
   // Wave
-  setTxt('payWaveMsg', 'Entrez votre numéro Wave pour recevoir une demande de paiement sur votre application.', 'Enter your Wave number to receive a payment request on your app.');
-  setTxt('lblWavePhone', 'Numéro de téléphone Wave', 'Wave phone number');
+  setTxt('payWaveMsg', 'Entrez votre numÃ©ro Wave pour recevoir une demande de paiement sur votre application.', 'Enter your Wave number to receive a payment request on your app.');
+  setTxt('lblWavePhone', 'NumÃ©ro de tÃ©lÃ©phone Wave', 'Wave phone number');
   setTxt('payWaveBtn', 'Payer avec Wave', 'Pay with Wave');
   // Orange
-  setTxt('payOrangeMsg', 'Entrez votre numéro Orange Money pour recevoir une demande de paiement.', 'Enter your Orange Money number to receive a payment request.');
-  setTxt('lblOrangePhone', 'Numéro Orange Money', 'Orange Money number');
+  setTxt('payOrangeMsg', 'Entrez votre numÃ©ro Orange Money pour recevoir une demande de paiement.', 'Enter your Orange Money number to receive a payment request.');
+  setTxt('lblOrangePhone', 'NumÃ©ro Orange Money', 'Orange Money number');
   setTxt('lblOrangePin', 'Code PIN Orange Money', 'Orange Money PIN');
   setTxt('payOrangeBtn', 'Payer avec Orange Money', 'Pay with Orange Money');
   // MTN
-  setTxt('payMtnMsg', 'Entrez votre numéro MTN MoMo pour recevoir une demande de paiement.', 'Enter your MTN MoMo number to receive a payment request.');
-  setTxt('lblMtnPhone', 'Numéro MTN MoMo', 'MTN MoMo number');
+  setTxt('payMtnMsg', 'Entrez votre numÃ©ro MTN MoMo pour recevoir une demande de paiement.', 'Enter your MTN MoMo number to receive a payment request.');
+  setTxt('lblMtnPhone', 'NumÃ©ro MTN MoMo', 'MTN MoMo number');
   setTxt('payMtnBtn', 'Payer avec MTN MoMo', 'Pay with MTN MoMo');
   // Moov
-  setTxt('payMoovMsg', 'Entrez votre numéro Moov pour recevoir une demande de paiement.', 'Enter your Moov number to receive a payment request.');
-  setTxt('lblMoovPhone', 'Numéro Moov Money', 'Moov Money number');
+  setTxt('payMoovMsg', 'Entrez votre numÃ©ro Moov pour recevoir une demande de paiement.', 'Enter your Moov number to receive a payment request.');
+  setTxt('lblMoovPhone', 'NumÃ©ro Moov Money', 'Moov Money number');
   setTxt('payMoovBtn', 'Payer avec Moov Money', 'Pay with Moov Money');
   // CinetPay
   setTxt('payCinetMsg', 'CinetPay regroupe tous les moyens de paiement mobile africains en un seul endroit.', 'CinetPay aggregates all African mobile payment methods in one place.');
-  setTxt('lblCinetPhone', 'Numéro de téléphone', 'Phone number');
+  setTxt('lblCinetPhone', 'NumÃ©ro de tÃ©lÃ©phone', 'Phone number');
   setTxt('payCinetBtn', 'Payer avec CinetPay', 'Pay with CinetPay');
-  setTxt('payGeniusMsg', 'Payez avec GeniusPay pour un paiement rapide et sécurisé.', 'Pay with GeniusPay for the fastest and most secure checkout.');
+  setTxt('payGeniusMsg', 'Payez avec GeniusPay pour un paiement rapide et sÃ©curisÃ©.', 'Pay with GeniusPay for the fastest and most secure checkout.');
   setTxt('payGeniusBtnLabel', 'Payer avec GeniusPay', 'Pay with GeniusPay');
   setTxt('payGeniusNote', 'Si GeniusPay est indisponible, contactez le support.', 'If GeniusPay is unavailable, contact support.');
   // Crypto
-  setTxt('payCryptoMsg', "Choisissez votre cryptomonnaie et envoyez le montant exact à l'adresse indiquée.", 'Choose your cryptocurrency and send the exact amount to the address shown.');
+  setTxt('payCryptoMsg', "Choisissez votre cryptomonnaie et envoyez le montant exact Ã  l'adresse indiquÃ©e.", 'Choose your cryptocurrency and send the exact amount to the address shown.');
   setTxt('lblCopyCrypto', "Copier l'adresse", 'Copy address');
-  setTxt('cryptoAmountLabel', 'Montant à envoyer :', 'Amount to send:');
-  setTxt('payCryptoBtn', "J'ai effectué le virement", 'I have sent the payment');
-  setTxt('payNoteCrypto', 'Le paiement crypto est vérifié manuellement. Vous recevrez votre beat sous 1h après confirmation.', 'Crypto payments are manually verified. You will receive your beat within 1h of confirmation.');
+  setTxt('cryptoAmountLabel', 'Montant Ã  envoyer :', 'Amount to send:');
+  setTxt('payCryptoBtn', "J'ai effectuÃ© le virement", 'I have sent the payment');
+  setTxt('payNoteCrypto', 'Le paiement crypto est vÃ©rifiÃ© manuellement. Vous recevrez votre beat sous 1h aprÃ¨s confirmation.', 'Crypto payments are manually verified. You will receive your beat within 1h of confirmation.');
   // Update card pay button amount
   const total = cart.reduce ? cart.reduce((s,c)=>s+c.price,0) : 0;
   const payCardBtnLabel = document.getElementById('payCardBtnLabel');
@@ -2726,7 +2688,7 @@ function applyPayTranslations() {
  
 document.getElementById('paymentModal').addEventListener('click', e=>{if(e.target===e.currentTarget)closePaymentModal();});
  
-// ═══ AUTH ═══
+// â•â•â• AUTH â•â•â•
 // Attend que le custom claim admin soit actif dans le token Firebase
 async function waitForAdminClaim(firebaseUser, maxAttempts = 4) {
   for (let i = 0; i < maxAttempts; i++) {
@@ -2738,11 +2700,11 @@ async function waitForAdminClaim(firebaseUser, maxAttempts = 4) {
   return false;
 }
 
-// Active le rôle admin côté serveur
+// Active le rÃ´le admin cÃ´tÃ© serveur
 async function activateAdminRole(firebaseUser) {
   if (!firebaseUser) return false;
 
-  // Vérifier document admins (lecture autorisée pour son propre uid)
+  // VÃ©rifier document admins (lecture autorisÃ©e pour son propre uid)
   try {
     const adminDoc = await db.collection('admins').doc(firebaseUser.uid).get();
     if (adminDoc.exists) {
@@ -2783,12 +2745,12 @@ async function activateAdminRole(firebaseUser) {
   return false;
 }
 
-// Synchronise le rôle admin via Cloud Function (source de vérité serveur)
+// Synchronise le rÃ´le admin via Cloud Function (source de vÃ©ritÃ© serveur)
 async function syncAdminRole(firebaseUser) {
   return activateAdminRole(firebaseUser);
 }
 
-// Sanitisation XSS — échappe les caractères dangereux
+// Sanitisation XSS â€” Ã©chappe les caractÃ¨res dangereux
 function sanitize(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(String(str||'')));
@@ -2798,19 +2760,9 @@ function sanitizeIconClass(icon) {
   const val = String(icon || '').trim();
   return /^(fa[srb]?\s+fa-[a-z0-9-]+)(\s+fa-[a-z0-9-]+)*$/i.test(val) ? val : '';
 }
-function safeImageUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  const normalized = url.trim();
-  if (!/^https:\/\//i.test(normalized)) return '';
-  try {
-    return new URL(normalized).toString();
-  } catch (err) {
-    return normalized.replace(/ /g, '%20');
-  }
-}
 // Validation email simple
 function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-// Validation username (alphanumérique + tirets, 3-20 chars)
+// Validation username (alphanumÃ©rique + tirets, 3-20 chars)
 function isValidUsername(u) { return /^[a-zA-Z0-9_\-]{3,20}$/.test(u); }
  
 async function doLogin() {
@@ -2828,16 +2780,16 @@ async function doLogin() {
   try {
     let email = u;
 
-    // FAILLE CORRIGÉE : plus de lecture directe de /users par username.
+    // FAILLE CORRIGÃ‰E : plus de lecture directe de /users par username.
     // On passe par la Cloud Function qui ne retourne que l'email
-    // et ne permet pas d'énumérer les utilisateurs.
+    // et ne permet pas d'Ã©numÃ©rer les utilisateurs.
     if (!isValidEmail(u)) {
       try {
         const getUserEmail = cloudFunctions().httpsCallable('getUserEmailByUsername');
         const result = await getUserEmail({ username: u });
         email = result.data.email;
       } catch(fnErr) {
-        // Délai intentionnel pour éviter le timing attack (brute force)
+        // DÃ©lai intentionnel pour Ã©viter le timing attack (brute force)
         recordLoginAttempt(u);
         await new Promise(r => setTimeout(r, 600));
         err.textContent = t('err_wrong_creds');
@@ -2849,17 +2801,17 @@ async function doLogin() {
     const cred = await auth.signInWithEmailAndPassword(email, p);
     const uid = cred.user.uid;
 
-    // ✅ SÉCURITÉ : Vérifier que l'email est confirmé
+    // âœ… SÃ‰CURITÃ‰ : VÃ©rifier que l'email est confirmÃ©
     if (!cred.user.emailVerified) {
       let verificationResent = true;
       let verificationError = null;
       try {
         await cred.user.sendEmailVerification(getVerificationActionSettings());
-        console.log('Email de vérification renvoyé à:', cred.user.email);
+        console.log('Email de vÃ©rification renvoyÃ© Ã :', cred.user.email);
       } catch (e) {
         verificationResent = false;
         verificationError = e;
-        console.warn('Erreur lors de l\'envoi de l\'email de vérification:', e);
+        console.warn('Erreur lors de l\'envoi de l\'email de vÃ©rification:', e);
       }
 
       if (!verificationResent) {
@@ -2873,7 +2825,7 @@ async function doLogin() {
       return;
     }
 
-    // Effacer les tentatives de connexion réussies
+    // Effacer les tentatives de connexion rÃ©ussies
     clearLoginAttempts(u);
 
     const ownerAccount = isOwnerEmail(cred.user.email || email);
@@ -2892,8 +2844,8 @@ async function doLogin() {
     ok.style.opacity = '1';
     ok.style.marginBottom = '20px';
 
-    // Ne pas masquer immédiatement la carte de connexion.
-    // L'utilisateur voit clairement le succès avant d'aller sur home.
+    // Ne pas masquer immÃ©diatement la carte de connexion.
+    // L'utilisateur voit clairement le succÃ¨s avant d'aller sur home.
     setTimeout(() => {
       const nextPage = localStorage.getItem('jsb_last_page_before_login') || (currentUser.role === 'admin' ? 'admin' : 'home');
       localStorage.removeItem('jsb_last_page_before_login');
@@ -2978,7 +2930,7 @@ async function resendVerificationEmail() {
       ok.style.opacity = '1';
       ok.style.color = '#00d084';
     } catch (e) {
-      console.warn('Erreur lors de l\'envoi du mail de vérification:', e);
+      console.warn('Erreur lors de l\'envoi du mail de vÃ©rification:', e);
       err.textContent = `${t('login_verify_resend_error')} ${sanitize(e.message || e.code || '')}`.trim();
       err.style.display = 'block';
     } finally {
@@ -3004,24 +2956,24 @@ async function doRegister() {
   if (!/[A-Z]/.test(p)||!/[0-9]/.test(p)) { err.textContent=t('err_pwd_format'); err.style.display='block'; return; }
 
   try {
-    // FAILLE CORRIGÉE : vérification username via Cloud Function (pas de lecture directe /users)
-    // Si la CF trouve l'email → username pris. Si elle lève une erreur 'not-found' → libre.
+    // FAILLE CORRIGÃ‰E : vÃ©rification username via Cloud Function (pas de lecture directe /users)
+    // Si la CF trouve l'email â†’ username pris. Si elle lÃ¨ve une erreur 'not-found' â†’ libre.
     try {
       const checkFn = cloudFunctions().httpsCallable('getUserEmailByUsername');
       await checkFn({ username: u.toLowerCase() });
-      // Si on arrive ici → username déjà pris
+      // Si on arrive ici â†’ username dÃ©jÃ  pris
       err.textContent = t('err_username_taken');
       err.style.display = 'block';
       return;
     } catch(fnErr) {
       if (fnErr.code !== 'functions/not-found') {
-        // Erreur inattendue — on laisse continuer (meilleure expérience, Firebase Auth bloquera si besoin)
+        // Erreur inattendue â€” on laisse continuer (meilleure expÃ©rience, Firebase Auth bloquera si besoin)
         console.warn('Username check warning:', fnErr.code);
       }
-      // code === 'not-found' → username disponible, on continue
+      // code === 'not-found' â†’ username disponible, on continue
     }
 
-    // Créer le compte Firebase Auth
+    // CrÃ©er le compte Firebase Auth
     const cred = await auth.createUserWithEmailAndPassword(e, p);
     const uid  = cred.user.uid;
 
@@ -3031,11 +2983,11 @@ async function doRegister() {
       role:      'user',
       uid,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      emailVerified: false  // ✅ Tracer l'état de vérification
+      emailVerified: false  // âœ… Tracer l'Ã©tat de vÃ©rification
     };
     await db.collection('users').doc(uid).set(userData);
 
-    // ✅ SÉCURITÉ : Envoyer automatiquement l'email de vérification
+    // âœ… SÃ‰CURITÃ‰ : Envoyer automatiquement l'email de vÃ©rification
     let verificationSent = true;
     let verificationError = null;
     try {
@@ -3043,7 +2995,7 @@ async function doRegister() {
     } catch (emailErr) {
       verificationSent = false;
       verificationError = emailErr;
-      console.warn('Erreur lors de l\'envoi de l\'email de vérification:', emailErr);
+      console.warn('Erreur lors de l\'envoi de l\'email de vÃ©rification:', emailErr);
     }
 
     if (!verificationSent) {
@@ -3059,7 +3011,7 @@ async function doRegister() {
     ok.style.marginBottom = '20px';
     ok.style.color = '#00d084';
 
-    showToast('📧 Vérifiez votre email pour continuer!');
+    showToast('ðŸ“§ VÃ©rifiez votre email pour continuer!');
   } catch(ex) {
     const msg = ex.code === 'auth/email-already-in-use' ? t('err_email_taken') : ex.message;
     err.textContent = msg;
@@ -3076,51 +3028,31 @@ function updateAuth() {
   const firebaseEmail = auth.currentUser?.email || currentUser?.email || '';
   const showAdmin = (currentUser && currentUser.role === 'admin') || isOwnerEmail(firebaseEmail);
   document.getElementById('adminBtn').style.display = showAdmin ? 'flex' : 'none';
-  const showAccountBtn = currentUser && !showAdmin;
-  const accountBtn = document.getElementById('accountBtn');
-  if (accountBtn) {
-    accountBtn.style.display = showAccountBtn ? 'flex' : 'none';
-  }
-  if (currentUser) {
-    const avatarUrl = safeImageUrl(currentUser.photoURL);
-    if (accountBtn) {
-      accountBtn.innerHTML = avatarUrl
-        ? `<img class="nav-account-avatar" src="${avatarUrl}" alt="Avatar de ${sanitize(currentUser.username)}">`
-        : '<i class="fas fa-user-circle"></i>';
-    }
-    document.getElementById('logoutName').textContent = sanitize(currentUser.username);
-  } else {
-    if (accountBtn) accountBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
-  }
+  if (currentUser) document.getElementById('logoutName').textContent = sanitize(currentUser.username);
   renderStats();
   if (document.getElementById('page-beats')?.classList.contains('active') || document.getElementById('page-admin')?.classList.contains('active')) {
     renderAll();
   }
 }
 
-// ✅ SÉCURITÉ : À l'init, on revalide le token Firebase si l'user est déjà connecté
+// âœ… SÃ‰CURITÃ‰ : Ã€ l'init, on revalide le token Firebase si l'user est dÃ©jÃ  connectÃ©
 auth.onAuthStateChanged(async (firebaseUser) => {
   if (firebaseUser) {
     try {
       const isAdmin = await syncAdminRole(firebaseUser);
       let stored = JSON.parse(sessionStorage.getItem('jsb_user2') || 'null');
-      let userData = {};
-      if (!stored || stored.uid !== firebaseUser.uid || !stored.photoURL) {
-        const doc = await db.collection('users').doc(firebaseUser.uid).get();
-        userData = doc.exists ? doc.data() : {};
-      }
       if (!stored || stored.uid !== firebaseUser.uid) {
+        const doc = await db.collection('users').doc(firebaseUser.uid).get();
+        const userData = doc.exists ? doc.data() : {};
         stored = {
           username: sanitize(userData.username || firebaseUser.email),
           email: firebaseUser.email,
-          photoURL: userData.photoURL || firebaseUser.photoURL || '',
           role: (isAdmin || isOwnerEmail(firebaseUser.email)) ? 'admin' : 'user',
           uid: firebaseUser.uid,
         };
       } else {
         stored.role = (isAdmin || isOwnerEmail(firebaseUser.email)) ? 'admin' : 'user';
         stored.email = firebaseUser.email || stored.email;
-        stored.photoURL = stored.photoURL || userData.photoURL || firebaseUser.photoURL || '';
       }
       currentUser = stored;
       sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
@@ -3129,7 +3061,7 @@ auth.onAuthStateChanged(async (firebaseUser) => {
       updateAuth();
     } catch (e) { console.warn('Token refresh failed:', e); }
   } else {
-    // Firebase dit que personne n'est connecté : nettoyer
+    // Firebase dit que personne n'est connectÃ© : nettoyer
     if (currentUser) {
       currentUser = null;
       sessionStorage.removeItem('jsb_user2');
@@ -3146,25 +3078,25 @@ function toggleRegister() {
 async function changePwd() {
   const o = document.getElementById('oldPwd').value;
   const n = document.getElementById('newPwd').value;
-  if (n.length < 6) { showToast('⚠ ' + t('err_pwd_too_short')); return; }
-  // ✅ SÉCURITÉ : Changement de mot de passe via Firebase Auth — jamais en localStorage
+  if (n.length < 6) { showToast('âš  ' + t('err_pwd_too_short')); return; }
+  // âœ… SÃ‰CURITÃ‰ : Changement de mot de passe via Firebase Auth â€” jamais en localStorage
   try {
     const user = auth.currentUser;
-    if (!user) { showToast('⚠ Non connecté'); return; }
+    if (!user) { showToast('âš  Non connectÃ©'); return; }
     // Re-authentification requise avant changement de mot de passe
     const cred = firebase.auth.EmailAuthProvider.credential(user.email, o);
     await user.reauthenticateWithCredential(cred);
     await user.updatePassword(n);
     document.getElementById('oldPwd').value = '';
     document.getElementById('newPwd').value = '';
-    showToast('✓ ' + t('admin_pwd_changed'));
+    showToast('âœ“ ' + t('admin_pwd_changed'));
   } catch(e) {
-    if (e.code === 'auth/wrong-password') showToast('⚠ ' + t('err_wrong_pwd'));
-    else showToast('⚠ ' + (e.message || 'Erreur'));
+    if (e.code === 'auth/wrong-password') showToast('âš  ' + t('err_wrong_pwd'));
+    else showToast('âš  ' + (e.message || 'Erreur'));
   }
 }
  
-// ═══ NAVIGATION ═══
+// â•â•â• NAVIGATION â•â•â•
 function showPage(name) {
   if (name === 'admin') {
     const firebaseEmail = auth.currentUser?.email || currentUser?.email || '';
@@ -3191,9 +3123,6 @@ function showPage(name) {
       sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
       updateAuth();
     }
-  }
-  if (name === 'community') {
-    communityTab('profiles');
   }
   if (name === 'login') rememberLastPageBeforeLogin();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -3242,7 +3171,7 @@ async function verifyAdminRoleInBackground(firebaseUser) {
   try {
     const isAdmin = await syncAdminRole(firebaseUser);
     if (!isAdmin) {
-      showToast('⛔ Accès refusé');
+      showToast('â›” AccÃ¨s refusÃ©');
       return showPage('home');
     }
     if (currentUser) {
@@ -3268,7 +3197,7 @@ async function showAdminPage() {
 
   const isAdmin = await syncAdminRole(user);
   if (!isAdmin) {
-    showToast('⛔ Accès refusé');
+    showToast('â›” AccÃ¨s refusÃ©');
     return showPage('home');
   }
   if (currentUser) {
@@ -3289,7 +3218,7 @@ function toggleAdminSidebar() {
   }
 }
 function closeSidebarOnMobile() {
-  // Ferme le menu uniquement sur mobile (largeur ≤ 768px)
+  // Ferme le menu uniquement sur mobile (largeur â‰¤ 768px)
   if (window.innerWidth <= 768) {
     const sidebar = document.getElementById('adminSidebar');
     const icon = document.getElementById('adminToggleIcon');
@@ -3306,7 +3235,7 @@ function closeMobileNav() {
   document.getElementById('navDrawer').classList.remove('open');
 }
  
-// ═══ TOAST ═══
+// â•â•â• TOAST â•â•â•
 function showToast(msg) {
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const t=document.createElement('div');
@@ -3316,241 +3245,22 @@ function showToast(msg) {
 }
 
 function showWarningToast(messageKey, fallback) {
-  // Suppress noisy studio init toasts; these are often caused by autoplay/user-gesture
-  // restrictions and are recoverable via a user gesture. Log to console instead.
-  if (messageKey === 'studio_error_init') {
-    const fallbackMsg = fallback || (typeof t === 'function' ? t(messageKey) : '') || 'Studio init failed';
-    console.warn('Studio init suppressed toast:', fallbackMsg);
-    return;
-  }
   const msg = (typeof t === 'function' ? t(messageKey) : null) || fallback || '';
-  showToast(msg.startsWith('⚠') ? msg : `⚠ ${msg}`);
+  showToast(msg.startsWith('âš ') ? msg : `âš  ${msg}`);
 }
  
  
-// ═══ FREESTYLE ═══
+// â•â•â• FREESTYLE â•â•â•
 let fsAudio = new Audio();
 fsAudio.setAttribute('playsinline', '');
 fsAudio.setAttribute('webkit-playsinline', '');
 window.fsAudio = fsAudio;
 fsAudio.preload = 'auto';
+let fsPlaybackAttempt = false;
 
 function clearFsAudioCrossOrigin() {
   fsAudio.removeAttribute('crossorigin');
   fsAudio.crossOrigin = null;
-}
-
-const FS_RECORDINGS_STORAGE_KEY = 'jsb_recordings';
-let fsPlaybackAttempt = false;
-
-function safeFsRecordingForStorage(rec) {
-  if (!rec) return null;
-  if (isBlobUrl(rec.url) && !isRemoteUrl(rec.url)) {
-    return null;
-  }
-  const copy = { ...rec };
-  delete copy.blob;
-  return copy;
-}
-
-function loadFsRecordingsFromStorage() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(FS_RECORDINGS_STORAGE_KEY) || '[]');
-    if (!Array.isArray(stored)) return [];
-    // Exclude blob: URLs because they are not valid across sessions.
-    return stored
-      .filter(r => r && typeof r.url === 'string')
-      .filter(r => !/^blob:/i.test(r.url))
-      .map(r => ({ ...r, blob: null }));
-  } catch (e) {
-    console.warn('Unable to load freestyle recordings from storage:', e);
-    return [];
-  }
-}
-
-function saveFsRecordingsToStorage() {
-  try {
-    const safeRecords = fsRecordings.map(r => safeFsRecordingForStorage(r)).filter(Boolean);
-    localStorage.setItem(FS_RECORDINGS_STORAGE_KEY, JSON.stringify(safeRecords));
-  } catch (e) {
-    console.warn('Unable to save freestyle recordings:', e);
-  }
-}
-
-function addFsRecording(rec) {
-  fsRecordings.unshift(rec);
-  saveFsRecordingsToStorage();
-  renderRecordingsList();
-  // Auto-upload to Firebase for persistence (especially on mobile)
-  if (currentUser && rec.blob && !isRemoteUrl(rec.url)) {
-    uploadFreestyleRecording(rec).then(uploadedUrl => {
-      if (uploadedUrl) {
-        console.log('Recording auto-uploaded to Firebase:', uploadedUrl);
-        renderRecordingsList(); // re-render with new URL
-      }
-    }).catch(err => {
-      console.warn('Auto-upload failed, blob URL will work until page refresh:', err);
-    });
-  }
-}
-
-function isRemoteUrl(url) {
-  return typeof url === 'string' && /^https?:\/\//i.test(url);
-}
-
-function isValidAudioFile(file) {
-  return file && file.type && /^audio\//i.test(file.type);
-}
-
-async function uploadFreestyleRecording(record) {
-  if (!currentUser) {
-    showToast(t('dyn_login_first'));
-    return null;
-  }
-  if (isRemoteUrl(record.url) && !record.url.startsWith('blob:')) {
-    return record.url;
-  }
-  const file = record.blob instanceof File ? record.blob : new File([record.blob], `freestyle-${record.id}.${record.mimeType?.split('/')[1]||'webm'}`, { type: record.mimeType || 'audio/webm' });
-  const ext = record.mimeType ? record.mimeType.split('/')[1] : 'webm';
-  const path = `freestyles/${currentUser.uid}/${record.id || Date.now()}.${ext}`;
-  try {
-    const downloadUrl = await uploadFileToStorage(file, path);
-    record.url = downloadUrl;
-    record.uploadedAt = new Date().toISOString();
-    saveFsRecordingsToStorage();
-    return downloadUrl;
-  } catch (e) {
-    console.error('uploadFreestyleRecording failed', e);
-    showToast('⚠ ' + (e.message || t('dyn_play_error')));
-    return null;
-  }
-}
-
-async function importFreestyleFile(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  if (!isValidAudioFile(file)) {
-    showToast('⚠ ' + t('err_invalid_audio') || 'Format audio invalide');
-    input.value = '';
-    return;
-  }
-
-  let url = URL.createObjectURL(file);
-  let uploadedUrl = null;
-  if (currentUser) {
-    const ext = (file.name.split('.').pop() || 'webm').toLowerCase();
-    const safeExt = /^(mp3|wav|m4a|ogg|webm|aac|flac)$/i.test(ext) ? ext : 'webm';
-    try {
-      uploadedUrl = await uploadFileToStorage(file, `freestyles/${currentUser.uid}/import-${Date.now()}.${safeExt}`);
-      url = uploadedUrl;
-    } catch (e) {
-      console.warn('importFreestyleFile upload failed, keeping local preview:', e);
-    }
-  }
-
-  const rec = {
-    id: Date.now(),
-    beatTitle: file.name,
-    beatId: null,
-    url,
-    blob: uploadedUrl ? null : file,
-    mimeType: file.type,
-    duration: 0,
-    date: new Date().toLocaleDateString('fr'),
-    label: file.name,
-    uploadedAt: uploadedUrl ? new Date().toISOString() : null,
-    remote: Boolean(uploadedUrl)
-  };
-
-  addFsRecording(rec);
-  showToast(t('dyn_audio_imported') || 'Audio importé');
-  input.value = '';
-}
-
-async function publishFsRecording(index = 0) {
-  if (!currentUser) { showToast(t('dyn_login_first')); return; }
-  if (!fsRecordings.length) { showToast(t('dyn_no_sound_pub')); return; }
-  const record = fsRecordings[index] || fsRecordings[0];
-  if (!record) { showToast(t('dyn_no_sound_pub')); return; }
-  let finalUrl = record.url;
-  if (!isRemoteUrl(finalUrl) || isBlobUrl(finalUrl)) {
-    finalUrl = await uploadFreestyleRecording(record);
-    if (!finalUrl) return;
-  }
-  const post = {
-    type: 'freestyle',
-    username: currentUser.username,
-    beatTitle: record.beatTitle || t('fs_no_beat_selected'),
-    date: new Date().toLocaleDateString('fr'),
-    url: finalUrl,
-    likes: 0,
-    comments: []
-  };
-  await addPostToFirestore(post);
-  showToast(t('dyn_freestyle_published'));
-  // Navigate to Community → My Profile so the user immediately sees their published freestyle
-  showPage('community');
-  communityTab('my-profile');
-  renderMyProfile();
-}
-
-function createFsRecordingFromFile(file) {
-  const url = URL.createObjectURL(file);
-  const rec = {
-    id: Date.now(),
-    beatTitle: file.name,
-    beatId: null,
-    url,
-    blob: file,
-    mimeType: file.type,
-    duration: 0,
-    date: new Date().toLocaleDateString('fr'),
-    label: file.name
-  };
-  addFsRecording(rec);
-  return rec;
-}
-
-function loadFsFileFromInput(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  if (!isValidAudioFile(file)) {
-    showToast('⚠ ' + t('err_invalid_audio') || 'Format audio invalide');
-    input.value = '';
-    return;
-  }
-  createFsRecordingFromFile(file);
-  input.value = '';
-}
-
-function setupFsImportInput(inputId) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  input.addEventListener('change', () => loadFsFileFromInput(input));
-}
-
-function isBlobUrl(url) {
-  return typeof url === 'string' && url.startsWith('blob:');
-}
-
-function isUrlRemote(url) {
-  return typeof url === 'string' && /^https?:\/\//i.test(url);
-}
-
-function renderFsRecordingActions(record, index) {
-  const buttonLabel = record.blob || isBlobUrl(record.url)
-    ? t('fs_upload_to_profile')
-    : t('fs_publish_profile');
-  const publishOnClick = `publishFsRecording(${index})`;
-  return `<button onclick="${publishOnClick}" class="btn-ghost" style="font-size:0.75rem;padding:8px 12px">${buttonLabel}</button>`;
-}
-
-function getFileNameFromUrl(url) {
-  try {
-    return new URL(url).pathname.split('/').pop() || url;
-  } catch (e) {
-    return url;
-  }
 }
 
 function bindFsAudioElementEvents(audioEl) {
@@ -3581,7 +3291,7 @@ function bindFsAudioElementEvents(audioEl) {
     }
   });
   audioEl.addEventListener('loadedmetadata', () => {
-    console.log('✅ Audio metadata loaded:', audioEl.duration, 'seconds');
+    console.log('âœ… Audio metadata loaded:', audioEl.duration, 'seconds');
     const dt = document.getElementById('fsDurT');
     if (dt && audioEl.duration && isFinite(audioEl.duration)) {
       dt.textContent = fmt(audioEl.duration);
@@ -3607,7 +3317,7 @@ let fsPlaying = false;
 let fsBeatVolume = 1.0;
 let fsMediaRecorder = null;
 let fsChunks = [];
-let fsRecordings = loadFsRecordingsFromStorage();
+let fsRecordings = JSON.parse(localStorage.getItem('jsb_recordings') || '[]');
 let fsSelectedBeat = null;
 window.fsSelectedBeat = fsSelectedBeat;
 window.pendingStudioBeat = null;
@@ -3617,15 +3327,10 @@ let fsSeconds = 0;
 let micStream = null;
 let analyserNode = null;
 let micAnimFrame = null;
-let fsAudioCtx = null;
-let fsMicSourceNode = null;
-let fsBeatSourceNode = null;
-let fsDestinationNode = null;
-let fsRecordingDestinationStream = null;
  
 async function ensureFsAudioGraph() {
-  // Lecture simple via <audio> — pas de graphe Web Audio requis pour le freestyle.
-  // (createMediaElementSource + crossOrigin provoquait des échecs CORS sur Storage.)
+  // Lecture simple via <audio> â€” pas de graphe Web Audio requis pour le freestyle.
+  // (createMediaElementSource + crossOrigin provoquait des Ã©checs CORS sur Storage.)
   return;
 }
 
@@ -3640,7 +3345,7 @@ function renderFsBeatList() {
     <button type="button" onclick="selectFsBeat(${i})" id="fsbtn-${i}" class="fs-beat-btn">
       <img src="${b.cover || DEFAULT_BEAT_COVER}" alt="${b.title}" onerror="this.src='${DEFAULT_BEAT_COVER}'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;margin-bottom:6px">
       <span class="fs-beat-title">${b.title}</span>
-      <span class="fs-beat-meta">${b.bpm} BPM · ${b.genre}</span>
+      <span class="fs-beat-meta">${b.bpm} BPM Â· ${b.genre}</span>
     </button>`).join('');
 }
  
@@ -3652,7 +3357,7 @@ window.selectFsBeat = async function(idx) {
   const directBeatUrl = resolveFsBeatURL(audioSource);
   const proxyBeatUrl = resolveFsBeatProxyURL(audioSource);
   let beatUrl = directBeatUrl;
-  // Si c'est une URL Firebase Storage, utiliser le proxy pour éviter les erreurs CORS
+  // Si c'est une URL Firebase Storage, utiliser le proxy pour Ã©viter les erreurs CORS
   if (proxyBeatUrl && /firebasestorage\.googleapis\.com|storage\.googleapis\.com/i.test(directBeatUrl)) {
     console.log('Using audio proxy for freestyle beat (CORS-sensitive source):', proxyBeatUrl);
     beatUrl = proxyBeatUrl;
@@ -3662,30 +3367,24 @@ window.selectFsBeat = async function(idx) {
     return;
   }
   console.log('selectFsBeat URL:', beatUrl, 'audioSource:', audioSource, 'beatId:', fsSelectedBeat?.id);
-  fsAudio.crossOrigin = 'anonymous';
+  clearFsAudioCrossOrigin();
   fsAudio.src = beatUrl;
   fsAudio.loop = true;
   fsAudio.preload = 'auto';
   fsAudio.muted = false;
   fsAudio.volume = fsBeatVolume > 0.05 ? fsBeatVolume : 1.0;
   try {
-    await fsAudio.load();
+    fsAudio.load();
   } catch(e) {
     console.warn('Audio load:', e);
   }
-  fsAudio.addEventListener('error', function(e) {
-    console.warn('fsAudio element error after load:', e, fsAudio.error);
-    if (/CORS|Failed to fetch|NetworkError/i.test(String(fsAudio.error?.message || e))) {
-      showWarningToast('dyn_play_error', 'Beat CORS / réseau introuvable');
-    }
-  }, { once: true });
   const nameEl = document.getElementById('fsBeatName');
   const metaEl = document.getElementById('fsBeatMeta');
   const coverEl = document.getElementById('fsBeatCover');
   const durationEl = document.getElementById('fsBeatDuration');
   const playBtn = document.getElementById('fsBeatPlayBtn');
   if (nameEl) nameEl.textContent = fsSelectedBeat.title;
-  if (metaEl) metaEl.textContent = fsSelectedBeat.bpm + ' BPM · ' + fsSelectedBeat.genre;
+  if (metaEl) metaEl.textContent = fsSelectedBeat.bpm + ' BPM Â· ' + fsSelectedBeat.genre;
   if (coverEl) coverEl.src = fsSelectedBeat.cover || DEFAULT_BEAT_COVER;
   if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_play_beat')}`;
   if (durationEl) durationEl.textContent = '0:00';
@@ -3704,7 +3403,7 @@ window.loadStudioSelectedBeat = async function(beat) {
   if (!beat || !audioSource) return;
   window.pendingStudioBeat = beat;
   if (typeof studioInstance === 'undefined' || !studioInstance || typeof studioInstance.loadBeatFromURL !== 'function') {
-    console.log('Studio pas encore prêt, beat en attente:', beat.title || beat.name);
+    console.log('Studio pas encore prÃªt, beat en attente:', beat.title || beat.name);
     return;
   }
   try {
@@ -3716,43 +3415,18 @@ window.loadStudioSelectedBeat = async function(beat) {
     };
     const directUrl = resolveBeatPlaybackURL(audioSource);
     const proxyUrl = resolveFsBeatProxyURL(audioSource);
-    let beatLoaded = false;
-    let lastError = null;
-
     try {
       await studioInstance.loadBeatFromURL(directUrl, beatInfo);
-      beatLoaded = true;
-      console.log('✅ Studio loaded beat from freestyle selector:', beatInfo.name, directUrl);
+      console.log('âœ… Studio loaded beat from freestyle selector:', beatInfo.name, directUrl);
     } catch (directErr) {
-      lastError = directErr;
       console.warn('Studio direct load failed, trying proxy:', directErr);
-    }
-
-    if (!beatLoaded && proxyUrl && proxyUrl !== directUrl) {
-      try {
+      if (proxyUrl && proxyUrl !== directUrl) {
         await studioInstance.loadBeatFromURL(proxyUrl, beatInfo);
-        beatLoaded = true;
-        console.log('✅ Studio loaded beat via proxy:', beatInfo.name, proxyUrl);
-      } catch (proxyErr) {
-        lastError = proxyErr;
-        console.warn('Studio proxy load failed:', proxyErr);
+        console.log('âœ… Studio loaded beat via proxy:', beatInfo.name, proxyUrl);
+      } else {
+        throw directErr;
       }
     }
-
-    if (!beatLoaded) {
-      const fallbackUrl = proxyUrl || directUrl;
-      const buffer = await fetchAudioBufferForBeatUrl(fallbackUrl);
-      if (buffer) {
-        await studioInstance.loadBeat(buffer, beatInfo);
-        beatLoaded = true;
-        console.log('✅ Studio loaded beat from decoded buffer:', fallbackUrl);
-      }
-    }
-
-    if (!beatLoaded) {
-      throw lastError || new Error('Studio beat load failed');
-    }
-
     window.pendingStudioBeat = null;
   } catch (error) {
     console.warn('Studio beat load failed:', error);
@@ -3780,7 +3454,7 @@ async function toggleFsBeat() {
 }
 
 async function loadFsAudioSource(url) {
-  fsAudio.crossOrigin = 'anonymous';
+  clearFsAudioCrossOrigin();
   fsAudio.src = url;
   fsAudio.currentTime = 0;
   fsAudio.load();
@@ -3820,47 +3494,11 @@ async function ensureFsBeatPlayback() {
     await tryPlay(directUrl);
   } catch (err) {
     console.warn('ensureFsBeatPlayback direct URL failed:', err);
-    let played = false;
-
-    // Try proxy URL first if available
     if (proxyUrl && proxyUrl !== directUrl) {
-      try {
-        await tryPlay(proxyUrl);
-        played = true;
-      } catch (proxyErr) {
-        console.warn('ensureFsBeatPlayback proxy URL failed:', proxyErr);
-      }
+      await tryPlay(proxyUrl);
+    } else {
+      throw err;
     }
-
-    // If direct/proxy element playback failed, try decoding the audio with fetch and play from a generated WAV blob
-    if (!played) {
-      const fallbackUrl = proxyUrl || directUrl;
-      try {
-        const audioBuffer = await fetchAudioBufferForBeatUrl(fallbackUrl);
-        if (audioBuffer) {
-          try {
-            const wavBlob = audioBufferToWav(audioBuffer);
-            const blobUrl = URL.createObjectURL(wavBlob);
-            try {
-              await loadFsAudioSource(blobUrl);
-              await fsAudio.play();
-              played = true;
-            } catch (playErr) {
-              console.warn('Playback from decoded buffer failed:', playErr);
-            } finally {
-              // Revoke object URL after a short delay to keep audio available for immediate playback
-              setTimeout(() => { try { URL.revokeObjectURL(blobUrl); } catch (e) {} }, 60000);
-            }
-          } catch (convErr) {
-            console.warn('Failed to convert AudioBuffer to WAV blob:', convErr);
-          }
-        }
-      } catch (decodeErr) {
-        console.warn('Decoded buffer fetch failed:', decodeErr);
-      }
-    }
-
-    if (!played) throw err;
   } finally {
     fsPlaybackAttempt = false;
   }
@@ -3928,8 +3566,6 @@ async function toggleRecord() {
  
 async function startRecord() {
   if (!fsSelectedBeat) { showToast(t('dyn_select_beat_first')); return; }
-  // capture beat offset at recording start to allow synced playback later
-  try { fsRecordingStartBeat = (typeof fsAudio.currentTime === 'number') ? fsAudio.currentTime : 0; } catch(e) { fsRecordingStartBeat = 0; }
   const preservedFsAudioVolume = (typeof fsAudio.volume === 'number' && fsAudio.volume > 0) ? fsAudio.volume : 1.0;
   try {
     const constraints = getMicConstraints();
@@ -3962,71 +3598,28 @@ async function startRecord() {
       showWarningToast('dyn_play_error', 'Lecture impossible');
       return;
     }
-  } else if (fsPlaying && fsAudio.paused && fsAudioSource) {
-    try {
-      await ensureFsBeatPlayback();
-      fsAudio.volume = preservedFsAudioVolume;
-      fsBeatVolume = preservedFsAudioVolume;
-      fsPlaying = true;
-      document.getElementById('fsBeatPlayBtn').innerHTML = `<i class='fas fa-pause'></i> ${t('dyn_pause_beat')}`;
-    } catch (e) {
-      console.warn('Unable to resume freestyle beat on record:', e);
-    }
   }
   if (typeof fsAudio.volume === 'number') {
     fsAudio.volume = preservedFsAudioVolume;
     fsBeatVolume = preservedFsAudioVolume;
   }
-  let recordStream = micStream;
   try {
-    if (!fsAudioCtx || fsAudioCtx.state === 'closed') {
-      fsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (fsAudioCtx.state === 'suspended') await fsAudioCtx.resume();
-
-    const micSource = fsAudioCtx.createMediaStreamSource(micStream);
-    const beatSource = fsAudioCtx.createMediaElementSource(fsAudio);
-    const destination = fsAudioCtx.createMediaStreamDestination();
-
-    micSource.connect(destination);
-    beatSource.connect(destination);
-    beatSource.connect(fsAudioCtx.destination);
-
-    fsMicSourceNode = micSource;
-    fsBeatSourceNode = beatSource;
-    fsDestinationNode = destination;
-    fsRecordingDestinationStream = destination.stream;
-    recordStream = destination.stream;
-    fsAudio.muted = true;
-  } catch (mixError) {
-    console.warn('Freestyle mix recording fallback to mic-only:', mixError);
-    if (fsAudioCtx && typeof fsAudioCtx.close === 'function') {
-      try { fsAudioCtx.close(); } catch (closeErr) { console.warn('AudioContext close failed:', closeErr); }
-      fsAudioCtx = null;
-    }
-    fsAudio.muted = false;
-  }
-
-  try {
-    const analyserCtx = fsAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (analyserCtx.state === 'suspended') await analyserCtx.resume();
-    analyserNode = analyserCtx.createAnalyser(); analyserNode.fftSize = 256;
-    const src = analyserCtx.createMediaStreamSource(micStream);
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const src = ctx.createMediaStreamSource(micStream);
+    analyserNode = ctx.createAnalyser(); analyserNode.fftSize = 256;
     src.connect(analyserNode);
     animMicLevel();
-  } catch (e) {
-    console.warn('Mic level analyzer failed:', e);
-  }
-
+  } catch(e) {}
   fsChunks = [];
   const selectedMimeType = getSupportedRecorderMimeType() || (isIOS() ? 'audio/mp4' : 'audio/webm');
   try {
     fsMediaRecorder = selectedMimeType
-      ? new MediaRecorder(recordStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
-      : new MediaRecorder(recordStream);
+      ? new MediaRecorder(micStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
+      : new MediaRecorder(micStream);
   } catch (e) {
     try {
-      fsMediaRecorder = new MediaRecorder(recordStream);
+      fsMediaRecorder = new MediaRecorder(micStream);
     } catch (fallbackError) {
       console.error('MediaRecorder init failed:', fallbackError);
       showToast(t('dyn_recording_error') || 'Enregistrement impossible');
@@ -4040,7 +3633,7 @@ async function startRecord() {
     const url = URL.createObjectURL(blob);
     const rec = {
       id: Date.now(),
-      beatTitle: fsSelectedBeat ? fsSelectedBeat.title : '—',
+      beatTitle: fsSelectedBeat ? fsSelectedBeat.title : 'â€”',
       beatId: fsSelectedBeat ? fsSelectedBeat.id : null,
       url,
       blob,
@@ -4048,10 +3641,9 @@ async function startRecord() {
       duration: fsSeconds,
       date: new Date().toLocaleDateString('fr'),
       label: 'Take ' + (fsRecordings.length + 1)
-      ,
-      beatOffset: fsRecordingStartBeat || 0
     };
-    addFsRecording(rec);
+    fsRecordings.unshift(rec);
+    renderRecordingsList();
     document.getElementById('mixSection').style.display = 'block';
     showToast(t('dyn_recording_saved'));
     if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
@@ -4075,12 +3667,6 @@ async function startRecord() {
 function stopRecord() {
   if (fsMediaRecorder && fsMediaRecorder.state!=='inactive') fsMediaRecorder.stop();
   if (micStream) micStream.getTracks().forEach(t=>t.stop());
-  if (fsMicSourceNode) { try { fsMicSourceNode.disconnect(); } catch (e) {} fsMicSourceNode = null; }
-  if (fsBeatSourceNode) { try { fsBeatSourceNode.disconnect(); } catch (e) {} fsBeatSourceNode = null; }
-  if (fsDestinationNode) { try { fsDestinationNode.disconnect(); } catch (e) {} fsDestinationNode = null; }
-  if (fsAudioCtx) { try { fsAudioCtx.close(); } catch (e) {} fsAudioCtx = null; }
-  fsRecordingDestinationStream = null;
-  fsAudio.muted = false;
   clearInterval(fsTimerInterval);
   fsRecording = false;
   const rb = document.getElementById('recBtn');
@@ -4110,27 +3696,21 @@ function renderRecordingsList() {
     return;
   }
   el.innerHTML = fsRecordings.slice(0,10).map((r,i)=>`
-    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:12px">
-      <button onclick="playRecording(${JSON.stringify(r.url)})" style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.8rem">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:12px">
+      <button onclick="playRecording('${r.url}')" style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem">
         <i class="fas fa-play" style="margin-left:2px"></i>
       </button>
-      <div style="min-width:0">
-        <div style="font-family:var(--font-mono);font-size:0.7rem;color:#fff">${sanitize(r.label || getFileNameFromUrl(r.url))}</div>
-        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim)">${sanitize(r.beatTitle || t('fs_no_beat_selected'))} · ${sanitize(r.date || '')} · ${fmt(r.duration || 0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:#fff">${r.label}</div>
+        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim)">${r.beatTitle} Â· ${r.date} Â· ${fmt(r.duration)}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        <div style="display:flex;gap:8px;align-items:center">
-          <a href="${r.url || '#'}" download="freestyle.webm" style="color:var(--cyan);font-size:0.85rem;text-decoration:none" title="${t('fs_download_voice')}"><i class="fas fa-download"></i></a>
-          <button onclick="deleteRecording(${i})" style="background:none;border:none;color:rgba(255,100,100,0.75);cursor:pointer;font-size:0.85rem"><i class="fas fa-trash"></i></button>
-        </div>
-        ${renderFsRecordingActions(r, i)}
-      </div>
+      <a href="${r.url}" download="freestyle.webm" style="color:var(--cyan);font-size:0.85rem;text-decoration:none" title="${t('fs_download_voice')}"><i class="fas fa-download"></i></a>
+      <button onclick="deleteRecording(${i})" style="background:none;border:none;color:rgba(255,100,100,0.5);cursor:pointer;font-size:0.85rem"><i class="fas fa-trash"></i></button>
     </div>`).join('');
+  // Refresh studio waveform if studio is open
   if (document.getElementById('studioPanel') && document.getElementById('studioPanel').style.display !== 'none') {
     setTimeout(drawStudioWaveform, 200);
   }
-  // Re-apply translations for dynamically generated recording list
-  if (typeof applyTranslations === 'function') applyTranslations();
 }
 
 // Attach passive touchstart handlers to freestyle controls to ensure immediate responsiveness on mobile/touch devices
@@ -4150,54 +3730,9 @@ function bindFsTouchHandlers() {
   });
 }
  
-function playRecording(url) {
-  if (!url) { showToast('⚠ ' + (currentLang==='en'?'No recording':'Pas d\'enregistrement')); return; }
-  try {
-    const a = new Audio(url);
-    a.setAttribute('controls', 'controls');
-    a.preload = 'auto';
-    a.setAttribute('playsinline', '');
-    a.crossOrigin = 'anonymous';
-    a.volume = 1.0;
-    
-    a.addEventListener('canplay', () => {
-      const playPromise = a.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(err => {
-          console.warn('playRecording audio error:', err);
-          if (err.name === 'NotAllowedError') {
-            showToast('⚠ ' + (currentLang==='en'?'Audio play denied':'Lecture audio refusée'));
-          }
-        });
-      }
-    });
-    
-    a.addEventListener('error', (e) => {
-      console.error('Recording playback error:', e.target?.error);
-      showToast('⚠ ' + (currentLang==='en'?'Cannot play recording':'Impossible de lire l\'enregistrement'));
-    });
-    
-    a.addEventListener('loadstart', () => {
-      document.querySelectorAll('audio').forEach(el => {
-        if (el !== a) { try { el.pause(); } catch(e) {} }
-      });
-    });
-    
-    const playPromise = a.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(err => {
-        console.warn('playRecording deferred error:', err);
-      });
-    }
-  } catch(e) {
-    console.error('playRecording failed:', e);
-    showToast('⚠ ' + (currentLang==='en'?'Play error':'Erreur lecture'));
-  }
-}
+function playRecording(url) { const a=new Audio(url); a.play(); }
 function deleteRecording(i) {
-  fsRecordings.splice(i,1);
-  saveFsRecordingsToStorage();
-  renderRecordingsList();
+  fsRecordings.splice(i,1); renderRecordingsList();
   if (!fsRecordings.length) document.getElementById('mixSection').style.display='none';
 }
 function downloadLastRecording() {
@@ -4206,9 +3741,7 @@ function downloadLastRecording() {
 }
 async function playMix() {
   if (!fsRecordings.length || !fsSelectedBeat) { showToast(t('dyn_no_freestyle')); return; }
-  const rec = fsRecordings[0];
-  if (!rec.url) { showToast('⚠ ' + (currentLang==='en'?'No recording URL':'URL enregistrement manquante')); return; }
-  const voiceEl = new Audio(rec.url);
+  const voiceEl = new Audio(fsRecordings[0].url);
   voiceEl.preload = 'auto';
   voiceEl.setAttribute('playsinline', '');
   voiceEl.setAttribute('webkit-playsinline', '');
@@ -4226,63 +3759,29 @@ async function playMix() {
     fsAudio.load();
   }
 
-  // If the recording contains a beat offset, seek the beat to that offset
-  try { fsAudio.currentTime = (typeof rec.beatOffset === 'number') ? rec.beatOffset : 0; } catch(e) { fsAudio.currentTime = 0; }
+  fsAudio.currentTime = 0;
   fsAudio.loop = false;
   fsAudio.muted = false;
-  const beatVolElem = document.getElementById('beatVolSlider');
-  const beatVol = beatVolElem ? Math.max(0.1, Math.min(1, parseFloat(beatVolElem.value) / 100)) : 0.7;
-  fsAudio.volume = beatVol;
+  fsAudio.volume = fsBeatVolume > 0.05 ? fsBeatVolume : 1.0;
 
   const playBtn = document.getElementById('mixPlayBtn');
-  if (playBtn) {
-    playBtn.disabled = true;
-    playBtn.innerHTML = `<i class='fas fa-spinner fa-spin'></i> ${t('fs_loading') || 'Chargement...'}`;
-  }
-
-  if (window.fsMixAudio instanceof HTMLAudioElement) {
-    try {
-      window.fsMixAudio.pause();
-      window.fsMixAudio.src = '';
-      window.fsMixAudio.remove();
-    } catch (cleanupErr) {
-      console.warn('Cleanup previous mix audio failed:', cleanupErr);
-    }
-    window.fsMixAudio = null;
-  }
-
-  const recordedMix = new Audio(rec.url);
-  recordedMix.preload = 'auto';
-  recordedMix.setAttribute('playsinline', '');
-  recordedMix.setAttribute('webkit-playsinline', '');
-  recordedMix.crossOrigin = 'anonymous';
-  recordedMix.volume = 1.0;
-  recordedMix.loop = false;
-  recordedMix.style.display = 'none';
-  recordedMix.dataset.fsMix = 'true';
-  window.fsMixAudio = recordedMix;
-  document.body.appendChild(recordedMix);
-
-  recordedMix.addEventListener('ended', () => {
-    if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
-  });
-  recordedMix.addEventListener('pause', () => {
-    if (playBtn && recordedMix.currentTime > 0 && recordedMix.currentTime < recordedMix.duration) {
-      playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
-    }
-  });
-  recordedMix.addEventListener('error', (e) => {
-    console.error('playMix mix audio error:', e, recordedMix.error);
-    showToast('⚠ ' + (currentLang==='en' ? 'Unable to play mix' : 'Impossible de lire le mix'));
-    if (playBtn) playBtn.disabled = false;
-  });
+  if (playBtn) playBtn.disabled = true;
 
   try {
-    await waitForAudioReady(recordedMix, 2500);
-    await recordedMix.play();
-    if (recordedMix.paused) {
-      await recordedMix.play();
-    }
+    await waitForAudioReady(fsAudio, 2500);
+    await waitForAudioReady(voiceEl, 2500);
+
+    const beatPromise = fsAudio.play().catch(err => {
+      console.warn('Beat playback failed:', err);
+      return null;
+    });
+    const voicePromise = voiceEl.play().catch(err => {
+      console.warn('Voice playback failed:', err);
+      return null;
+    });
+
+    await Promise.all([beatPromise, voicePromise]);
+
     if (playBtn) {
       playBtn.disabled = false;
       playBtn.innerHTML = `<i class='fas fa-pause'></i> ${t('fs_playing')}`;
@@ -4291,34 +3790,22 @@ async function playMix() {
     console.warn('playMix error:', err);
     if (playBtn) playBtn.disabled = false;
   }
+
+  voiceEl.onended = () => {
+    try { fsAudio.pause(); } catch (e) {}
+    if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
+  };
 }
-async function postFreestyleToProfile(index = 0) {
+async function postFreestyleToProfile() {
   if (!currentUser) { showToast(t('dyn_login_first')); showPage('login'); return; }
   if (!fsRecordings.length) { showToast(t('dyn_no_sound_pub')); return; }
-  const record = fsRecordings[index] || fsRecordings[0];
-  if (!record) { showToast(t('dyn_no_sound_pub')); return; }
-  let audioUrl = record.url;
-  if (!isRemoteUrl(audioUrl) || isBlobUrl(audioUrl)) {
-    audioUrl = await uploadFreestyleRecording(record);
-    if (!audioUrl) return;
-  }
-  const post = {
-    type: 'freestyle',
-    username: currentUser.username,
-    beatTitle: record.beatTitle || t('fs_no_beat_selected'),
-    date: new Date().toLocaleDateString('fr'),
-    url: audioUrl,
-    likes: 0,
-    comments: []
-  };
+  const post = { type:'freestyle', username:currentUser.username, beatTitle:fsRecordings[0].beatTitle, date:new Date().toLocaleDateString('fr'), url:fsRecordings[0].url, likes:0, comments:[] };
   await addPostToFirestore(post);
   showToast(t('dyn_freestyle_published'));
-  // Ensure user lands on their profile in the community view
   showPage('community');
-  communityTab('my-profile');
 }
  
-// ═══ COMMUNITY ═══
+// â•â•â• COMMUNITY â•â•â•
 function communityTab(tab, btn) {
   document.querySelectorAll('#page-community .filter-btn').forEach(b=>b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -4343,25 +3830,21 @@ async function renderArtistsGrid() {
 }
  
 function artistCard(p) {
-  // ✅ SÉCURITÉ : Toutes les données Firestore sont sanitisées avant injection dans innerHTML
+  // âœ… SÃ‰CURITÃ‰ : Toutes les donnÃ©es Firestore sont sanitisÃ©es avant injection dans innerHTML
   const safeUsername = sanitize(p.username || '');
   const safeGenre    = sanitize(p.genre || t('comm_artist_label'));
   const safeLocation = sanitize(p.location || 'International');
   const safeBio      = sanitize(p.bio || t('dyn_no_bio'));
   const safeJoined   = sanitize(String(p.joined || '2026'));
-  const photoUrl = safeImageUrl(p.photoURL);
-  const avatarHtml = photoUrl
-    ? `<img class="artist-avatar" src="${photoUrl}" alt="Avatar ${safeUsername}">`
-    : `<div class="artist-avatar artist-avatar-fallback">${safeUsername.charAt(0).toUpperCase()}</div>`;
-  // URLs des réseaux sociaux : on vérifie qu'elles commencent par https://
+  // URLs des rÃ©seaux sociaux : on vÃ©rifie qu'elles commencent par https://
   const safeUrl = (url) => (url && /^https:\/\//.test(url)) ? encodeURI(url) : '#';
   const postCount = p.postCount || 0;
   return `<div style="background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(0,229,255,0.12);border-radius:20px;overflow:hidden;transition:all 0.3s" onmouseover="this.style.borderColor='rgba(0,229,255,0.3)'" onmouseout="this.style.borderColor='rgba(0,229,255,0.12)'">
     <div style="height:90px;background:linear-gradient(135deg,rgba(0,100,180,0.3),rgba(0,229,255,0.1));position:relative"></div>
     <div style="padding:12px 20px 20px;margin-top:-28px">
-      ${avatarHtml}
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#0070a0);border:3px solid rgba(3,8,15,0.9);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--dark);font-family:var(--font-display);margin-bottom:10px">${safeUsername.charAt(0).toUpperCase()}</div>
       <div style="font-family:var(--font-display);font-size:1.2rem;color:#fff;letter-spacing:1px">${safeUsername}</div>
-      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin:4px 0 10px">${safeGenre} · ${safeLocation}</div>
+      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin:4px 0 10px">${safeGenre} Â· ${safeLocation}</div>
       <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px">${safeBio}</p>
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         ${p.instagram?`<a href="${safeUrl(p.instagram)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-instagram"></i></a>`:''}
@@ -4386,11 +3869,6 @@ async function renderMyProfile() {
     return;
   }
   const myP = currentUser.uid ? await loadMyProfile(currentUser.uid) : {};
-  const profilePhoto = safeImageUrl(myP.photoURL || currentUser.photoURL || '');
-  const profileInitial = sanitize(currentUser.username).charAt(0).toUpperCase();
-  const profileAvatar = profilePhoto
-    ? `<img class="profile-avatar-large" src="${profilePhoto}" alt="Avatar de ${sanitize(currentUser.username)}">`
-    : `<div class="profile-avatar-large profile-avatar-fallback">${profileInitial}</div>`;
   const allPosts = await loadPosts();
   const myPosts = allPosts.filter(p=>p.username===currentUser.username);
   el.innerHTML=`
@@ -4399,9 +3877,9 @@ async function renderMyProfile() {
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,229,255,0.15);border-radius:20px;overflow:hidden;margin-bottom:20px">
         <div style="height:80px;background:linear-gradient(135deg,rgba(0,100,180,0.4),rgba(0,229,255,0.15))"></div>
         <div style="padding:0 20px 20px;margin-top:-30px">
-          ${profileAvatar}
+          <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#0070a0);border:3px solid var(--dark);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.6rem;color:var(--dark);margin-bottom:10px">${currentUser.username.charAt(0).toUpperCase()}</div>
           <div style="font-family:var(--font-display);font-size:1.3rem;color:#fff">${currentUser.username}</div>
-          <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin-bottom:10px">${myP.genre||t('comm_artist_label')} · ${myP.location||''}</div>
+          <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin-bottom:10px">${myP.genre||t('comm_artist_label')} Â· ${myP.location||''}</div>
           <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">${myP.bio||t('dyn_no_bio')}</p>
           <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);margin-top:10px"><i class="fas fa-music" style="color:var(--cyan)"></i> ${myPosts.length} ${t('comm_tracks_published')}</div>
         </div>
@@ -4421,12 +3899,12 @@ async function renderMyProfile() {
           <option ${myP.genre==='Afrobeat'?'selected':''}>Afrobeat</option>
           <option ${myP.genre==='Hip-Hop'?'selected':''}>Hip-Hop</option>
           <option ${myP.genre==='RnB'?'selected':''}>RnB</option>
-          <option ${myP.genre==='Coupé-Décalé'?'selected':''}>Coupé-Décalé</option>
+          <option ${myP.genre==='CoupÃ©-DÃ©calÃ©'?'selected':''}>CoupÃ©-DÃ©calÃ©</option>
           <option ${myP.genre==='Zouglou'?'selected':''}>Zouglou</option>
           <option ${myP.genre==='Afropop'?'selected':''}>Afropop</option>
         </select>
       </div>
-      <div class="form-row"><label class="form-lbl">${t('comm_location')}</label><input class="form-inp" id="pLocation" value="${myP.location||''}" placeholder="Ex: Abidjan, Côte d'Ivoire"></div>
+      <div class="form-row"><label class="form-lbl">${t('comm_location')}</label><input class="form-inp" id="pLocation" value="${myP.location||''}" placeholder="Ex: Abidjan, CÃ´te d'Ivoire"></div>
       <div class="form-row"><label class="form-lbl">Bio</label><textarea class="form-inp" id="pBio" rows="3" placeholder="${t('comm_bio_ph')}">${myP.bio||''}</textarea></div>
       <div style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:2px;color:var(--cyan);margin:18px 0 12px;text-transform:uppercase"><i class="fas fa-share-alt"></i> ${t('comm_social_media')}</div>
       <div class="form-row"><label class="form-lbl"><i class="fab fa-instagram"></i> Instagram</label><input class="form-inp" id="pInsta" value="${myP.instagram||''}" placeholder="https://instagram.com/..."></div>
@@ -4435,10 +3913,10 @@ async function renderMyProfile() {
       <div class="form-row"><label class="form-lbl"><i class="fab fa-soundcloud"></i> SoundCloud</label><input class="form-inp" id="pSc" value="${myP.soundcloud||''}" placeholder="https://soundcloud.com/..."></div>
       <div class="form-row"><label class="form-lbl"><i class="fab fa-spotify"></i> Spotify</label><input class="form-inp" id="pSpotify" value="${myP.spotify||''}" placeholder="https://open.spotify.com/..."></div>
       <div style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:2px;color:var(--cyan);margin:18px 0 12px;text-transform:uppercase"><i class="fas fa-music"></i> ${t('comm_publish_track')}</div>
-      <div class="form-row"><label class="form-lbl">${t('comm_track_title')}</label><input class="form-inp" id="pSongTitle" placeholder="Ex: Ma vie — Feat. Je Suis Beatz"></div>
+      <div class="form-row"><label class="form-lbl">${t('comm_track_title')}</label><input class="form-inp" id="pSongTitle" placeholder="Ex: Ma vie â€” Feat. Je Suis Beatz"></div>
       <div class="form-row"><label class="form-lbl">${t('comm_track_url')}</label><input class="form-inp" id="pSongUrl" placeholder="https://soundcloud.com/..."></div>
       <div class="form-row"><label class="form-lbl">${t('comm_beat_used')}</label>
-        <select class="form-inp" id="pSongBeat"><option value="">— ${t('comm_choose_beat')} —</option>${beats.map(b=>`<option value="${b.title}">${b.title}</option>`).join('')}</select>
+        <select class="form-inp" id="pSongBeat"><option value="">â€” ${t('comm_choose_beat')} â€”</option>${beats.map(b=>`<option value="${b.title}">${b.title}</option>`).join('')}</select>
       </div>
       <div class="form-row"><label class="form-lbl">${t('comm_description')}</label><textarea class="form-inp" id="pSongDesc" rows="2" placeholder="${t('comm_desc_ph')}"></textarea></div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
@@ -4450,29 +3928,10 @@ async function renderMyProfile() {
 }
  
 async function saveProfile() {
-  if (!currentUser) return;
-  const prof = {
-    username: document.getElementById('pUsername').value || currentUser.username,
-    genre: document.getElementById('pGenre').value,
-    location: document.getElementById('pLocation').value,
-    bio: document.getElementById('pBio').value,
-    instagram: document.getElementById('pInsta').value,
-    youtube: document.getElementById('pYt').value,
-    tiktok: document.getElementById('pTk').value,
-    soundcloud: document.getElementById('pSc').value,
-    spotify: document.getElementById('pSpotify').value,
-    joined: new Date().getFullYear().toString()
-  };
-  for (const key of ['instagram', 'youtube', 'tiktok', 'soundcloud', 'spotify']) {
-    if (!isValidProfileUrl(prof[key])) {
-      showToast('⚠ ' + t('err_invalid_url'));
-      return;
-    }
-  }
+   if (!currentUser) return;
+  const prof = { username:document.getElementById('pUsername').value||currentUser.username, genre:document.getElementById('pGenre').value, location:document.getElementById('pLocation').value, bio:document.getElementById('pBio').value, instagram:document.getElementById('pInsta').value, youtube:document.getElementById('pYt').value, tiktok:document.getElementById('pTk').value, soundcloud:document.getElementById('pSc').value, spotify:document.getElementById('pSpotify').value, joined:new Date().getFullYear().toString() };
   const uid = currentUser.uid || currentUser.username;
-  const cleanedProfile = cleanProfileData(prof);
-  const saved = await saveProfileToFirestore(uid, cleanedProfile);
-  if (!saved) return;
+  await saveProfileToFirestore(uid, prof);
   showToast(t('dyn_profile_saved'));
   renderMyProfile();
 }
@@ -4481,8 +3940,8 @@ async function publishSong() {
   if (!currentUser) { showToast(t('dyn_login_first')); return; }
   const title=sanitize(document.getElementById('pSongTitle').value.trim());
   const url=document.getElementById('pSongUrl').value.trim();
-  if (!title||!url) { showToast('⚠ '+t('err_title_url_required')); return; }
-  if(!/^https?:\/\//i.test(url)){ showToast('⚠ '+t('err_invalid_url')); return; }
+  if (!title||!url) { showToast('âš  '+t('err_title_url_required')); return; }
+  if(!/^https?:\/\//i.test(url)){ showToast('âš  '+t('err_invalid_url')); return; }
   const post = { type:'song', username:sanitize(currentUser.username), title, url:encodeURI(url), beatTitle:sanitize(document.getElementById('pSongBeat').value), desc:sanitize(document.getElementById('pSongDesc').value), date:new Date().toLocaleDateString('fr'), likes:0, comments:[] };
   await addPostToFirestore(post);
   document.getElementById('pSongTitle').value=''; document.getElementById('pSongUrl').value=''; document.getElementById('pSongDesc').value='';
@@ -4491,8 +3950,8 @@ async function publishSong() {
 }
  
 function postCard(p, mine) {
-  // ✅ SÉCURITÉ : Données Firestore sanitisées + URLs validées
-  const safeTitle    = sanitize(p.title || (t('fs_chip') + ' · ' + sanitize(p.beatTitle || '')));
+  // âœ… SÃ‰CURITÃ‰ : DonnÃ©es Firestore sanitisÃ©es + URLs validÃ©es
+  const safeTitle    = sanitize(p.title || (t('fs_chip') + ' Â· ' + sanitize(p.beatTitle || '')));
   const safeBeatTitle= sanitize(p.beatTitle || '');
   const safeDate     = sanitize(p.date || '');
   const safeDesc     = sanitize(p.desc || '');
@@ -4501,9 +3960,9 @@ function postCard(p, mine) {
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
       <div>
         <div style="font-family:var(--font-display);font-size:1rem;color:#fff;letter-spacing:1px">${safeTitle}</div>
-        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);margin-top:3px">${safeBeatTitle?`<i class="fas fa-music" style="color:var(--cyan)"></i> ${safeBeatTitle} · `:''}<i class="fas fa-calendar" style="color:var(--cyan)"></i> ${safeDate}</div>
+        <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);margin-top:3px">${safeBeatTitle?`<i class="fas fa-music" style="color:var(--cyan)"></i> ${safeBeatTitle} Â· `:''}<i class="fas fa-calendar" style="color:var(--cyan)"></i> ${safeDate}</div>
       </div>
-      <span style="font-family:var(--font-mono);font-size:0.55rem;padding:3px 10px;border-radius:100px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'🎤 Freestyle':'🎵 '+t('dyn_tracks_label')}</span>
+      <span style="font-family:var(--font-mono);font-size:0.55rem;padding:3px 10px;border-radius:100px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'ðŸŽ¤ Freestyle':'ðŸŽµ '+t('dyn_tracks_label')}</span>
     </div>
     ${safeDesc?`<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5">${safeDesc}</p>`:''}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -4536,15 +3995,15 @@ async function renderFeed() {
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#0070a0);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.2rem;color:var(--dark);flex-shrink:0">${safeUsername.charAt(0).toUpperCase()}</div>
       <div><div style="font-family:var(--font-display);font-size:1rem;color:#fff;letter-spacing:1px">${safeUsername}</div><div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim)">${safeDate}</div></div>
-      <span style="margin-left:auto;font-family:var(--font-mono);font-size:0.55rem;padding:4px 12px;border-radius:100px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'🎤 Freestyle':'🎵 '+t('comm_published_track')}</span>
+      <span style="margin-left:auto;font-family:var(--font-mono);font-size:0.55rem;padding:4px 12px;border-radius:100px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'ðŸŽ¤ Freestyle':'ðŸŽµ '+t('comm_published_track')}</span>
     </div>
     ${postCard(p, currentUser&&currentUser.username===p.username)}
   </div>`;
   }).join('');
 }
-// ═══════════════════════════════════════════
-// ═══  SYSTÈME BILINGUE FR / EN  ═══════════
-// ═══════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  SYSTÃˆME BILINGUE FR / EN  â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
 const translations = {
   fr: {
@@ -4553,131 +4012,123 @@ const translations = {
     nav_artists: 'Artistes',
     nav_licenses: 'Licences',
     nav_login: 'Connexion',
-    nav_account: 'Mon Compte',
     nav_freestyle: 'Freestyle',
     // Hero
-    hero_badge: "Côte d'Ivoire · Distribution Internationale",
-    hero_title: 'Le Studio<br><span class="cyan">du Beatmaker</span>',
-    hero_slogan: 'Je suis le son que vous cherchez',
+    hero_badge: "CÃ´te d'Ivoire Â· Distribution Internationale",
     hero_explore: 'Explorer les Beats',
     hero_licenses: 'Voir les Licences',
     // Stats
-    stat_beats: 'Beats',
     stat_available: 'Disponible',
-    stat_international: 'International',
-    // Footer Genres
-    footer_genres: 'Genres',
-    footer_made_with: 'Fait avec <i class="fas fa-heart" style="color:var(--cyan)"></i> par Je Suis Beatz',
     // Featured
     featured_chip: 'Nouveau drop',
     featured_title: 'Beat en Vedette',
     // Footer
-    footer_desc: "Producteur basé en Côte d'Ivoire. Des sons premium conçus pour dominer les charts internationaux. <em style=\"color:var(--cyan);font-style:italic\">Je suis le son que vous cherchez.</em>",
+    footer_desc: "Producteur basÃ© en CÃ´te d'Ivoire. Des sons premium conÃ§us pour dominer les charts internationaux. <em style=\"color:var(--cyan);font-style:italic\">I am the sound you are looking for.</em>",
     footer_nav: 'Navigation',
     footer_catalog: 'Catalogue Beats',
     footer_freestyle: 'Mode Freestyle',
     footer_artists: 'Espace Artistes',
-    footer_rights: '© 2026 Je Suis Beatz · Tous droits réservés · Abidjan, Côte d\'Ivoire',
+    footer_rights: 'Â© 2026 Je Suis Beatz Â· Tous droits rÃ©servÃ©s Â· Abidjan, CÃ´te d\'Ivoire',
     // Beats
     beats_chip: 'Catalogue',
     beats_title: 'Tous les Beats',
-    beats_sub: 'Des productions premium pour tous les styles. Téléchargement immédiat après achat.',
+    beats_sub: 'Des productions premium pour tous les styles. TÃ©lÃ©chargement immÃ©diat aprÃ¨s achat.',
     filter_all: 'Tous',
     // Licenses
     lic_title: 'Choisissez votre Licence',
-    lic_sub: 'Des licences adaptées à chaque projet, du morceau amateur à la sortie commerciale internationale.',
+    lic_sub: 'Des licences adaptÃ©es Ã  chaque projet, du morceau amateur Ã  la sortie commerciale internationale.',
     lic_basic_name: 'BASIC',
-    lic_basic_tagline: 'Pour démarrer',
-    lic_basic_feat_mp3: '✅ Fichier MP3 taggé (320 kbps)',
-    lic_basic_feat_streams: '✅ 50 000 streams (YouTube, Spotify, Apple Music)',
-    lic_basic_feat_social: '✅ Réseaux sociaux & contenu personnel',
-    lic_basic_feat_oneartist: '✅ 1 artiste uniquement',
-    lic_basic_feat_nonexclusive: '✅ Licence perpétuelle non-exclusive',
-    lic_basic_feat_no_commercial: '❌ Pas d’usage commercial',
-    lic_basic_feat_no_wav: '❌ WAV non inclus',
-    lic_basic_note: 'Licence perpétuelle non-exclusive à usage personnel et non-commercial, limitée à 50 000 streams cumulés sur toutes plateformes.',
-    lic_basic_tag: 'Pour démarrer',
+    lic_basic_tagline: 'Pour dÃ©marrer',
+    lic_basic_feat_mp3: 'âœ… Fichier MP3 taggÃ© (320 kbps)',
+    lic_basic_feat_streams: 'âœ… 50 000 streams (YouTube, Spotify, Apple Music)',
+    lic_basic_feat_social: 'âœ… RÃ©seaux sociaux & contenu personnel',
+    lic_basic_feat_oneartist: 'âœ… 1 artiste uniquement',
+    lic_basic_feat_nonexclusive: 'âœ… Licence perpÃ©tuelle non-exclusive',
+    lic_basic_feat_no_commercial: 'âŒ Pas dâ€™usage commercial',
+    lic_basic_feat_no_wav: 'âŒ WAV non inclus',
+    lic_basic_note: 'Licence perpÃ©tuelle non-exclusive Ã  usage personnel et non-commercial, limitÃ©e Ã  50 000 streams cumulÃ©s sur toutes plateformes.',
+    lic_basic_tag: 'Pour dÃ©marrer',
     lic_choose_basic: 'Choisir Basic',
-    lic_premium_badge: 'Recommandé',
+    lic_premium_badge: 'RecommandÃ©',
     lic_premium_name: 'PREMIUM',
-    lic_premium_tagline: 'Le plus populaire · Recommandé',
-    lic_premium_feat_files: '✅ Fichiers MP3 + WAV non taggés (qualité studio)',
-    lic_premium_feat_streams: '✅ 150 000 streams (toutes plateformes)',
-    lic_premium_feat_commercial: '✅ Usage commercial (vente, streaming monétisé)',
-    lic_premium_feat_radio: '✅ Radio & YouTube monétisé OK',
-    lic_premium_feat_physical: '✅ Ventes physiques : jusqu’à 2 000 copies',
-    lic_premium_feat_distribution: '✅ Distribution mondiale',
-    lic_premium_feat_oneartist: '✅ 1 artiste uniquement',
-    lic_premium_feat_nonexclusive: '✅ Licence perpétuelle non-exclusive',
-    lic_premium_feat_no_stems: '❌ Stems non inclus',
-    lic_premium_feat_catalog: '❌ Beat reste en catalogue',
-    lic_premium_note: 'Licence perpétuelle non-exclusive à usage commercial, dans les limites de streams et de copies physiques définies ci-dessus.',
+    lic_premium_tagline: 'Le plus populaire Â· RecommandÃ©',
+    lic_premium_feat_files: 'âœ… Fichiers MP3 + WAV non taggÃ©s (qualitÃ© studio)',
+    lic_premium_feat_streams: 'âœ… 150 000 streams (toutes plateformes)',
+    lic_premium_feat_commercial: 'âœ… Usage commercial (vente, streaming monÃ©tisÃ©)',
+    lic_premium_feat_radio: 'âœ… Radio & YouTube monÃ©tisÃ© OK',
+    lic_premium_feat_physical: 'âœ… Ventes physiques : jusquâ€™Ã  2 000 copies',
+    lic_premium_feat_distribution: 'âœ… Distribution mondiale',
+    lic_premium_feat_oneartist: 'âœ… 1 artiste uniquement',
+    lic_premium_feat_nonexclusive: 'âœ… Licence perpÃ©tuelle non-exclusive',
+    lic_premium_feat_no_stems: 'âŒ Stems non inclus',
+    lic_premium_feat_catalog: 'âŒ Beat reste en catalogue',
+    lic_premium_note: 'Licence perpÃ©tuelle non-exclusive Ã  usage commercial, dans les limites de streams et de copies physiques dÃ©finies ci-dessus.',
     lic_choose_premium: 'Choisir Premium',
     lic_wav_name: 'WAV + STEMS',
-    lic_wav_tagline: 'Production complète',
-    lic_wav_feat_files: '✅ MP3 + WAV Haute qualité + Stems séparés (kick, snare, mélodie, basse…)',
-    lic_wav_feat_streams: '✅ 500 000 streams (toutes plateformes)',
-    lic_wav_feat_commercial: '✅ Usage commercial illimité',
-    lic_wav_feat_sync: '✅ Radio, TV & sync autorisés',
-    lic_wav_feat_physical: '✅ Ventes physiques : jusqu’à 5 000 copies',
-    lic_wav_feat_distribution: '✅ Distribution mondiale',
-    lic_wav_feat_mastering: '✅ Mix & Mastering professionnel facilité (fichiers sources séparés)',
-    lic_wav_feat_oneartist: '✅ 1 artiste uniquement',
-    lic_wav_feat_nonexclusive: '✅ Licence perpétuelle non-exclusive',
-    lic_wav_feat_catalog: '❌ Beat reste en catalogue',
-    lic_wav_note: 'Licence perpétuelle non-exclusive à usage commercial étendu, incluant les fichiers sources (stems) pour usage en production professionnelle, dans les limites définies.',
+    lic_wav_tagline: 'Production complÃ¨te',
+    lic_wav_feat_files: 'âœ… MP3 + WAV Haute qualitÃ© + Stems sÃ©parÃ©s (kick, snare, mÃ©lodie, basseâ€¦)',
+    lic_wav_feat_streams: 'âœ… 500 000 streams (toutes plateformes)',
+    lic_wav_feat_commercial: 'âœ… Usage commercial illimitÃ©',
+    lic_wav_feat_sync: 'âœ… Radio, TV & sync autorisÃ©s',
+    lic_wav_feat_physical: 'âœ… Ventes physiques : jusquâ€™Ã  5 000 copies',
+    lic_wav_feat_distribution: 'âœ… Distribution mondiale',
+    lic_wav_feat_mastering: 'âœ… Mix & Mastering professionnel facilitÃ© (fichiers sources sÃ©parÃ©s)',
+    lic_wav_feat_oneartist: 'âœ… 1 artiste uniquement',
+    lic_wav_feat_nonexclusive: 'âœ… Licence perpÃ©tuelle non-exclusive',
+    lic_wav_feat_catalog: 'âŒ Beat reste en catalogue',
+    lic_wav_note: 'Licence perpÃ©tuelle non-exclusive Ã  usage commercial Ã©tendu, incluant les fichiers sources (stems) pour usage en production professionnelle, dans les limites dÃ©finies.',
     lic_choose_wav: 'Choisir WAV + Stems',
     lic_unlimited_name: 'UNLIMITED',
-    lic_unlimited_tagline: 'Streams illimités · Beat en catalogue',
-    lic_unlimited_feat_files: '✅ MP3 + WAV + Stems séparés',
-    lic_unlimited_feat_streams: '✅ Streams illimités sur toutes plateformes',
-    lic_unlimited_feat_commercial: '✅ Usage commercial illimité',
-    lic_unlimited_feat_sync: '✅ Radio, TV, Sync & Publicité autorisés',
-    lic_unlimited_feat_physical: '✅ Ventes physiques illimitées',
-    lic_unlimited_feat_distribution: '✅ Distribution mondiale',
-    lic_unlimited_feat_oneartist: '✅ 1 artiste uniquement',
-    lic_unlimited_feat_nonexclusive: '✅ Licence perpétuelle non-exclusive',
-    lic_unlimited_feat_catalog: '❌ Beat reste en catalogue (d’autres peuvent l’acheter)',
-    lic_unlimited_note: 'Licence perpétuelle non-exclusive à usage commercial illimité, sans plafond de streams ni de copies, sur tous territoires et supports.',
+    lic_unlimited_tagline: 'Streams illimitÃ©s Â· Beat en catalogue',
+    lic_unlimited_feat_files: 'âœ… MP3 + WAV + Stems sÃ©parÃ©s',
+    lic_unlimited_feat_streams: 'âœ… Streams illimitÃ©s sur toutes plateformes',
+    lic_unlimited_feat_commercial: 'âœ… Usage commercial illimitÃ©',
+    lic_unlimited_feat_sync: 'âœ… Radio, TV, Sync & PublicitÃ© autorisÃ©s',
+    lic_unlimited_feat_physical: 'âœ… Ventes physiques illimitÃ©es',
+    lic_unlimited_feat_distribution: 'âœ… Distribution mondiale',
+    lic_unlimited_feat_oneartist: 'âœ… 1 artiste uniquement',
+    lic_unlimited_feat_nonexclusive: 'âœ… Licence perpÃ©tuelle non-exclusive',
+    lic_unlimited_feat_catalog: 'âŒ Beat reste en catalogue (dâ€™autres peuvent lâ€™acheter)',
+    lic_unlimited_note: 'Licence perpÃ©tuelle non-exclusive Ã  usage commercial illimitÃ©, sans plafond de streams ni de copies, sur tous territoires et supports.',
     lic_choose_unlimited: 'Choisir Unlimited',
     lic_exclusive_name: 'EXCLUSIF',
-    lic_exclusive_tagline: 'Droits totaux · Cession définitive',
-    lic_exclusive_feat_files: '✅ MP3 + WAV + Stems séparés (qualité master)',
-    lic_exclusive_feat_streams: '✅ Streams & ventes illimités',
-    lic_exclusive_feat_use: '✅ Tous usages : commercial, radio, TV, cinéma, publicité, sync',
-    lic_exclusive_feat_distribution: '✅ Distribution mondiale illimitée',
-    lic_exclusive_feat_removed: '✅ Beat retiré du catalogue définitivement',
-    lic_exclusive_feat_contract: '✅ Contrat de cession officiel signé (PDF)',
-    lic_exclusive_feat_support: '✅ Support prioritaire',
-    lic_exclusive_feat_valid: '✅ Les licences non-exclusives déjà vendues restent valides',
-    lic_exclusive_note: 'Cession exclusive et définitive de tous droits patrimoniaux d’exploitation sur le beat, sans limitation de durée, de territoire ou d’usage.',
+    lic_exclusive_tagline: 'Droits totaux Â· Cession dÃ©finitive',
+    lic_exclusive_feat_files: 'âœ… MP3 + WAV + Stems sÃ©parÃ©s (qualitÃ© master)',
+    lic_exclusive_feat_streams: 'âœ… Streams & ventes illimitÃ©s',
+    lic_exclusive_feat_use: 'âœ… Tous usages : commercial, radio, TV, cinÃ©ma, publicitÃ©, sync',
+    lic_exclusive_feat_distribution: 'âœ… Distribution mondiale illimitÃ©e',
+    lic_exclusive_feat_removed: 'âœ… Beat retirÃ© du catalogue dÃ©finitivement',
+    lic_exclusive_feat_contract: 'âœ… Contrat de cession officiel signÃ© (PDF)',
+    lic_exclusive_feat_support: 'âœ… Support prioritaire',
+    lic_exclusive_feat_valid: 'âœ… Les licences non-exclusives dÃ©jÃ  vendues restent valides',
+    lic_exclusive_note: 'Cession exclusive et dÃ©finitive de tous droits patrimoniaux dâ€™exploitation sur le beat, sans limitation de durÃ©e, de territoire ou dâ€™usage.',
     lic_choose_exclusive: 'Choisir Exclusif',
-    lic_legal_note: 'Toutes les licences sont régies par les lois de la République de Côte d’Ivoire et les standards internationaux de propriété intellectuelle (OMPI/WIPO). L’achat d’une licence vaut acceptation des conditions générales d’utilisation.',
+    lic_legal_note: 'Toutes les licences sont rÃ©gies par les lois de la RÃ©publique de CÃ´te dâ€™Ivoire et les standards internationaux de propriÃ©tÃ© intellectuelle (OMPI/WIPO). Lâ€™achat dâ€™une licence vaut acceptation des conditions gÃ©nÃ©rales dâ€™utilisation.',
     // FAQ
-    faq_title: 'Questions fréquentes',
-    faq_q1: 'Comment télécharger après achat ?',
-    faq_a1: 'Après le paiement, vous recevez un lien de téléchargement immédiat par email. Le fichier est disponible pendant 30 jours.',
+    faq_title: 'Questions frÃ©quentes',
+    faq_q1: 'Comment tÃ©lÃ©charger aprÃ¨s achat ?',
+    faq_a1: 'AprÃ¨s le paiement, vous recevez un lien de tÃ©lÃ©chargement immÃ©diat par email. Le fichier est disponible pendant 30 jours.',
     faq_q2: 'Puis-je utiliser le beat sur toutes les plateformes ?',
     faq_a2: "Oui, selon votre licence. Le Premium et l'Exclusif couvrent Spotify, Apple Music, YouTube, TikTok et toutes les plateformes internationales.",
     faq_q3: 'Quels moyens de paiement acceptez-vous ?',
-    faq_a3: 'GeniusPay — paiement rapide et sécurisé. Paiement 100% sécurisé.',
+    faq_a3: 'GeniusPay â€” paiement rapide et sÃ©curisÃ©. Paiement 100% sÃ©curisÃ©.',
     // Contact
     contact_title: 'Travaillons Ensemble',
-    contact_sub: "Une question, une collaboration, un projet ? N'hésitez pas à m'écrire.",
-    contact_based: 'Basé à',
+    contact_sub: "Une question, une collaboration, un projet ? N'hÃ©sitez pas Ã  m'Ã©crire.",
+    contact_based: 'BasÃ© Ã ',
     contact_dist: 'Distribution',
-    contact_dist_val: 'Mondiale — Livraison digitale immédiate',
+    contact_dist_val: 'Mondiale â€” Livraison digitale immÃ©diate',
     contact_form_title: 'Envoyer un Message',
     contact_name: 'Nom complet',
     contact_name_ph: 'Votre nom',
     contact_subject: 'Sujet',
     contact_subject_ph: 'Collaboration, question, achat...',
     contact_msg: 'Message',
-    contact_msg_ph: 'Décrivez votre projet...',
+    contact_msg_ph: 'DÃ©crivez votre projet...',
     contact_send: 'Envoyer le Message',
     // Freestyle
     fs_title: 'Mode Freestyle',
-    fs_sub: 'Choisis un beat, enregistre ton freestyle directement sur le site, réécoute-le et partage-le.',
+    fs_sub: 'Choisis un beat, enregistre ton freestyle directement sur le site, rÃ©Ã©coute-le et partage-le.',
     fs_select_hint: 'Choisis un beat dans la liste ci-dessus.',
     fs_play_beat: 'Jouer le beat',
     fs_rec_hint: 'Appuie pour enregistrer',
@@ -4702,119 +4153,69 @@ const translations = {
     // Edit modal
     edit_beat_title: 'Edit Beat',
     // Dynamic strings (used in JS)
-    dyn_no_beat_audio: '⚠ Ce beat n\'a pas de fichier audio',
-    dyn_already_cart: '⚠ Déjà dans le panier !',
-    dyn_added_cart: '✓ "%s" ajouté au panier !',
-    dyn_stop: 'Arrêter',
+    dyn_no_beat_audio: 'âš  Ce beat n\'a pas de fichier audio',
+    dyn_already_cart: 'âš  DÃ©jÃ  dans le panier !',
+    dyn_added_cart: 'âœ“ "%s" ajoutÃ© au panier !',
+    dyn_stop: 'ArrÃªter',
     dyn_restart: 'Recommencer',
     dyn_pause: 'Pause',
     dyn_cart_empty: 'Votre panier est vide',
-    dyn_pay_login: '⚠ Connectez-vous pour payer !',
-    dyn_profile_saved: '✓ Profil enregistré !',
-    dyn_song_published: '✓ Morceau publié !',
-    dyn_freestyle_published: '✓ Freestyle publié sur ton profil !',
-    dyn_login_welcome: '✓ Bienvenue %s !',
-    dyn_account_created: '✓ Compte créé ! Bienvenue %s !',
-    dyn_disconnected: 'Déconnecté',
-    dyn_recording_saved: '✅ Enregistrement sauvegardé',
-    dyn_no_recording: '⚠ Aucun enregistrement',
-    dyn_select_beat_first: '⚠ Sélectionne un beat d\'abord !',
-    dyn_mic_denied: '⚠ Accès au micro refusé. Autorise le micro dans ton navigateur.',
+    dyn_pay_login: 'âš  Connectez-vous pour payer !',
+    dyn_profile_saved: 'âœ“ Profil enregistrÃ© !',
+    dyn_song_published: 'âœ“ Morceau publiÃ© !',
+    dyn_freestyle_published: 'âœ“ Freestyle publiÃ© sur ton profil !',
+    dyn_login_welcome: 'âœ“ Bienvenue %s !',
+    dyn_account_created: 'âœ“ Compte crÃ©Ã© ! Bienvenue %s !',
+    dyn_disconnected: 'DÃ©connectÃ©',
+    dyn_recording_saved: 'âœ… Enregistrement sauvegardÃ©',
+    dyn_no_recording: 'âš  Aucun enregistrement',
+    dyn_select_beat_first: 'âš  SÃ©lectionne un beat d\'abord !',
+    dyn_mic_denied: 'âš  AccÃ¨s au micro refusÃ©. Autorise le micro dans ton navigateur.',
     dyn_recording_status: 'Enregistrement en cours...',
-    dyn_recording_done: 'Enregistrement terminé ✓',
-    dyn_recording_stopped: 'Enregistrement arrêté',
-    dyn_recording_prepare: 'Prêt pour un nouvel enregistrement',
-    dyn_rec_default: 'Prêt à enregistrer',
-    dyn_no_freestyle: '⚠ Enregistre un freestyle d\'abord',
-    dyn_login_first: '⚠ Connecte-toi pour publier !',
-    dyn_no_sound_pub: '⚠ Aucun enregistrement à publier',
+    dyn_recording_done: 'Enregistrement terminÃ© âœ“',
+    dyn_recording_stopped: 'Enregistrement arrÃªtÃ©',
+    dyn_recording_prepare: 'PrÃªt pour un nouvel enregistrement',
+    dyn_rec_default: 'PrÃªt Ã  enregistrer',
+    dyn_no_freestyle: 'âš  Enregistre un freestyle d\'abord',
+    dyn_login_first: 'âš  Connecte-toi pour publier !',
+    dyn_no_sound_pub: 'âš  Aucun enregistrement Ã  publier',
     dyn_loading: 'Chargement...',
     dyn_feed_empty_title: 'Fil vide',
-    dyn_feed_empty_sub: 'Sois le premier à publier un freestyle ou un morceau !',
-    dyn_msg_sent: '✓ Message envoyé ! Je répondrai sous 24h.',
-    dyn_beat_added: '✓ "%s" ajouté !',
-    dyn_beat_deleted: 'Beat supprimé',
+    dyn_feed_empty_sub: 'Sois le premier Ã  publier un freestyle ou un morceau !',
+    dyn_msg_sent: 'âœ“ Message envoyÃ© ! Je rÃ©pondrai sous 24h.',
+    dyn_beat_added: 'âœ“ "%s" ajoutÃ© !',
+    dyn_beat_deleted: 'Beat supprimÃ©',
     dyn_no_artists: 'Aucun artiste inscrit.',
     dyn_be_first: 'Sois le premier !',
     dyn_no_bio: 'Pas encore de bio.',
     dyn_no_pub: 'Aucune publication',
     dyn_sold_label: 'Vendu',
     dyn_available_label: 'Disponible',
-    dyn_no_audio: '⚠ Pas de fichier audio pour ce beat',
-    dyn_play_error: '⚠ Impossible de lire le fichier audio',
+    dyn_no_audio: 'âš  Pas de fichier audio pour ce beat',
+    dyn_play_error: 'âš  Impossible de lire le fichier audio',
     dyn_pause_beat: 'Pause Beat',
-    dyn_rec_deleted: 'Publication supprimée',
+    dyn_rec_deleted: 'Publication supprimÃ©e',
     dyn_connect_first: 'Connecte-toi d\'abord',
-    dyn_connect_to_create: 'Tu dois te connecter pour créer ton profil artiste.',
+    dyn_connect_to_create: 'Tu dois te connecter pour crÃ©er ton profil artiste.',
     dyn_sign_in: 'Se connecter',
-    dyn_no_beat_selected: '—',
+    dyn_no_beat_selected: 'â€”',
     dyn_songs_count: '%s morceaux',
-    dyn_download_started: '⬇️ Téléchargement lancé',
+    dyn_download_started: 'â¬‡ï¸ TÃ©lÃ©chargement lancÃ©',
     comm_my_profile: 'Mon Profil',
-    comm_feed: 'Fil d\'actualité',
+    comm_feed: 'Fil d\'actualitÃ©',
     fs_my_rec: 'Mes enregistrements',
     dyn_no_rec_static: 'Aucun enregistrement',
-    // Account page
-    account_chip: 'Mon Compte',
-    account_title: 'Bienvenue dans votre espace client',
-    account_sub: 'Gérez vos achats, licences, favoris, factures et paramètres de profil.',
-    account_view_purchases: 'Voir mes achats',
-    account_dashboard_title: 'Tableau de bord',
-    account_tab_purchases: 'Mes Achats',
-    account_tab_licenses: 'Licences & Contrats',
-    account_tab_favorites: 'Favoris',
-    account_tab_billing: 'Facturation',
-    account_tab_settings: 'Paramètres',
-    account_panel_purchases_title: 'Mes Achats / Téléchargements',
-    account_panel_purchases_desc: 'Retrouvez tous vos beats, téléchargements et licences associées.',
-    account_panel_licenses_title: 'Mes Licences & Contrats',
-    account_panel_licenses_desc: 'Résumé des droits d\'utilisation pour chaque beat acheté.',
-    account_panel_favorites_title: 'Mes Favoris',
-    account_panel_favorites_desc: 'Beats sauvegardés pour réécoute ou achat ultérieur.',
-    account_panel_billing_title: 'Historique de Facturation',
-    account_panel_billing_desc: 'Reçus, factures et détails de vos transactions passées.',
-    account_panel_settings_title: 'Paramètres du Profil',
-    account_panel_settings_desc: 'Modifiez votre nom, email, photo et mot de passe.',
-    account_profile_title: 'Profil',
-    account_profile_name: 'Nom',
-    account_profile_email: 'Email',
-    account_profile_photo: 'Photo de profil',
-    account_profile_save: 'Enregistrer',
-    account_email_placeholder: 'votre@email.com',
-    account_password_title: 'Mot de passe',
-    account_password_current: 'Mot de passe actuel',
-    account_password_new: 'Nouveau mot de passe',
-    account_password_change: 'Changer le mot de passe',
-    account_name_placeholder: 'Votre nom',
-    account_current_password_placeholder: '••••••••',
-    account_new_password_placeholder: '••••••••',
-    account_profile_saved: 'Profil enregistré.',
-    account_profile_error: 'Erreur lors de la sauvegarde du profil.',
-    account_no_purchases: 'Aucun achat trouvé pour le moment.',
-    account_no_licenses: 'Aucune licence trouvée.',
-    account_no_favorites: 'Aucun favori enregistré. Ajoutez des beats aux favoris pour les retrouver ici.',
-    account_no_billing: 'Aucun historique de facturation disponible.',
-    account_order: 'Commande',
-    account_license: 'Licence',
-    account_status: 'Statut',
-    account_payment_method: 'Paiement',
-    account_total: 'Total',
-    account_favorite: 'Favori',
-    account_beat: 'Beat',
-    account_unknown_genre: 'Genre inconnu',
-    account_total_spent: 'Dépenses totales',
-    admin_client_space: 'Espace client',
     // Admin panel
     admin_add_beat: 'Ajouter un Beat',
-    admin_manage_beats: 'Gérer les Beats',
-    admin_settings: 'Paramètres',
+    admin_manage_beats: 'GÃ©rer les Beats',
+    admin_settings: 'ParamÃ¨tres',
     admin_view_site: 'Voir le site',
     admin_welcome: 'Bienvenue dans votre espace admin',
-    admin_recent_beats: 'Beats récents',
-    admin_add_beat_sub: 'Ajoutez un nouveau beat à votre catalogue',
-    admin_upload_title: 'Téléverser les fichiers',
+    admin_recent_beats: 'Beats rÃ©cents',
+    admin_add_beat_sub: 'Ajoutez un nouveau beat Ã  votre catalogue',
+    admin_upload_title: 'TÃ©lÃ©verser les fichiers',
 
-    admin_upload_hint: 'Glissez-déposez ou cliquez pour sélectionner. MP3, WAV, MPEG · JPG, PNG, WEBP',
+    admin_upload_hint: 'Glissez-dÃ©posez ou cliquez pour sÃ©lectionner. MP3, WAV, MPEG Â· JPG, PNG, WEBP',
     admin_upload_cover: 'Image de couverture',
     admin_upload_cover_sub: 'Cliquez ou glissez une image',
     admin_upload_audio: 'Fichier audio du beat',
@@ -4825,7 +4226,7 @@ const translations = {
     admin_full_catalog: 'Catalogue complet',
     admin_settings_sub: 'Configuration du site',
     admin_artist_info: 'Informations artiste',
-    admin_security: 'Sécurité',
+    admin_security: 'SÃ©curitÃ©',
 
     admin_title_field: 'Titre *',
     admin_bpm_field: 'BPM *',
@@ -4844,12 +4245,12 @@ const translations = {
     admin_artist_name: 'Nom artiste',
     admin_email_contact: 'Email contact',
     admin_save_btn: 'Sauvegarder',
-    admin_saved_toast: 'Paramètres enregistrés',
+    admin_saved_toast: 'ParamÃ¨tres enregistrÃ©s',
     admin_old_pwd: 'Ancien mot de passe',
     admin_new_pwd: 'Nouveau mot de passe',
     admin_change_pwd: 'Changer',
-    admin_pwd_changed: 'Mot de passe changé !',
-    admin_beat_edited: 'Beat mis à jour !',
+    admin_pwd_changed: 'Mot de passe changÃ© !',
+    admin_beat_edited: 'Beat mis Ã  jour !',
     admin_confirm_delete: 'Supprimer ce beat ?',
     admin_menu: 'MENU ADMIN',
     admin_col_title: 'Titre',
@@ -4861,12 +4262,12 @@ const translations = {
     dyn_sold_excl_label: 'Vendu (Exclusif)',
     // Freestyle extra
     fs_chip: 'Mode Freestyle',
-    fs_choose_beat: 'Sélectionner un Beat',
-    fs_selected_beat: 'Beat sélectionné',
-    fs_no_beat_selected: 'Aucun beat sélectionné',
+    fs_choose_beat: 'SÃ©lectionner un Beat',
+    fs_selected_beat: 'Beat sÃ©lectionnÃ©',
+    fs_no_beat_selected: 'Aucun beat sÃ©lectionnÃ©',
     fs_recording_label: 'Enregistrement Vocal',
-    fs_listen_mix: 'Écouter le mix',
-    fs_download_voice: 'Télécharger',
+    fs_listen_mix: 'Ã‰couter le mix',
+    fs_download_voice: 'TÃ©lÃ©charger',
     fs_publish_profile: 'Publier sur mon profil',
     fs_take_label: 'Prise',
     fs_vocal_solo: 'Vocal seul',
@@ -4895,63 +4296,58 @@ const translations = {
     studio_mix_title: 'Mixage',
     studio_beat_volume: 'Volume Beat',
     studio_vocal_volume: 'Volume Voix',
-    studio_eq_title: 'Égaliseur 3-Bandes',
+    studio_eq_title: 'Ã‰galiseur 3-Bandes',
     studio_band_bass: 'BASSES',
-    studio_band_mid: 'MÉDIUMS',
+    studio_band_mid: 'MÃ‰DIUMS',
     studio_band_treble: 'AIGUS',
     fs_export_mp3: 'Exporter en MP3',
     fs_publish: 'Publier',
     fs_share_link: 'Copier Lien',
-    fs_recording_ready: 'Enregistrement terminé — Écoute ton take',
-    fs_listen_recording: 'Écouter l\'enregistrement',
+    fs_recording_ready: 'Enregistrement terminÃ© â€” Ã‰coute ton take',
+    fs_listen_recording: 'Ã‰couter l\'enregistrement',
     fs_discard_recording: 'Supprimer',
-    fs_listen_mix: 'Écouter le mix',
+    fs_listen_mix: 'Ã‰couter le mix',
     fs_play_mode_mix: 'Mix Studio',
     fs_play_mode_vocal: 'Voix seule',
-    fs_monitoring_active: '🎧 Monitoring actif — Beat + Voix',
+    fs_monitoring_active: 'ðŸŽ§ Monitoring actif â€” Beat + Voix',
     fs_monitoring_label: 'Monitoring Studio',
-    fs_studio_rec_started: '🎧 Studio actif — chantez sur le beat',
-    fs_mix_ready: '✅ Mix studio prêt — écoute beat + voix',
-    fs_mix_playback_hint: 'Mix studio — beat et voix synchronisés',
-    fs_vocal_playback_hint: 'Écoute ta voix seule',
+    fs_studio_rec_started: 'ðŸŽ§ Studio actif â€” chantez sur le beat',
+    fs_mix_ready: 'âœ… Mix studio prÃªt â€” Ã©coute beat + voix',
+    fs_mix_playback_hint: 'Mix studio â€” beat et voix synchronisÃ©s',
+    fs_vocal_playback_hint: 'Ã‰coute ta voix seule',
     dyn_recording_processing: 'Traitement de l\'enregistrement...',
-    dyn_recording_failed: '❌ Échec de l\'enregistrement',
+    dyn_recording_failed: 'âŒ Ã‰chec de l\'enregistrement',
     dyn_no_active_recording: 'Aucun enregistrement en cours',
-    dyn_recording_discarded: 'Enregistrement supprimé',
-    dyn_playback_failed: '⚠ Utilise le lecteur audio pour écouter',
-    err_invalid_audio: 'Fichier audio invalide',
-    dyn_audio_imported: 'Audio importé',
-    fs_upload_to_profile: 'Uploader vers mon profil',
-    fs_import_audio: 'Importer un freestyle',
-    fs_saved_recordings: 'Freestyles sauvegardés',
-    studio_mic_error: 'Impossible d\'accéder au microphone',
+    dyn_recording_discarded: 'Enregistrement supprimÃ©',
+    dyn_playback_failed: 'âš  Utilise le lecteur audio pour Ã©couter',
+    studio_mic_error: 'Impossible d\'accÃ©der au microphone',
     studio_spectral_analyzer: 'Analyseur Spectral',
     studio_export_title: 'Export & Partage',
-    studio_recording_started: '🔴 Enregistrement synchronisé démarré',
-    studio_recording_stopped_toast: '⏹️ Enregistrement arrêté. Prêt à écouter.',
+    studio_recording_started: 'ðŸ”´ Enregistrement synchronisÃ© dÃ©marrÃ©',
+    studio_recording_stopped_toast: 'â¹ï¸ Enregistrement arrÃªtÃ©. PrÃªt Ã  Ã©couter.',
     studio_loading: 'Studio en cours de chargement...',
     studio_error_init: 'Erreur lors de l\'initialisation du studio',
-    studio_select_beat_first: 'Sélectionnez un beat avant d\'enregistrer',
-    studio_mic_denied: 'Micro refusé — autorise l\'accès dans Réglages > Safari/Chrome',
-    studio_mic_not_found: 'Aucun micro détecté sur cet appareil',
-    studio_mic_unsupported: 'Enregistrement non supporté — utilise Safari ou Chrome à jour',
-    studio_beat_not_found: '❌ Beat introuvable. Vérifiez votre connexion ou choisissez un autre beat.',
-    studio_beat_selected: '✅ Beat sélectionné: %s',
-    studio_recording_started: '🔴 Enregistrement synchronisé démarré',
-    studio_recording_stopped_toast: '⏹️ Enregistrement arrêté. Prêt à écouter.',
+    studio_select_beat_first: 'SÃ©lectionnez un beat avant d\'enregistrer',
+    studio_mic_denied: 'Micro refusÃ© â€” autorise l\'accÃ¨s dans RÃ©glages > Safari/Chrome',
+    studio_mic_not_found: 'Aucun micro dÃ©tectÃ© sur cet appareil',
+    studio_mic_unsupported: 'Enregistrement non supportÃ© â€” utilise Safari ou Chrome Ã  jour',
+    studio_beat_not_found: 'âŒ Beat introuvable. VÃ©rifiez votre connexion ou choisissez un autre beat.',
+    studio_beat_selected: 'âœ… Beat sÃ©lectionnÃ©: %s',
+    studio_recording_started: 'ðŸ”´ Enregistrement synchronisÃ© dÃ©marrÃ©',
+    studio_recording_stopped_toast: 'â¹ï¸ Enregistrement arrÃªtÃ©. PrÃªt Ã  Ã©couter.',
     // Community
     comm_chip: 'Community',
     // Error messages
     err_all_fields: 'Tous les champs sont requis',
     err_wrong_creds: 'Identifiants incorrects',
-    err_username_format: 'Pseudo : 3-20 caractères, lettres/chiffres/tirets uniquement',
+    err_username_format: 'Pseudo : 3-20 caractÃ¨res, lettres/chiffres/tirets uniquement',
     err_invalid_email: 'Adresse email invalide',
-    err_pwd_short: 'Mot de passe trop court (minimum 8 caractères)',
+    err_pwd_short: 'Mot de passe trop court (minimum 8 caractÃ¨res)',
     err_pwd_format: 'Le mot de passe doit contenir au moins 1 majuscule et 1 chiffre',
-    err_username_taken: 'Pseudo déjà utilisé',
-    err_email_taken: 'Email déjà utilisé',
+    err_username_taken: 'Pseudo dÃ©jÃ  utilisÃ©',
+    err_email_taken: 'Email dÃ©jÃ  utilisÃ©',
     err_wrong_pwd: 'Mot de passe incorrect',
-    err_pwd_too_short: 'Trop court (min 6 caractères)',
+    err_pwd_too_short: 'Trop court (min 6 caractÃ¨res)',
     err_title_bpm_required: 'Titre et BPM requis !',
     err_title_url_required: 'Titre et URL requis !',
     err_invalid_url: 'URL invalide (doit commencer par par https://)',
@@ -4959,10 +4355,10 @@ const translations = {
     pay_card_name: 'Card',
     pay_paypal_sub: 'Secure payment',
     pay_loading_paypal: 'Loading PayPal...',
-    pay_paypal_note: 'Secure payment via PayPal · Visa, Mastercard, PayPal account accepted.',
+    pay_paypal_note: 'Secure payment via PayPal Â· Visa, Mastercard, PayPal account accepted.',
     // Featured (dynamic)
-    feat_listen: 'Écouter',
-    feat_add_cart: 'Ajouter au panier',
+    feat_listen: 'Listen',
+    feat_add_cart: 'Add to Cart',
     // Register form
     reg_title: 'Create account',
     reg_sub: 'Join Je Suis Beatz',
@@ -4992,7 +4388,7 @@ const translations = {
     // PayPal toasts
     pay_validating: 'Validation du paiement...',
     pay_validation_error: 'Erreur de validation',
-    pay_cancelled: 'Paiement PayPal annulé.',
+    pay_cancelled: 'Paiement PayPal annulÃ©.',
     pay_error: 'Une erreur est survenue.',
     // Freestyle
     fs_mic_level: 'Niveau Micro',
@@ -5000,143 +4396,132 @@ const translations = {
     contact_email_ph: 'votre@email.com',
     // Studio labels
     studio_title: 'STUDIO PRO',
-    studio_subtitle: 'PRODUCTION · MIX · MASTER · EXPORT',
-    studio_ready: 'PRÊT',
+    studio_subtitle: 'PRODUCTION Â· MIX Â· MASTER Â· EXPORT',
+    studio_ready: 'PRÃŠT',
     studio_close: 'Fermer',
-    studio_waveform: 'Waveform — Ta voix',
-    studio_eq: 'Égaliseur (EQ)',
+    studio_waveform: 'Waveform â€” Ta voix',
+    studio_eq: 'Ã‰galiseur (EQ)',
     studio_compressor: 'Compresseur',
     studio_reverb: 'Reverb',
     studio_vocal_gain: 'Gain vocal',
-    studio_presets: 'Préréglages Voix',
+    studio_presets: 'PrÃ©rÃ©glages Voix',
     studio_open_btn: 'Ouvrir le Studio',
     export_login_required: 'Connecte-toi d\'abord',
-    export_no_recording: '❌ Aucun enregistrement à exporter',
-    export_preparing: '⏳ Préparation de l\'export...',
-    export_success: '✅ Freestyle exporté avec succès',
-    export_error: '❌ Erreur lors de l\'export',
-    publish_preparing: '⏳ Publication en cours...',
-    publish_success: '✅ Freestyle publié sur ton profil',
-    publish_error: '❌ Erreur lors de la publication',
-    share_link_copied: '✅ Lien copié',
-    publish_upload_error: '❌ Erreur lors du téléchargement',
+    export_no_recording: 'âŒ Aucun enregistrement Ã  exporter',
+    export_preparing: 'â³ PrÃ©paration de l\'export...',
+    export_success: 'âœ… Freestyle exportÃ© avec succÃ¨s',
+    export_error: 'âŒ Erreur lors de l\'export',
+    publish_preparing: 'â³ Publication en cours...',
+    publish_success: 'âœ… Freestyle publiÃ© sur ton profil',
+    publish_error: 'âŒ Erreur lors de la publication',
+    share_link_copied: 'âœ… Lien copiÃ©',
+    publish_upload_error: 'âŒ Erreur lors du tÃ©lÃ©chargement',
     // Login section (FR)
     login_title: 'Connexion',
-    login_sub: 'Accédez à votre espace',
+    login_sub: 'AccÃ©dez Ã  votre espace',
     login_email_label: 'Email ou Pseudo',
     login_pwd_label: 'Mot de passe',
     login_email_placeholder: 'Email ou Pseudo',
-    login_pwd_placeholder: '••••••••',
+    login_pwd_placeholder: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
     login_btn: 'Se Connecter',
     login_no_account: 'Pas de compte ?',
     login_register: 'S\'inscrire',
     login_back: 'Retour au site',
-    login_resend_verify: 'Renvoyer l\'email de vérification',
+    login_resend_verify: 'Renvoyer l\'email de vÃ©rification',
     reg_pseudo: 'Pseudo',
     reg_pseudo_placeholder: 'Votre pseudo',
     reg_email: 'Email',
     reg_email_placeholder: 'votre@email.com',
     reg_pwd: 'Mot de passe',
-    reg_pwd_placeholder: 'Min. 6 caractères',
-    reg_btn: 'Créer un Compte',
-    reg_already: 'Déjà inscrit ?',
-    login_verify_required: '✅ Veuillez vérifier votre email avant de continuer. Un lien de vérification a été envoyé à %s. Si vous ne le recevez pas, vérifiez votre dossier spam ou renvoyez-le.',
-    login_verify_resend_error: '⚠ Impossible de renvoyer l\'email de vérification. Réessayez plus tard.',
-    login_already_verified: '✅ Votre adresse est déjà vérifiée. Vous pouvez maintenant vous connecter.',
-    login_verification_resent: '✅ Email de vérification renvoyé à %s. Vérifiez votre boîte de réception et votre dossier spam.',
-    login_resend_enter_credentials: 'Veuillez entrer votre email/pseudo et votre mot de passe pour renvoyer l\'email de vérification.',
-    login_resend_username_not_found: 'Pseudo introuvable. Vérifiez vos informations et réessayez.',
-    login_verify_send_failed: '⚠ Compte créé, mais l\'email de vérification n\'a pas pu être envoyé. Vérifiez votre adresse ou réessayez plus tard.',
-    login_verify_sent: '✅ Compte créé ! Un lien de vérification a été envoyé à %s. Veuillez vérifier votre email avant de vous connecter.',
+    reg_pwd_placeholder: 'Min. 6 caractÃ¨res',
+    reg_btn: 'CrÃ©er un Compte',
+    reg_already: 'DÃ©jÃ  inscrit ?',
+    login_verify_required: 'âœ… Veuillez vÃ©rifier votre email avant de continuer. Un lien de vÃ©rification a Ã©tÃ© envoyÃ© Ã  %s. Si vous ne le recevez pas, vÃ©rifiez votre dossier spam ou renvoyez-le.',
+    login_verify_resend_error: 'âš  Impossible de renvoyer l\'email de vÃ©rification. RÃ©essayez plus tard.',
+    login_already_verified: 'âœ… Votre adresse est dÃ©jÃ  vÃ©rifiÃ©e. Vous pouvez maintenant vous connecter.',
+    login_verification_resent: 'âœ… Email de vÃ©rification renvoyÃ© Ã  %s. VÃ©rifiez votre boÃ®te de rÃ©ception et votre dossier spam.',
+    login_resend_enter_credentials: 'Veuillez entrer votre email/pseudo et votre mot de passe pour renvoyer l\'email de vÃ©rification.',
+    login_resend_username_not_found: 'Pseudo introuvable. VÃ©rifiez vos informations et rÃ©essayez.',
+    login_verify_send_failed: 'âš  Compte crÃ©Ã©, mais l\'email de vÃ©rification n\'a pas pu Ãªtre envoyÃ©. VÃ©rifiez votre adresse ou rÃ©essayez plus tard.',
+    login_verify_sent: 'âœ… Compte crÃ©Ã© ! Un lien de vÃ©rification a Ã©tÃ© envoyÃ© Ã  %s. Veuillez vÃ©rifier votre email avant de vous connecter.',
   },
   en: {
     // Nav
     nav_home: 'Home',
     nav_artists: 'Artists',
-    nav_beats: 'Beats',
     nav_licenses: 'Licenses',
     nav_login: 'Login',
-    nav_account: 'Account',
-    nav_contact: 'Contact',
     nav_freestyle: 'Freestyle',
     // Hero
-    hero_badge: "Ivory Coast · International Distribution",
-    hero_title: 'The Beat<br><span class="cyan">Maker\'s Studio</span>',
-    hero_slogan: 'I am the sound you are looking for',
+    hero_badge: "Ivory Coast Â· International Distribution",
     hero_explore: 'Explore Beats',
     hero_licenses: 'View Licenses',
-    // Stats
-    stat_beats: 'Beats',
-    stat_international: 'International',
-    // Footer Genres
-    footer_genres: 'Genres',
-    footer_made_with: 'Made with <i class="fas fa-heart" style="color:var(--cyan)"></i> by Je Suis Beatz',
     // Licenses page
     lic_title: 'Choose your License',
-    lic_sub: 'Licenses for every project — from amateur releases to international commercial distribution.',
+    lic_sub: 'Licenses for every project â€” from amateur releases to international commercial distribution.',
     lic_basic_name: 'BASIC',
     lic_basic_tagline: 'Get started',
-    lic_basic_feat_mp3: '✅ Tagged MP3 file (320 kbps)',
-    lic_basic_feat_streams: '✅ 50,000 streams (YouTube, Spotify, Apple Music)',
-    lic_basic_feat_social: '✅ Social media & personal use',
-    lic_basic_feat_oneartist: '✅ Single artist only',
-    lic_basic_feat_nonexclusive: '✅ Perpetual non-exclusive license',
-    lic_basic_feat_no_commercial: '❌ No commercial use',
-    lic_basic_feat_no_wav: '❌ WAV not included',
+    lic_basic_feat_mp3: 'âœ… Tagged MP3 file (320 kbps)',
+    lic_basic_feat_streams: 'âœ… 50,000 streams (YouTube, Spotify, Apple Music)',
+    lic_basic_feat_social: 'âœ… Social media & personal use',
+    lic_basic_feat_oneartist: 'âœ… Single artist only',
+    lic_basic_feat_nonexclusive: 'âœ… Perpetual non-exclusive license',
+    lic_basic_feat_no_commercial: 'âŒ No commercial use',
+    lic_basic_feat_no_wav: 'âŒ WAV not included',
     lic_basic_note: 'Perpetual non-exclusive license for personal and non-commercial use; limited to 50,000 cumulative streams across platforms.',
     lic_choose_basic: 'Choose Basic',
     lic_premium_badge: 'Recommended',
     lic_premium_name: 'PREMIUM',
-    lic_premium_tagline: 'Most popular · Recommended',
-    lic_premium_feat_files: '✅ MP3 + WAV (studio quality)',
-    lic_premium_feat_streams: '✅ 150,000 streams (all platforms)',
-    lic_premium_feat_commercial: '✅ Commercial use (sales, monetized streaming)',
-    lic_premium_feat_radio: '✅ Radio & monetized YouTube OK',
-    lic_premium_feat_physical: '✅ Physical sales up to 2,000 copies',
-    lic_premium_feat_distribution: '✅ Worldwide distribution',
-    lic_premium_feat_oneartist: '✅ Single artist only',
-    lic_premium_feat_nonexclusive: '✅ Perpetual non-exclusive license',
-    lic_premium_feat_no_stems: '❌ Stems not included',
-    lic_premium_feat_catalog: '❌ Beat remains in catalog',
+    lic_premium_tagline: 'Most popular Â· Recommended',
+    lic_premium_feat_files: 'âœ… MP3 + WAV (studio quality)',
+    lic_premium_feat_streams: 'âœ… 150,000 streams (all platforms)',
+    lic_premium_feat_commercial: 'âœ… Commercial use (sales, monetized streaming)',
+    lic_premium_feat_radio: 'âœ… Radio & monetized YouTube OK',
+    lic_premium_feat_physical: 'âœ… Physical sales up to 2,000 copies',
+    lic_premium_feat_distribution: 'âœ… Worldwide distribution',
+    lic_premium_feat_oneartist: 'âœ… Single artist only',
+    lic_premium_feat_nonexclusive: 'âœ… Perpetual non-exclusive license',
+    lic_premium_feat_no_stems: 'âŒ Stems not included',
+    lic_premium_feat_catalog: 'âŒ Beat remains in catalog',
     lic_premium_note: 'Perpetual non-exclusive commercial license within the stream and physical copy limits above.',
     lic_choose_premium: 'Choose Premium',
     lic_wav_name: 'WAV + STEMS',
     lic_wav_tagline: 'Complete production',
-    lic_wav_feat_files: '✅ MP3 + WAV high quality + separated stems (kick, snare, melody, bass…)',
-    lic_wav_feat_streams: '✅ 500,000 streams (all platforms)',
-    lic_wav_feat_commercial: '✅ Unlimited commercial use',
-    lic_wav_feat_sync: '✅ Radio, TV & sync allowed',
-    lic_wav_feat_physical: '✅ Physical sales up to 5,000 copies',
-    lic_wav_feat_distribution: '✅ Worldwide distribution',
-    lic_wav_feat_mastering: '✅ Mix & mastering friendly (separated source files)',
-    lic_wav_feat_oneartist: '✅ Single artist only',
-    lic_wav_feat_nonexclusive: '✅ Perpetual non-exclusive license',
-    lic_wav_feat_catalog: '❌ Beat remains in catalog',
+    lic_wav_feat_files: 'âœ… MP3 + WAV high quality + separated stems (kick, snare, melody, bassâ€¦)',
+    lic_wav_feat_streams: 'âœ… 500,000 streams (all platforms)',
+    lic_wav_feat_commercial: 'âœ… Unlimited commercial use',
+    lic_wav_feat_sync: 'âœ… Radio, TV & sync allowed',
+    lic_wav_feat_physical: 'âœ… Physical sales up to 5,000 copies',
+    lic_wav_feat_distribution: 'âœ… Worldwide distribution',
+    lic_wav_feat_mastering: 'âœ… Mix & mastering friendly (separated source files)',
+    lic_wav_feat_oneartist: 'âœ… Single artist only',
+    lic_wav_feat_nonexclusive: 'âœ… Perpetual non-exclusive license',
+    lic_wav_feat_catalog: 'âŒ Beat remains in catalog',
     lic_wav_note: 'Perpetual non-exclusive commercial license including source files (stems) for professional production.',
     lic_choose_wav: 'Choose WAV + Stems',
     lic_unlimited_name: 'UNLIMITED',
-    lic_unlimited_tagline: 'Unlimited streams · Beat remains in catalog',
-    lic_unlimited_feat_files: '✅ MP3 + WAV + separated stems',
-    lic_unlimited_feat_streams: '✅ Unlimited streams on all platforms',
-    lic_unlimited_feat_commercial: '✅ Unlimited commercial use',
-    lic_unlimited_feat_sync: '✅ Radio, TV, sync & advertising allowed',
-    lic_unlimited_feat_physical: '✅ Unlimited physical sales',
-    lic_unlimited_feat_distribution: '✅ Worldwide distribution',
-    lic_unlimited_feat_oneartist: '✅ Single artist only',
-    lic_unlimited_feat_nonexclusive: '✅ Perpetual non-exclusive license',
-    lic_unlimited_feat_catalog: '❌ Beat remains in catalog (others can still buy it)',
+    lic_unlimited_tagline: 'Unlimited streams Â· Beat remains in catalog',
+    lic_unlimited_feat_files: 'âœ… MP3 + WAV + separated stems',
+    lic_unlimited_feat_streams: 'âœ… Unlimited streams on all platforms',
+    lic_unlimited_feat_commercial: 'âœ… Unlimited commercial use',
+    lic_unlimited_feat_sync: 'âœ… Radio, TV, sync & advertising allowed',
+    lic_unlimited_feat_physical: 'âœ… Unlimited physical sales',
+    lic_unlimited_feat_distribution: 'âœ… Worldwide distribution',
+    lic_unlimited_feat_oneartist: 'âœ… Single artist only',
+    lic_unlimited_feat_nonexclusive: 'âœ… Perpetual non-exclusive license',
+    lic_unlimited_feat_catalog: 'âŒ Beat remains in catalog (others can still buy it)',
     lic_unlimited_note: 'Perpetual non-exclusive commercial license with unlimited streams, copies, and territories.',
     lic_choose_unlimited: 'Choose Unlimited',
     lic_exclusive_name: 'EXCLUSIVE',
-    lic_exclusive_tagline: 'Full rights · Permanent transfer',
-    lic_exclusive_feat_files: '✅ MP3 + WAV + separated stems (master quality)',
-    lic_exclusive_feat_streams: '✅ Unlimited streams & sales',
-    lic_exclusive_feat_use: '✅ All uses: commercial, radio, TV, film, advertising, sync',
-    lic_exclusive_feat_distribution: '✅ Worldwide unlimited distribution',
-    lic_exclusive_feat_removed: '✅ Beat removed from catalog permanently',
-    lic_exclusive_feat_contract: '✅ Official transfer agreement signed (PDF)',
-    lic_exclusive_feat_support: '✅ Priority support',
-    lic_exclusive_feat_valid: '✅ Previously sold non-exclusive licenses remain valid',
+    lic_exclusive_tagline: 'Full rights Â· Permanent transfer',
+    lic_exclusive_feat_files: 'âœ… MP3 + WAV + separated stems (master quality)',
+    lic_exclusive_feat_streams: 'âœ… Unlimited streams & sales',
+    lic_exclusive_feat_use: 'âœ… All uses: commercial, radio, TV, film, advertising, sync',
+    lic_exclusive_feat_distribution: 'âœ… Worldwide unlimited distribution',
+    lic_exclusive_feat_removed: 'âœ… Beat removed from catalog permanently',
+    lic_exclusive_feat_contract: 'âœ… Official transfer agreement signed (PDF)',
+    lic_exclusive_feat_support: 'âœ… Priority support',
+    lic_exclusive_feat_valid: 'âœ… Previously sold non-exclusive licenses remain valid',
     lic_exclusive_note: 'Exclusive permanent transfer of all exploitation rights for the beat, with no duration, territory or usage limits.',
     lic_choose_exclusive: 'Choose Exclusive',
     lic_legal_note: 'All licenses are governed by Ivory Coast law and international intellectual property standards (WIPO). Purchase implies acceptance of the terms of use.',
@@ -5151,7 +4536,7 @@ const translations = {
     footer_catalog: 'Beats Catalog',
     footer_freestyle: 'Freestyle Mode',
     footer_artists: 'Artists Space',
-    footer_rights: '© 2026 Je Suis Beatz · All rights reserved · Abidjan, Ivory Coast',
+    footer_rights: 'Â© 2026 Je Suis Beatz Â· All rights reserved Â· Abidjan, Ivory Coast',
     // Beats
     beats_chip: 'Catalog',
     beats_title: 'All Beats',
@@ -5198,13 +4583,13 @@ const translations = {
     faq_q2: 'Can I use the beat on all platforms?',
     faq_a2: 'Yes, depending on your license. Premium and Exclusive cover Spotify, Apple Music, YouTube, TikTok and all international platforms.',
     faq_q3: 'What payment methods do you accept?',
-    faq_a3: 'GeniusPay — fast and secure checkout. 100% secure payment.',
+    faq_a3: 'GeniusPay â€” fast and secure checkout. 100% secure payment.',
     // Contact
     contact_title: "Let's Work Together",
     contact_sub: 'A question, a collaboration, a project? Feel free to reach out.',
     contact_based: 'Based in',
     contact_dist: 'Distribution',
-    contact_dist_val: 'Worldwide — Instant digital delivery',
+    contact_dist_val: 'Worldwide â€” Instant digital delivery',
     contact_form_title: 'Send a Message',
     contact_name: 'Full name',
     contact_name_ph: 'Your name',
@@ -5217,13 +4602,8 @@ const translations = {
     fs_title: 'Spit on the Beat',
     fs_sub: 'Choose a beat, record your freestyle directly from the site, listen back and share it.',
     fs_select_hint: 'Select a beat above',
-    fs_saved_recordings: 'Saved Freestyles',
-    fs_import_audio: 'Import a freestyle',
     fs_play_beat: 'Play Beat',
     fs_rec_hint: 'Press to record',
-    fs_mic_denied_title: 'Microphone Access Denied',
-    fs_mic_ready: 'Microphone ready',
-    fs_ready_record: 'Ready to record',
     // Community
     comm_title: 'Artists Space',
     comm_sub: 'Create your artist profile, share your socials, publish your tracks made with Je Suis Beatz beats.',
@@ -5233,7 +4613,7 @@ const translations = {
     login_email_label: 'Email or Username',
     login_pwd_label: 'Password',
     login_email_placeholder: 'Email or Username',
-    login_pwd_placeholder: '••••••••',
+    login_pwd_placeholder: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
     login_btn: 'Sign In',
     login_no_account: 'No account?',
     login_register: 'Sign up',
@@ -5247,51 +4627,51 @@ const translations = {
     reg_pwd_placeholder: 'Min. 6 characters',
     reg_btn: 'Create Account',
     reg_already: 'Already registered?',
-    login_verify_required: '✅ Please verify your email before continuing. A verification link has been sent to %s. If you do not receive it, check your spam folder or use the resend link below.',
-    login_verify_resend_error: '⚠ Unable to resend the verification email. Please try again later.',
-    login_already_verified: '✅ Your email is already verified. You can now sign in.',
-    login_verification_resent: '✅ Verification email sent to %s. Check your inbox and spam folder.',
+    login_verify_required: 'âœ… Please verify your email before continuing. A verification link has been sent to %s. If you do not receive it, check your spam folder or use the resend link below.',
+    login_verify_resend_error: 'âš  Unable to resend the verification email. Please try again later.',
+    login_already_verified: 'âœ… Your email is already verified. You can now sign in.',
+    login_verification_resent: 'âœ… Verification email sent to %s. Check your inbox and spam folder.',
     login_resend_enter_credentials: 'Please enter your email/username and password to resend the verification email.',
     login_resend_username_not_found: 'Username not found. Check your details and try again.',
-    login_verify_send_failed: '⚠ Account created, but the verification email could not be sent. Please check your address or try again later.',
-    login_verify_sent: '✅ Account created! A verification link has been sent to %s. Check your email before signing in.',
+    login_verify_send_failed: 'âš  Account created, but the verification email could not be sent. Please check your address or try again later.',
+    login_verify_sent: 'âœ… Account created! A verification link has been sent to %s. Check your email before signing in.',
     // Cart
     cart_title: 'Cart',
     cart_pay: 'Pay',
     // Edit modal
     edit_beat_title: 'Edit Beat',
     // Dynamic strings
-    dyn_no_beat_audio: '⚠ This beat has no audio file',
-    dyn_already_cart: '⚠ Already in cart!',
-    dyn_added_cart: '✓ "%s" added to cart!',
+    dyn_no_beat_audio: 'âš  This beat has no audio file',
+    dyn_already_cart: 'âš  Already in cart!',
+    dyn_added_cart: 'âœ“ "%s" added to cart!',
     dyn_stop: 'Stop',
     dyn_restart: 'Restart',
     dyn_pause: 'Pause',
     dyn_cart_empty: 'Your cart is empty',
-    dyn_pay_login: '⚠ Please log in to pay!',
-    dyn_profile_saved: '✓ Profile saved!',
-    dyn_song_published: '✓ Track published!',
-    dyn_freestyle_published: '✓ Freestyle published on your profile!',
-    dyn_login_welcome: '✓ Welcome %s!',
-    dyn_account_created: '✓ Account created! Welcome %s!',
+    dyn_pay_login: 'âš  Please log in to pay!',
+    dyn_profile_saved: 'âœ“ Profile saved!',
+    dyn_song_published: 'âœ“ Track published!',
+    dyn_freestyle_published: 'âœ“ Freestyle published on your profile!',
+    dyn_login_welcome: 'âœ“ Welcome %s!',
+    dyn_account_created: 'âœ“ Account created! Welcome %s!',
     dyn_disconnected: 'Logged out',
-    dyn_recording_saved: '✓ Freestyle recorded!',
-    dyn_no_recording: '⚠ No recordings',
-    dyn_select_beat_first: '⚠ Select a beat first!',
-    dyn_mic_denied: '⚠ Microphone access denied. Allow mic access in your browser.',
+    dyn_recording_saved: 'âœ“ Freestyle recorded!',
+    dyn_no_recording: 'âš  No recordings',
+    dyn_select_beat_first: 'âš  Select a beat first!',
+    dyn_mic_denied: 'âš  Microphone access denied. Allow mic access in your browser.',
     dyn_recording_status: 'Recording...',
     dyn_recording_done: 'Recording complete',
     dyn_recording_stopped: 'Recording stopped',
     dyn_recording_prepare: 'Preparing a new take...',
     dyn_rec_default: 'Press to record',
-    dyn_no_freestyle: '⚠ Record a freestyle first',
-    dyn_login_first: '⚠ Log in to publish!',
-    dyn_no_sound_pub: '⚠ No recording to publish',
+    dyn_no_freestyle: 'âš  Record a freestyle first',
+    dyn_login_first: 'âš  Log in to publish!',
+    dyn_no_sound_pub: 'âš  No recording to publish',
     dyn_loading: 'Loading...',
     dyn_feed_empty_title: 'Empty feed',
     dyn_feed_empty_sub: 'Be the first to post a freestyle or a track!',
-    dyn_msg_sent: '✓ Message sent! I\'ll reply within 24h.',
-    dyn_beat_added: '✓ "%s" added!',
+    dyn_msg_sent: 'âœ“ Message sent! I\'ll reply within 24h.',
+    dyn_beat_added: 'âœ“ "%s" added!',
     dyn_beat_deleted: 'Beat deleted',
     dyn_no_artists: 'No artists registered.',
     dyn_be_first: 'Be the first!',
@@ -5299,70 +4679,20 @@ const translations = {
     dyn_no_pub: 'No publications',
     dyn_sold_label: 'Sold',
     dyn_available_label: 'Available',
-    dyn_no_audio: '⚠ No audio file for this beat',
-    dyn_play_error: '⚠ Unable to play the audio file',
+    dyn_no_audio: 'âš  No audio file for this beat',
+    dyn_play_error: 'âš  Unable to play the audio file',
     dyn_pause_beat: 'Pause Beat',
     dyn_rec_deleted: 'Post deleted',
     dyn_connect_first: 'Login first',
     dyn_connect_to_create: 'You must be logged in to create your artist profile.',
     dyn_sign_in: 'Sign In',
-    dyn_no_beat_selected: '—',
+    dyn_no_beat_selected: 'â€”',
     dyn_songs_count: '%s tracks',
-    dyn_download_started: '⬇️ Download started',
+    dyn_download_started: 'â¬‡ï¸ Download started',
     comm_my_profile: 'My Profile',
     comm_feed: 'News Feed',
     fs_my_rec: 'My recordings',
     dyn_no_rec_static: 'No recordings',
-    // Account page
-    account_chip: 'Customer Dashboard',
-    account_title: 'Welcome to your customer space',
-    account_sub: 'Manage your purchases, licenses, favorites, invoices and profile settings.',
-    account_view_purchases: 'View my purchases',
-    account_dashboard_title: 'Dashboard',
-    account_tab_purchases: 'Purchases',
-    account_tab_licenses: 'Licenses & Contracts',
-    account_tab_favorites: 'Favorites',
-    account_tab_billing: 'Billing',
-    account_tab_settings: 'Settings',
-    account_panel_purchases_title: 'My Purchases / Downloads',
-    account_panel_purchases_desc: 'Find all your beats, downloads and associated licenses.',
-    account_panel_licenses_title: 'My Licenses & Contracts',
-    account_panel_licenses_desc: 'Summary of usage rights for each purchased beat.',
-    account_panel_favorites_title: 'My Favorites',
-    account_panel_favorites_desc: 'Saved beats for replay or later purchase.',
-    account_panel_billing_title: 'Billing History',
-    account_panel_billing_desc: 'Receipts, invoices and details of your past transactions.',
-    account_panel_settings_title: 'Profile Settings',
-    account_panel_settings_desc: 'Change your name, email, photo and password.',
-    account_profile_title: 'Profile',
-    account_profile_name: 'Name',
-    account_profile_email: 'Email',
-    account_profile_photo: 'Profile photo',
-    account_profile_save: 'Save',
-    account_email_placeholder: 'your@email.com',
-    account_password_title: 'Password',
-    account_password_current: 'Current password',
-    account_password_new: 'New password',
-    account_password_change: 'Change password',
-    account_name_placeholder: 'Your name',
-    account_current_password_placeholder: '••••••••',
-    account_new_password_placeholder: '••••••••',
-    account_profile_saved: 'Profile saved.',
-    account_profile_error: 'Error saving profile.',
-    account_no_purchases: 'No purchases found yet.',
-    account_no_licenses: 'No licenses found.',
-    account_no_favorites: 'No favorites saved. Add beats to favorites to find them here.',
-    account_no_billing: 'No billing history available.',
-    account_order: 'Order',
-    account_license: 'License',
-    account_status: 'Status',
-    account_payment_method: 'Payment',
-    account_total: 'Total',
-    account_favorite: 'Favorite',
-    account_beat: 'Beat',
-    account_unknown_genre: 'Unknown genre',
-    account_total_spent: 'Total spent',
-    admin_client_space: 'Customer space',
     // Admin panel
     admin_add_beat: 'Add a Beat',
     admin_manage_beats: 'Manage Beats',
@@ -5372,7 +4702,7 @@ const translations = {
     admin_recent_beats: 'Recent Beats',
     admin_add_beat_sub: 'Add a new beat to your catalog',
     admin_upload_title: 'Upload files',
-    admin_upload_hint: 'Drag & drop or click to select. MP3, WAV, MPEG · JPG, PNG, WEBP',
+    admin_upload_hint: 'Drag & drop or click to select. MP3, WAV, MPEG Â· JPG, PNG, WEBP',
     admin_upload_cover: 'Cover image',
     admin_upload_cover_sub: 'Click or drag an image',
     admin_upload_audio: 'Beat audio file',
@@ -5460,38 +4790,38 @@ const translations = {
     fs_export_mp3: 'Export as MP3',
     fs_publish: 'Publish',
     fs_share_link: 'Copy Link',
-    fs_recording_ready: 'Recording complete — Listen to your take',
+    fs_recording_ready: 'Recording complete â€” Listen to your take',
     fs_listen_recording: 'Listen to recording',
     fs_discard_recording: 'Delete',
     fs_listen_mix: 'Listen to mix',
     fs_play_mode_mix: 'Studio Mix',
     fs_play_mode_vocal: 'Vocals only',
-    fs_monitoring_active: '🎧 Monitoring active — Beat + Vocals',
+    fs_monitoring_active: 'ðŸŽ§ Monitoring active â€” Beat + Vocals',
     fs_monitoring_label: 'Studio Monitoring',
-    fs_studio_rec_started: '🎧 Studio live — rap over the beat',
-    fs_mix_ready: '✅ Studio mix ready — listen beat + vocals',
-    fs_mix_playback_hint: 'Studio mix — beat and vocals synced',
+    fs_studio_rec_started: 'ðŸŽ§ Studio live â€” rap over the beat',
+    fs_mix_ready: 'âœ… Studio mix ready â€” listen beat + vocals',
+    fs_mix_playback_hint: 'Studio mix â€” beat and vocals synced',
     fs_vocal_playback_hint: 'Listen to your vocals only',
     dyn_recording_processing: 'Processing recording...',
-    dyn_recording_failed: '❌ Recording failed',
+    dyn_recording_failed: 'âŒ Recording failed',
     dyn_no_active_recording: 'No active recording',
     dyn_recording_discarded: 'Recording deleted',
-    dyn_playback_failed: '⚠ Use the audio player to listen',
+    dyn_playback_failed: 'âš  Use the audio player to listen',
     studio_mic_error: 'Unable to access the microphone',
     studio_spectral_analyzer: 'Spectral Analyzer',
     studio_export_title: 'Export & Share',
-    studio_recording_started: '🔴 Synchronized recording started',
-    studio_recording_stopped_toast: '⏹️ Recording stopped. Ready to listen.',
+    studio_recording_started: 'ðŸ”´ Synchronized recording started',
+    studio_recording_stopped_toast: 'â¹ï¸ Recording stopped. Ready to listen.',
     studio_loading: 'Studio is loading...',
     studio_error_init: 'Error initializing the studio',
     studio_select_beat_first: 'Select a beat before recording',
-    studio_mic_denied: 'Mic denied — allow access in browser settings',
+    studio_mic_denied: 'Mic denied â€” allow access in browser settings',
     studio_mic_not_found: 'No microphone detected on this device',
-    studio_mic_unsupported: 'Recording not supported — use an up-to-date Safari or Chrome',
-    studio_beat_not_found: '❌ Beat not found. Check your connection or choose another beat.',
-    studio_beat_selected: '✅ Beat selected: %s',
-    studio_recording_started: '🔴 Synchronized recording started',
-    studio_recording_stopped_toast: '⏹️ Recording stopped. Ready to listen.',
+    studio_mic_unsupported: 'Recording not supported â€” use an up-to-date Safari or Chrome',
+    studio_beat_not_found: 'âŒ Beat not found. Check your connection or choose another beat.',
+    studio_beat_selected: 'âœ… Beat selected: %s',
+    studio_recording_started: 'ðŸ”´ Synchronized recording started',
+    studio_recording_stopped_toast: 'â¹ï¸ Recording stopped. Ready to listen.',
     // Community
     comm_chip: 'Community',
     // Error messages
@@ -5512,7 +4842,7 @@ const translations = {
     pay_card_name: 'Credit Card',
     pay_paypal_sub: 'Secure payment',
     pay_loading_paypal: 'Loading PayPal...',
-    pay_paypal_note: 'Secured by PayPal · Visa, Mastercard, PayPal account accepted.',
+    pay_paypal_note: 'Secured by PayPal Â· Visa, Mastercard, PayPal account accepted.',
     payModalTitle: 'Choose a payment method',
     // Featured (dynamic)
     feat_listen: 'Listen',
@@ -5554,10 +4884,10 @@ const translations = {
     contact_email_ph: 'your@email.com',
     // Studio labels
     studio_title: 'VIRTUAL STUDIO',
-    studio_subtitle: 'PRODUCTION · MIX · MASTER · HD EXPORT',
+    studio_subtitle: 'PRODUCTION Â· MIX Â· MASTER Â· HD EXPORT',
     studio_ready: 'READY',
     studio_close: 'Close',
-    studio_waveform: 'Waveform — Your voice',
+    studio_waveform: 'Waveform â€” Your voice',
     studio_eq: 'Equalizer (EQ)',
     studio_compressor: 'Compressor',
     studio_reverb: 'Reverb',
@@ -5565,22 +4895,22 @@ const translations = {
     studio_presets: 'Voice Presets',
     studio_open_btn: 'Open Studio',
     export_login_required: 'Please sign in first',
-    export_no_recording: '❌ No recording to export',
-    export_preparing: '⏳ Preparing export...',
-    export_success: '✅ Freestyle exported successfully',
-    export_error: '❌ Export error',
-    publish_preparing: '⏳ Publishing...',
-    publish_success: '✅ Freestyle published on your profile',
-    publish_error: '❌ Publishing error',
-    share_link_copied: '✅ Link copied',
-    publish_upload_error: '❌ Upload error',
+    export_no_recording: 'âŒ No recording to export',
+    export_preparing: 'â³ Preparing export...',
+    export_success: 'âœ… Freestyle exported successfully',
+    export_error: 'âŒ Export error',
+    publish_preparing: 'â³ Publishing...',
+    publish_success: 'âœ… Freestyle published on your profile',
+    publish_error: 'âŒ Publishing error',
+    share_link_copied: 'âœ… Link copied',
+    publish_upload_error: 'âŒ Upload error',
   }
 };
  
-// ─── Current language state ───
+// â”€â”€â”€ Current language state â”€â”€â”€
 let currentLang = localStorage.getItem('jsb_lang') || 'fr';
  
-// ─── Get translation ───
+// â”€â”€â”€ Get translation â”€â”€â”€
 function t(key, ...args) {
   currentLang = localStorage.getItem('jsb_lang') || currentLang || 'fr';
   if (!['fr', 'en'].includes(currentLang)) currentLang = 'fr';
@@ -5590,7 +4920,7 @@ function t(key, ...args) {
   return str;
 }
  
-// ─── Apply translations to all data-i18n elements ───
+// â”€â”€â”€ Apply translations to all data-i18n elements â”€â”€â”€
 function applyTranslations() {
   currentLang = localStorage.getItem('jsb_lang') || currentLang || 'fr';
   if (!['fr', 'en'].includes(currentLang)) currentLang = 'fr';
@@ -5609,17 +4939,9 @@ function applyTranslations() {
   // Scan attributes on all elements and apply translations for any attribute that starts with 'data-i18n-'
   document.querySelectorAll('*').forEach(el => {
     Array.from(el.attributes).forEach(attr => {
-      if (!attr.name.startsWith('data-i18n-') || attr.name === 'data-i18n' || attr.name === 'data-i18n-ph') return;
-      const key = attr.value;
-      if (!key) return;
-      if (attr.name === 'data-i18n-title') {
-        el.title = t(key);
-      } else if (attr.name === 'data-i18n-alt') {
-        el.alt = t(key);
-      } else if (attr.name === 'data-i18n-value') {
-        el.value = t(key);
-      } else {
-        el.textContent = t(key);
+      if (attr.name.startsWith('data-i18n-') && attr.name !== 'data-i18n' && attr.name !== 'data-i18n-ph') {
+        const key = attr.value;
+        if (key) el.textContent = t(key);
       }
     });
   });
@@ -5629,16 +4951,14 @@ function applyTranslations() {
   const flag = document.getElementById('langFlag');
   const label = document.getElementById('langLabel');
   if (flag && label) {
-    if (currentLang === 'fr') { flag.textContent = '🇬🇧'; label.textContent = 'EN'; }
-    else { flag.textContent = '🇫🇷'; label.textContent = 'FR'; }
+    if (currentLang === 'fr') { flag.textContent = 'ðŸ‡¬ðŸ‡§'; label.textContent = 'EN'; }
+    else { flag.textContent = 'ðŸ‡«ðŸ‡·'; label.textContent = 'FR'; }
   }
-  const accountBtn = document.getElementById('accountBtn');
-  if (accountBtn) accountBtn.title = t('nav_account');
   // Update dynamic UI strings that are rendered via JS
   updateDynamicStrings();
 }
  
-// ─── Update strings that are rendered in JS ───
+// â”€â”€â”€ Update strings that are rendered in JS â”€â”€â”€
 function updateDynamicStrings() {
   // Cart empty state
   const ci = document.getElementById('cartItems');
@@ -5723,7 +5043,7 @@ function updateFreestylePageStrings() {
   }
 }
  
-// ─── Toggle language ───
+// â”€â”€â”€ Toggle language â”€â”€â”€
 function toggleLang() {
   currentLang = currentLang === 'fr' ? 'en' : 'fr';
   localStorage.setItem('jsb_lang', currentLang);
@@ -5733,18 +5053,18 @@ function toggleLang() {
   renderCartItems();
 }
  
-// ─── Override showToast to use translations where applicable ───
+// â”€â”€â”€ Override showToast to use translations where applicable â”€â”€â”€
 const _origShowToast = showToast;
  
-// ─── Patch dynamic JS strings to use t() ───
+// â”€â”€â”€ Patch dynamic JS strings to use t() â”€â”€â”€
 // These patches ensure runtime messages also switch language
 function patchDynamicStrings() {
   // Override filterBeats empty state rendering
   const origRenderBeatsGrid = renderBeatsGrid;
-  // Already defined above; we patch the no-beats message via renderAll → renderBeatsGrid
+  // Already defined above; we patch the no-beats message via renderAll â†’ renderBeatsGrid
 }
  
-// ─── Override renderCartItems for translated empty cart ───
+// â”€â”€â”€ Override renderCartItems for translated empty cart â”€â”€â”€
 const _origRenderCartItems = renderCartItems;
 function renderCartItems() {
   const ci = document.getElementById('cartItems');
@@ -5761,12 +5081,12 @@ function renderCartItems() {
       <img src="${c.cover || 'image_beat.jpeg'}" alt="${c.title}" onerror="this.src='image_beat.jpeg'">
       <div class="cart-item-inf">
         <div class="cart-item-nm">${c.title}</div>
-        <div class="cart-item-pr">$${c.price} · ${c.license} · ${formatUsdAsCurrency(c.price, 'XOF')}</div>
+        <div class="cart-item-pr">$${c.price} Â· ${c.license} Â· ${formatUsdAsCurrency(c.price, 'XOF')}</div>
       </div>
       <button class="cart-rm" data-cart-id="${String(c.id).replace(/"/g, '&quot;')}"><i class="fas fa-times"></i></button>
     </div>`).join('');
   const total = cartTotalUsd();
-  document.getElementById('cartTotVal').textContent = '$' + total + ' · ' + formatUsdAsCurrency(total, 'XOF');
+  document.getElementById('cartTotVal').textContent = '$' + total + ' Â· ' + formatUsdAsCurrency(total, 'XOF');
 }
  
 // Apply translations on load
@@ -5774,8 +5094,6 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTranslations();
   initBeatUploadZones();
   initCurrencyRateUpdater();
-  setupFsImportInput('fsImportInput');
-  if (document.getElementById('recordingsList')) renderRecordingsList();
 });
 // Also apply after a short delay to catch late-rendered elements
 setTimeout(applyTranslations, 300);
@@ -5792,9 +5110,9 @@ document.addEventListener('click', (event) => {
   removeFromCart(itemId);
 });
 
-// ═══════════════════════════════════════════════════════
-// ═══  STUDIO VIRTUEL — Moteur Audio Web API          ═══
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•  STUDIO VIRTUEL â€” Moteur Audio Web API          â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let studioCtx = null;
 let studioVoiceBuffer = null;
@@ -5818,7 +5136,7 @@ function openStudio() {
   panel.scrollIntoView({behavior:'smooth', block:'start'});
   initStudioContext();
   drawStudioWaveform();
-  setStudioStatus(currentLang==='en'?'READY':'PRÊT', '#4ade80');
+  setStudioStatus(currentLang==='en'?'READY':'PRÃŠT', '#4ade80');
 }
 
 function closeStudio() {
@@ -5838,7 +5156,7 @@ function initStudioContext() {
   studioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-// ─── Dessiner la waveform de l'enregistrement ───
+// â”€â”€â”€ Dessiner la waveform de l'enregistrement â”€â”€â”€
 function drawStudioWaveform() {
   const canvas = document.getElementById('studioWaveform');
   if (!canvas) return;
@@ -5851,7 +5169,7 @@ function drawStudioWaveform() {
   ctx.clearRect(0, 0, W, H);
 
   if (!fsRecordings.length) {
-    // Waveform décorative si pas d'enregistrement
+    // Waveform dÃ©corative si pas d'enregistrement
     ctx.strokeStyle = 'rgba(5,150,105,0.3)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -5863,11 +5181,11 @@ function drawStudioWaveform() {
     ctx.fillStyle = 'rgba(167,139,250,0.3)';
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(currentLang==='en'?'— Record a freestyle to see the waveform —':'— Enregistre ton freestyle pour voir la waveform —', W/2, H/2+4);
+    ctx.fillText(currentLang==='en'?'â€” Record a freestyle to see the waveform â€”':'â€” Enregistre ton freestyle pour voir la waveform â€”', W/2, H/2+4);
     return;
   }
 
-  // Décoder et dessiner le vrai signal audio
+  // DÃ©coder et dessiner le vrai signal audio
   fetch(fsRecordings[0].url)
     .then(r => r.arrayBuffer())
     .then(buf => {
@@ -5900,8 +5218,8 @@ function drawStudioWaveform() {
     }).catch(() => {});
 }
 
-// ─── Construire la chaîne audio du studio ───
-// ─── Decode voice depuis le Blob stocké en mémoire (zéro CORS) ───
+// â”€â”€â”€ Construire la chaÃ®ne audio du studio â”€â”€â”€
+// â”€â”€â”€ Decode voice depuis le Blob stockÃ© en mÃ©moire (zÃ©ro CORS) â”€â”€â”€
 async function decodeVoiceFromBlob() {
   if (!studioCtx) initStudioContext();
   if (studioCtx.state === 'suspended') await studioCtx.resume();
@@ -5909,25 +5227,25 @@ async function decodeVoiceFromBlob() {
 
   const rec = fsRecordings[0];
 
-  // Méthode 1 : Blob directement en mémoire (le plus fiable)
+  // MÃ©thode 1 : Blob directement en mÃ©moire (le plus fiable)
   if (rec.blob instanceof Blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = e => {
-        studioCtx.decodeAudioData(e.target.result.slice(0), buf => resolve(buf), err => reject(new Error(currentLang==='en'?'Audio decode failed':'Décodage audio échoué')));
+        studioCtx.decodeAudioData(e.target.result.slice(0), buf => resolve(buf), err => reject(new Error(currentLang==='en'?'Audio decode failed':'DÃ©codage audio Ã©chouÃ©')));
       };
       reader.onerror = () => reject(new Error(currentLang==='en'?'Cannot read Blob':'Lecture Blob impossible'));
       reader.readAsArrayBuffer(rec.blob);
     });
   }
 
-  // Méthode 2 : fallback XHR sur blob URL
+  // MÃ©thode 2 : fallback XHR sur blob URL
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', rec.url, true);
     xhr.responseType = 'arraybuffer';
     xhr.onload = () => {
-      studioCtx.decodeAudioData(xhr.response.slice(0), buf => resolve(buf), () => reject(new Error(currentLang==='en'?'Decode failed':'Décodage échoué')));
+      studioCtx.decodeAudioData(xhr.response.slice(0), buf => resolve(buf), () => reject(new Error(currentLang==='en'?'Decode failed':'DÃ©codage Ã©chouÃ©')));
     };
     xhr.onerror = () => reject(new Error(currentLang === 'en' ? 'Cannot read audio blob' : 'Impossible de lire le blob audio'));
     xhr.send();
@@ -5938,28 +5256,26 @@ async function buildStudioChain() {
   if (!studioCtx) initStudioContext();
   if (studioCtx.state === 'suspended') await studioCtx.resume();
 
-  // ─ Decode voix depuis blob local (sans fetch, pas de CORS) ─
+  // â”€ Decode voix depuis blob local (sans fetch, pas de CORS) â”€
   studioVoiceBuffer = await decodeVoiceFromBlob();
 
-  // ─ Beat : on utilise l'élément Audio existant (fsAudio) via MediaElementSource
-  //   car l'URL Firebase peut bloquer fetch(). On ne décode pas le beat en buffer.
+  // â”€ Beat : on utilise l'Ã©lÃ©ment Audio existant (fsAudio) via MediaElementSource
+  //   car l'URL Firebase peut bloquer fetch(). On ne dÃ©code pas le beat en buffer.
   studioGainVoice = studioCtx.createGain();
-  const vocalVolElem = document.getElementById('vocalVolSlider');
-  studioGainVoice.gain.value = (vocalVolElem ? parseFloat(vocalVolElem.value) : 80) / 100;
+  studioGainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 
   studioGainBeat = studioCtx.createGain();
-  const beatVolElem = document.getElementById('beatVolSlider');
-  studioGainBeat.gain.value = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
+  studioGainBeat.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
 
-  // ─ Compresseur ─
+  // â”€ Compresseur â”€
   studioCompressor = studioCtx.createDynamicsCompressor();
-  studioCompressor.threshold.value = -50;
-  studioCompressor.ratio.value = 12;
-  studioCompressor.attack.value = 0.003;
-  studioCompressor.release.value = 0.25;
+  studioCompressor.threshold.value = parseFloat(document.getElementById('compThreshold').value);
+  studioCompressor.ratio.value = parseFloat(document.getElementById('compRatio').value);
+  studioCompressor.attack.value = parseFloat(document.getElementById('compAttack').value) / 1000;
+  studioCompressor.release.value = parseFloat(document.getElementById('compRelease').value) / 1000;
   studioCompressor.knee.value = 10;
 
-  // ─ EQ (BiquadFilters) sur la voix ─
+  // â”€ EQ (BiquadFilters) sur la voix â”€
   const eqFreqs = { eq60: 60, eq250: 250, eq1k: 1000, eq4k: 4000, eq12k: 12000 };
   const eqTypes = { eq60: 'lowshelf', eq250: 'peaking', eq1k: 'peaking', eq4k: 'peaking', eq12k: 'highshelf' };
   let prevNode = studioGainVoice;
@@ -5967,7 +5283,6 @@ async function buildStudioChain() {
   for (const [id, freq] of Object.entries(eqFreqs)) {
     const filter = studioCtx.createBiquadFilter();
     filter.type = eqTypes[id];
-    filter.gain.value = 0;
     filter.frequency.value = freq;
     filter.Q.value = 1.4;
     filter.gain.value = parseFloat(document.getElementById(id).value);
@@ -5976,7 +5291,7 @@ async function buildStudioChain() {
     prevNode = filter;
   }
 
-  // ─ Reverb (FeedbackDelay) ─
+  // â”€ Reverb (FeedbackDelay) â”€
   const reverbSize = parseFloat(document.getElementById('reverbSize').value) / 100;
   const reverbWet = parseFloat(document.getElementById('reverbWet').value) / 100;
   const preDelay = parseFloat(document.getElementById('reverbDelay').value) / 1000;
@@ -5998,7 +5313,7 @@ async function buildStudioChain() {
   reverbFeedback.connect(reverbDelay);
   reverbFilter.connect(studioReverbGain);
 
-  // ─ Merger final ─
+  // â”€ Merger final â”€
   const merger = studioCtx.createGain();
   merger.gain.value = 1.0;
   studioDryGain.connect(studioCompressor);
@@ -6010,11 +5325,11 @@ async function buildStudioChain() {
   return merger;
 }
 
-// ─── Play Mix Traité ───
+// â”€â”€â”€ Play Mix TraitÃ© â”€â”€â”€
 let studioBeatMediaSource = null; // MediaElementSource pour le beat
 
 async function studioPlayMix() {
-  if (!fsRecordings.length) { showToast(currentLang==='en'?'⚠ Record a freestyle first!':'⚠ Enregistre d\'abord un freestyle !'); return; }
+  if (!fsRecordings.length) { showToast(currentLang==='en'?'âš  Record a freestyle first!':'âš  Enregistre d\'abord un freestyle !'); return; }
   if (studioPlaying) { studioStopMix(); return; }
 
   setStudioStatus(currentLang==='en'?'LOADING...':'CHARGEMENT...', '#f59e0b');
@@ -6026,9 +5341,9 @@ async function studioPlayMix() {
     studioVoiceBuffer = null;
 
     await buildStudioChain();
-    if (!studioVoiceBuffer) throw new Error(currentLang==='en'?'Cannot decode voice audio':'Impossible de décoder la voix');
+    if (!studioVoiceBuffer) throw new Error(currentLang==='en'?'Cannot decode voice audio':'Impossible de dÃ©coder la voix');
 
-    // ─ Source voix (BufferSource depuis blob local) ─
+    // â”€ Source voix (BufferSource depuis blob local) â”€
     studioSourceVoice = studioCtx.createBufferSource();
     studioSourceVoice.buffer = studioVoiceBuffer;
     const pitchSemitones = parseFloat(document.getElementById('pitchShift').value);
@@ -6036,11 +5351,11 @@ async function studioPlayMix() {
     studioSourceVoice.connect(studioGainVoice);
     studioSourceVoice.onended = () => { if (studioPlaying) studioStopMix(); };
 
-    // ─ Source beat via MediaElementSource (évite le CORS) ─
+    // â”€ Source beat via MediaElementSource (Ã©vite le CORS) â”€
     const studioAudioSource = resolveBeatAudioSource(fsSelectedBeat);
     if (fsSelectedBeat && studioAudioSource && fsAudio.src) {
       try {
-        // Réutiliser ou créer le MediaElementSource
+        // RÃ©utiliser ou crÃ©er le MediaElementSource
         if (!studioBeatMediaSource) {
           studioBeatMediaSource = studioCtx.createMediaElementSource(fsAudio);
         }
@@ -6048,18 +5363,17 @@ async function studioPlayMix() {
         fsAudio.currentTime = 0;
         fsAudio.loop = false;
       } catch(e) {
-        // Si déjà connecté ou autre erreur, on joue le beat normalement en parallèle
+        // Si dÃ©jÃ  connectÃ© ou autre erreur, on joue le beat normalement en parallÃ¨le
         console.warn('MediaElementSource beat:', e.message);
         fsAudio.currentTime = 0;
-        const beatVolElem = document.getElementById('beatVolSlider');
-        fsAudio.volume = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
+        fsAudio.volume = parseFloat(document.getElementById('beatVolStudio').value) / 100;
         fsAudio.play().catch(() => {});
       }
     }
 
     const startAt = studioCtx.currentTime + 0.1;
     studioSourceVoice.start(startAt);
-    // Lancer le beat en parallèle si MediaElementSource connecté
+    // Lancer le beat en parallÃ¨le si MediaElementSource connectÃ©
     if (studioBeatMediaSource && fsSelectedBeat) {
       setTimeout(() => { fsAudio.play().catch(() => {}); }, 100);
     }
@@ -6083,7 +5397,7 @@ async function studioPlayMix() {
 
   } catch(e) {
     console.error('Studio play error:', e);
-    showToast((currentLang==='en'?'❌ Studio error: ':'❌ Erreur studio : ') + e.message);
+    showToast((currentLang==='en'?'âŒ Studio error: ':'âŒ Erreur studio : ') + e.message);
     setStudioStatus(currentLang==='en'?'ERROR':'ERREUR', '#ef4444');
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-play" id="studioPlayIcon"></i> <span data-i18n="studio_play_mix">' + t('studio_play_mix') + '</span>'; }
   }
@@ -6100,10 +5414,10 @@ function studioStopMix(silent = false) {
   if (bar) bar.style.width = '0%';
   const btn = document.getElementById('studioPlayBtn');
   if (btn) btn.innerHTML = '<i class="fas fa-play" id="studioPlayIcon"></i> <span data-i18n="studio_play_mix">' + t('studio_play_mix') + '</span>';
-  if (!silent) setStudioStatus(currentLang==='en'?'STOPPED':'ARRÊTÉ', '#94a3b8');
+  if (!silent) setStudioStatus(currentLang==='en'?'STOPPED':'ARRÃŠTÃ‰', '#94a3b8');
 }
 
-// ─── Update EQ en temps réel ───
+// â”€â”€â”€ Update EQ en temps rÃ©el â”€â”€â”€
 function updateEQ() {
   const eqFreqs = { eq60: 60, eq250: 250, eq1k: 1000, eq4k: 4000, eq12k: 12000 };
   for (const id of Object.keys(eqFreqs)) {
@@ -6139,20 +5453,14 @@ function updatePitch() {
 }
 
 function updateVocalGain() {
-  if (studioGainVoice) {
-    const vocalVolElem = document.getElementById('vocalVolSlider');
-    studioGainVoice.gain.value = (vocalVolElem ? parseFloat(vocalVolElem.value) : 80) / 100;
-  }
+  if (studioGainVoice) studioGainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 }
 
 function updateBeatVolStudio() {
-  if (studioGainBeat) {
-    const beatVolElem = document.getElementById('beatVolSlider');
-    studioGainBeat.gain.value = (beatVolElem ? parseFloat(beatVolElem.value) : 70) / 100;
-  }
+  if (studioGainBeat) studioGainBeat.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
 }
 
-// ─── Presets ───
+// â”€â”€â”€ Presets â”€â”€â”€
 const studioPresets = {
   clean: { eq60:0, eq250:0, eq1k:0, eq4k:0, eq12k:2, compThreshold:-18, compRatio:3, compAttack:30, compRelease:200, reverbSize:20, reverbWet:10, reverbDelay:15, pitchShift:0 },
   rap:   { eq60:4, eq250:-2, eq1k:2, eq4k:3, eq12k:4, compThreshold:-24, compRatio:6, compAttack:10, compRelease:150, reverbSize:15, reverbWet:8,  reverbDelay:10, pitchShift:0 },
@@ -6162,15 +5470,15 @@ const studioPresets = {
   raw:   { eq60:-2, eq250:3, eq1k:0,  eq4k:-2, eq12k:-3, compThreshold:-30, compRatio:2, compAttack:100, compRelease:500, reverbSize:60, reverbWet:40, reverbDelay:50, pitchShift:0 }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// INITIALIZATION SCRIPT — Démarrage du site
-// ═══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// INITIALIZATION SCRIPT â€” DÃ©marrage du site
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 async function initializeApp() {
   console.log('Initializing Je Suis Beatz...');
   
   try {
-    // 1. Attendre que Firebase soit initialisé
+    // 1. Attendre que Firebase soit initialisÃ©
     if (typeof firebase === 'undefined' || !window.db) {
       console.warn('Waiting for Firebase to initialize...');
       return setTimeout(initializeApp, 500);
@@ -6197,14 +5505,14 @@ async function initializeApp() {
       }
     });
 
-    // 2.1. Vérifier si l'utilisateur revient d'un lien de vérification email Firebase
+    // 2.1. VÃ©rifier si l'utilisateur revient d'un lien de vÃ©rification email Firebase
     handleEmailVerificationReturn();
 
     // 2.2. Attendre que Firebase Auth termine la restauration de session
     try {
       await waitForAuthUser(1200);
     } catch (e) {
-      // Pas de session active dans le timeout, continuer quand même.
+      // Pas de session active dans le timeout, continuer quand mÃªme.
     }
     
     // 3. Charger les beats depuis Firestore
@@ -6215,7 +5523,7 @@ async function initializeApp() {
     console.log('Initializing currency rates...');
     initCurrencyRateUpdater();
     
-    // 5. Afficher la page demandée via hash ou route
+    // 5. Afficher la page demandÃ©e via hash ou route
     console.log('Showing initial route...');
     const initialPage = getPageFromLocation();
     showPage(initialPage);
@@ -6233,20 +5541,20 @@ async function initializeApp() {
       applyTranslations();
     }, 300);
     
-    console.log('Je Suis Beatz initialized successfully! ✓');
+    console.log('Je Suis Beatz initialized successfully! âœ“');
     
   } catch (error) {
     console.error('Error during initialization:', error);
     // Afficher un message d'erreur
-    showToast('⚠ Erreur d\'initialisation');
+    showToast('âš  Erreur d\'initialisation');
   }
 }
 
-// Lancer l'initialisation quand le DOM est prêt
+// Lancer l'initialisation quand le DOM est prÃªt
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  // DOM est déjà prêt
+  // DOM est dÃ©jÃ  prÃªt
   initializeApp();
 }
 
@@ -6263,16 +5571,16 @@ function handleEmailVerificationReturn() {
       const nextPage = localStorage.getItem('jsb_last_page_before_login') || 'home';
       localStorage.removeItem('jsb_last_page_before_login');
       showToast(currentLang === 'en'
-        ? '✅ Email verified! Redirecting...'
-        : '✅ Email vérifié ! Redirection en cours...'
+        ? 'âœ… Email verified! Redirecting...'
+        : 'âœ… Email vÃ©rifiÃ© ! Redirection en cours...'
       );
       window.history.replaceState({}, document.title, window.location.pathname);
       showPage(nextPage);
     }).catch((error) => {
       console.warn('Email verification failed:', error);
       showToast(currentLang === 'en'
-        ? '⚠ Verification failed. Please try again.'
-        : '⚠ Échec de la vérification. Réessayez.'
+        ? 'âš  Verification failed. Please try again.'
+        : 'âš  Ã‰chec de la vÃ©rification. RÃ©essayez.'
       );
       window.history.replaceState({}, document.title, window.location.pathname);
     });
@@ -6340,10 +5648,6 @@ async function renderAccountDashboard() {
 
   if (userData.username && nameInput) nameInput.value = sanitize(userData.username);
   const previewUrl = (userData.photoURL || currentUser.photoURL) || '';
-  if (previewUrl) {
-    currentUser.photoURL = previewUrl;
-    sessionStorage.setItem('jsb_user2', JSON.stringify(currentUser));
-  }
   if (photoPreview) updateAccountPhotoPreview(previewUrl);
 
   const orders = [];
@@ -6367,36 +5671,30 @@ async function renderAccountDashboard() {
     return `<div class="account-placeholder">${sanitize(text)}</div>`;
   }
 
-  const dateLocale = currentLang === 'en' ? 'en-US' : 'fr-FR';
-  const orderLabel = t('account_order');
-  const paymentLabel = t('account_payment_method');
-  const totalLabel = t('account_total');
-  const favoriteLabel = t('account_favorite');
-
   if (purchasesEl) {
     purchasesEl.innerHTML = sortedOrders.length ? sortedOrders.map(order => {
       const createdAt = order.createdAt && order.createdAt.toDate ? order.createdAt.toDate() : new Date();
       const subtotal = Array.isArray(order.cartItems) ? order.cartItems.reduce((sum, item) => sum + Number(item.price || 0), 0) : Number(order.total || order.totalUSD || 0);
       const itemsHtml = Array.isArray(order.cartItems) ? order.cartItems.map(item => `
         <div class="account-subitem">
-          <div class="account-subitem-title">${sanitize(item.title)} · ${sanitize(item.license || t('account_license'))}</div>
-          <div class="account-subitem-meta">${sanitize(item.price ? '$' + item.price : '—')}</div>
+          <div class="account-subitem-title">${sanitize(item.title)} Â· ${sanitize(item.license || 'Licence')}</div>
+          <div class="account-subitem-meta">${sanitize(item.price ? '$' + item.price : 'â€”')}</div>
         </div>`).join('') : '';
       return `
         <div class="account-card">
           <div class="account-item-row">
             <div>
-              <div class="account-item-title">${sanitize(orderLabel)} ${sanitize(order.orderId || order.id)}</div>
-              <div class="account-item-meta">${sanitize(createdAt.toLocaleDateString(dateLocale))} · ${sanitize(order.paymentMethod || '')}</div>
+              <div class="account-item-title">Commande ${sanitize(order.orderId || order.id)}</div>
+              <div class="account-item-meta">${sanitize(createdAt.toLocaleDateString('fr-FR'))} Â· ${sanitize(order.paymentMethod || '')}</div>
             </div>
-            <span class="account-badge">${sanitize(order.status || t('account_status'))}</span>
+            <span class="account-badge">${sanitize(order.status || 'En attente')}</span>
           </div>
           ${itemsHtml}
           <div class="account-item-row" style="margin-top:12px;justify-content:flex-end;">
-            <strong>${sanitize(totalLabel)} : $${subtotal.toFixed(2)}</strong>
+            <strong>Total : $${subtotal.toFixed(2)}</strong>
           </div>
         </div>`;
-    }).join('') : emptyPlaceholder(t('account_no_purchases'));
+    }).join('') : emptyPlaceholder('Aucun achat trouvÃ© pour le moment.');
   }
 
   const licenseItems = [];
@@ -6418,12 +5716,12 @@ async function renderAccountDashboard() {
         <div class="account-item-row">
           <div>
             <div class="account-item-title">${sanitize(item.title)}</div>
-            <div class="account-item-meta">${sanitize(item.license || t('account_license'))} · ${sanitize(orderLabel)} ${sanitize(item.orderId)}</div>
+            <div class="account-item-meta">${sanitize(item.license || 'Licence')} Â· Commande ${sanitize(item.orderId)}</div>
           </div>
-          <span class="account-badge">${sanitize(item.date.toLocaleDateString(dateLocale))}</span>
+          <span class="account-badge">${sanitize(item.date.toLocaleDateString('fr-FR'))}</span>
         </div>
-        <div class="account-item-meta">${sanitize(totalLabel)} : $${Number(item.price || 0).toFixed(2)}</div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_licenses'));
+        <div class="account-item-meta">Prix : $${Number(item.price || 0).toFixed(2)}</div>
+      </div>`).join('') : emptyPlaceholder('Aucune licence trouvÃ©e.');
   }
 
   if (favoritesEl) {
@@ -6431,37 +5729,37 @@ async function renderAccountDashboard() {
       <div class="account-card">
         <div class="account-item-row">
           <div>
-            <div class="account-item-title">${sanitize(beat.title || beat.name || t('account_beat'))}</div>
-            <div class="account-item-meta">${sanitize(beat.genre || t('account_unknown_genre'))}</div>
+            <div class="account-item-title">${sanitize(beat.title || beat.name || 'Beat')}</div>
+            <div class="account-item-meta">${sanitize(beat.genre || 'Genre inconnu')}</div>
           </div>
-          <span class="account-badge">${sanitize(favoriteLabel)}</span>
+          <span class="account-badge">Favori</span>
         </div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_favorites'));
+      </div>`).join('') : emptyPlaceholder('Aucun favori enregistrÃ©. Ajoutez des beats aux favoris pour les retrouver ici.');
   }
 
   if (billingEl) {
     const totalSpent = licenseItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
     const summaryHtml = totalSpent ? `
       <div class="account-card">
-        <div class="account-item-title">${sanitize(t('account_total_spent'))}</div>
+        <div class="account-item-title">DÃ©penses totales</div>
         <div class="account-item-meta">$${totalSpent.toFixed(2)}</div>
       </div>` : '';
     billingEl.innerHTML = summaryHtml + (sortedOrders.length ? sortedOrders.map(order => `
       <div class="account-card">
         <div class="account-item-row">
           <div>
-            <div class="account-item-title">${sanitize(orderLabel)} ${sanitize(order.orderId || order.id)}</div>
-            <div class="account-item-meta">${sanitize(order.paymentMethod || t('account_payment_method'))}</div>
+            <div class="account-item-title">Commande ${sanitize(order.orderId || order.id)}</div>
+            <div class="account-item-meta">${sanitize(order.paymentMethod || 'Paiement')}</div>
           </div>
-          <span class="account-badge">${sanitize(order.status || t('account_status'))}</span>
+          <span class="account-badge">${sanitize(order.status || 'pending')}</span>
         </div>
-        <div class="account-item-meta">${sanitize(order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleDateString(dateLocale) : '')}</div>
-      </div>`).join('') : emptyPlaceholder(t('account_no_billing')));
+        <div class="account-item-meta">${sanitize(order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleDateString('fr-FR') : '')}</div>
+      </div>`).join('') : emptyPlaceholder('Aucun historique de facturation disponible.'));
   }
 }
 
 async function saveAccountProfile() {
-  if (!currentUser) return showToast('⚠ Connectez-vous d\'abord.');
+  if (!currentUser) return showToast('âš  Connectez-vous d\'abord.');
   const name = document.getElementById('accountName')?.value.trim() || '';
   const photoFile = document.getElementById('accountPhotoFile')?.files?.[0] || null;
   const msgEl = document.getElementById('accountSettingsMsg');
@@ -6471,12 +5769,6 @@ async function saveAccountProfile() {
   }
   let photoURL = currentUser.photoURL || '';
   try {
-    if (!photoURL) {
-      const existingDoc = await db.collection('users').doc(currentUser.uid).get();
-      if (existingDoc.exists) {
-        photoURL = existingDoc.data()?.photoURL || photoURL;
-      }
-    }
     if (photoFile) {
       const ext = (photoFile.name.split('.').pop() || 'jpg').toLowerCase();
       const safeExt = /^(jpg|jpeg|png|webp|gif)$/i.test(ext) ? ext : 'jpg';
@@ -6493,11 +5785,11 @@ async function saveAccountProfile() {
     if (document.getElementById('accountPhotoFile')) document.getElementById('accountPhotoFile').value = '';
     if (document.getElementById('accountPhotoPreview')) updateAccountPhotoPreview(photoURL || '');
     updateAuth();
-    if (msgEl) msgEl.textContent = t('account_profile_saved');
-    showToast(t('account_profile_saved'));
+    if (msgEl) msgEl.textContent = 'Profil enregistrÃ©.';
+    showToast('âœ“ Profil mis Ã  jour.');
   } catch (e) {
     console.warn('saveAccountProfile failed', e);
-    if (msgEl) msgEl.textContent = t('account_profile_error');
+    if (msgEl) msgEl.textContent = 'Erreur lors de la sauvegarde du profil.';
   }
 }
 
@@ -6506,7 +5798,7 @@ function onAccountPhotoSelected(input) {
   if (!file) return;
   const allowed = /^(image\/jpeg|image\/png|image\/webp|image\/gif)$/i;
   if (!allowed.test(file.type)) {
-    showToast('⚠ Format de photo invalide. Utilisez JPG, PNG, WEBP ou GIF.');
+    showToast('âš  Format de photo invalide. Utilisez JPG, PNG, WEBP ou GIF.');
     input.value = '';
     return;
   }
@@ -6533,27 +5825,27 @@ function updateAccountPhotoPreview(url) {
 }
 
 async function updateAccountPassword() {
-  if (!currentUser) return showToast('⚠ Connectez-vous d\'abord.');
+  if (!currentUser) return showToast('âš  Connectez-vous d\'abord.');
   const currentPwd = document.getElementById('accountCurrentPwd')?.value || '';
   const newPwd = document.getElementById('accountNewPwd')?.value || '';
   const msgEl = document.getElementById('accountSettingsMsg');
   if (newPwd.length < 8) {
-    if (msgEl) msgEl.textContent = 'Le nouveau mot de passe doit contenir au moins 8 caractères.';
+    if (msgEl) msgEl.textContent = 'Le nouveau mot de passe doit contenir au moins 8 caractÃ¨res.';
     return;
   }
   try {
     const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non connecté');
+    if (!user) throw new Error('Utilisateur non connectÃ©');
     const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPwd);
     await user.reauthenticateWithCredential(credential);
     await user.updatePassword(newPwd);
-    if (msgEl) msgEl.textContent = 'Mot de passe mis à jour.';
+    if (msgEl) msgEl.textContent = 'Mot de passe mis Ã  jour.';
     document.getElementById('accountCurrentPwd').value = '';
     document.getElementById('accountNewPwd').value = '';
-    showToast('✓ Mot de passe mis à jour.');
+    showToast('âœ“ Mot de passe mis Ã  jour.');
   } catch (e) {
     console.warn('updateAccountPassword failed', e);
-    if (msgEl) msgEl.textContent = e.code === 'auth/wrong-password' ? 'Mot de passe actuel incorrect.' : 'Impossible de mettre à jour le mot de passe.';
+    if (msgEl) msgEl.textContent = e.code === 'auth/wrong-password' ? 'Mot de passe actuel incorrect.' : 'Impossible de mettre Ã  jour le mot de passe.';
   }
 }
 
@@ -6562,70 +5854,29 @@ function applyPreset(name) {
   if (!p) return;
   // EQ
   ['eq60','eq250','eq1k','eq4k','eq12k'].forEach(id => {
-    const elem = document.getElementById(id);
-    if (elem) elem.value = p[id];
+    document.getElementById(id).value = p[id];
   });
-  try { updateEQ(); } catch(e) {}
+  updateEQ();
   // Compressor
-  const compThreshElem = document.getElementById('compThreshold');
-  if (compThreshElem) {
-    compThreshElem.value = p.compThreshold;
-    const threshVal = document.getElementById('compThreshVal');
-    if (threshVal) threshVal.textContent = p.compThreshold + 'dB';
-  }
-  const compRatioElem = document.getElementById('compRatio');
-  if (compRatioElem) {
-    compRatioElem.value = p.compRatio;
-    const ratioVal = document.getElementById('compRatioVal');
-    if (ratioVal) ratioVal.textContent = p.compRatio + ':1';
-  }
-  const compAttackElem = document.getElementById('compAttack');
-  if (compAttackElem) {
-    compAttackElem.value = p.compAttack;
-    const attackVal = document.getElementById('compAttackVal');
-    if (attackVal) attackVal.textContent = p.compAttack + 'ms';
-  }
-  const compReleaseElem = document.getElementById('compRelease');
-  if (compReleaseElem) {
-    compReleaseElem.value = p.compRelease;
-    const releaseVal = document.getElementById('compReleaseVal');
-    if (releaseVal) releaseVal.textContent = p.compRelease + 'ms';
-  }
+  document.getElementById('compThreshold').value = p.compThreshold; document.getElementById('compThreshVal').textContent = p.compThreshold + 'dB';
+  document.getElementById('compRatio').value = p.compRatio; document.getElementById('compRatioVal').textContent = p.compRatio + ':1';
+  document.getElementById('compAttack').value = p.compAttack; document.getElementById('compAttackVal').textContent = p.compAttack + 'ms';
+  document.getElementById('compRelease').value = p.compRelease; document.getElementById('compReleaseVal').textContent = p.compRelease + 'ms';
   // Reverb
-  const reverbSizeElem = document.getElementById('reverbSize');
-  if (reverbSizeElem) {
-    reverbSizeElem.value = p.reverbSize;
-    const reverbSizeVal = document.getElementById('reverbSizeVal');
-    if (reverbSizeVal) reverbSizeVal.textContent = p.reverbSize + '%';
-  }
-  const reverbWetElem = document.getElementById('reverbWet');
-  if (reverbWetElem) {
-    reverbWetElem.value = p.reverbWet;
-    const reverbWetVal = document.getElementById('reverbWetVal');
-    if (reverbWetVal) reverbWetVal.textContent = p.reverbWet + '%';
-  }
-  const reverbDelayElem = document.getElementById('reverbDelay');
-  if (reverbDelayElem) {
-    reverbDelayElem.value = p.reverbDelay;
-    const reverbDelayVal = document.getElementById('reverbDelayVal');
-    if (reverbDelayVal) reverbDelayVal.textContent = p.reverbDelay + 'ms';
-  }
+  document.getElementById('reverbSize').value = p.reverbSize; document.getElementById('reverbSizeVal').textContent = p.reverbSize + '%';
+  document.getElementById('reverbWet').value = p.reverbWet; document.getElementById('reverbWetVal').textContent = p.reverbWet + '%';
+  document.getElementById('reverbDelay').value = p.reverbDelay; document.getElementById('reverbDelayVal').textContent = p.reverbDelay + 'ms';
   // Pitch
-  const pitchShiftElem = document.getElementById('pitchShift');
-  if (pitchShiftElem) {
-    pitchShiftElem.value = p.pitchShift;
-    const pitchVal = document.getElementById('pitchVal');
-    if (pitchVal) pitchVal.textContent = (p.pitchShift > 0 ? '+' : '') + p.pitchShift + ' st';
-  }
-  try { updateCompressor(); } catch(e) {}
+  document.getElementById('pitchShift').value = p.pitchShift; document.getElementById('pitchVal').textContent = (p.pitchShift > 0 ? '+' : '') + p.pitchShift + ' st';
+  updateCompressor();
   document.querySelectorAll('.studio-preset-btn').forEach(b => b.classList.remove('active'));
   event && event.target && event.target.classList.add('active');
-  showToast((currentLang==='en'?'✓ Preset ':'✓ Preset ') + name.toUpperCase() + (currentLang==='en'?' applied!':' appliqué !'));
+  showToast((currentLang==='en'?'âœ“ Preset ':'âœ“ Preset ') + name.toUpperCase() + (currentLang==='en'?' applied!':' appliquÃ© !'));
 }
 
-// ─── Export Studio Haute Qualité ───
+// â”€â”€â”€ Export Studio Haute QualitÃ© â”€â”€â”€
 async function exportStudio() {
-  if (!fsRecordings.length) { showToast(currentLang==='en'?'⚠ No recording to export!':'⚠ Aucun enregistrement à exporter !'); return; }
+  if (!fsRecordings.length) { showToast(currentLang==='en'?'âš  No recording to export!':'âš  Aucun enregistrement Ã  exporter !'); return; }
   const format = document.getElementById('exportFormat').value;
   const quality = document.getElementById('exportQuality').value;
   const progressEl = document.getElementById('exportProgress');
@@ -6639,11 +5890,11 @@ async function exportStudio() {
   const isEn = currentLang === 'en';
   const steps = [
     { txt: isEn?'Initializing audio context...':'Initialisation du contexte audio...', pct: 10 },
-    { txt: isEn?'Decoding vocal recording...':'Décodage de l\'enregistrement vocal...', pct: 25 },
+    { txt: isEn?'Decoding vocal recording...':'DÃ©codage de l\'enregistrement vocal...', pct: 25 },
     { txt: isEn?'Applying EQ and compressor...':'Application de l\'EQ et du compresseur...', pct: 45 },
-    { txt: isEn?'Processing reverb...':'Traitement de la réverbération...', pct: 60 },
+    { txt: isEn?'Processing reverb...':'Traitement de la rÃ©verbÃ©ration...', pct: 60 },
     { txt: isEn?'Rendering final mix...':'Rendu du mix final...', pct: 80 },
-    { txt: isEn?'Encoding in high quality...':'Encodage en haute qualité...', pct: 95 },
+    { txt: isEn?'Encoding in high quality...':'Encodage en haute qualitÃ©...', pct: 95 },
   ];
 
   try {
@@ -6654,25 +5905,25 @@ async function exportStudio() {
     }
 
     if (format === 'voice-only') {
-      // Export voix seule (déjà en WebM)
+      // Export voix seule (dÃ©jÃ  en WebM)
       const a = document.createElement('a');
       a.href = fsRecordings[0].url;
       a.download = `freestyle_${fsRecordings[0].beatTitle || 'mix'}_voix.webm`;
       a.click();
-      statusTxt.textContent = currentLang==='en'?'Voice export done!':'Export voix terminé !';
+      statusTxt.textContent = currentLang==='en'?'Voice export done!':'Export voix terminÃ© !';
       progressBar.style.width = '100%';
-      showToast(currentLang==='en'?'✅ Voice exported successfully!':'✅ Voix exportée avec succès !');
+      showToast(currentLang==='en'?'âœ… Voice exported successfully!':'âœ… Voix exportÃ©e avec succÃ¨s !');
     } else if (format === 'wav-mix' || format === 'webm') {
-      // Offline rendering pour exporter le mix traité
+      // Offline rendering pour exporter le mix traitÃ©
       await exportOfflineRender(format, quality);
     }
 
-    setStudioStatus(currentLang==='en'?'EXPORTED ✓':'EXPORT OK ✓', '#4ade80');
-    setTimeout(() => { progressEl.style.display = 'none'; setStudioStatus(currentLang==='en'?'READY':'PRÊT', '#4ade80'); }, 3000);
+    setStudioStatus(currentLang==='en'?'EXPORTED âœ“':'EXPORT OK âœ“', '#4ade80');
+    setTimeout(() => { progressEl.style.display = 'none'; setStudioStatus(currentLang==='en'?'READY':'PRÃŠT', '#4ade80'); }, 3000);
 
   } catch(e) {
     console.error('Export error:', e);
-    showToast((currentLang==='en'?'❌ Export error: ':'❌ Erreur export : ') + e.message);
+    showToast((currentLang==='en'?'âŒ Export error: ':'âŒ Erreur export : ') + e.message);
     setStudioStatus(currentLang==='en'?'ERROR':'ERREUR', '#ef4444');
     progressEl.style.display = 'none';
   }
@@ -6682,17 +5933,17 @@ async function exportOfflineRender(format, quality) {
   const statusTxt = document.getElementById('exportStatusTxt');
   const progressBar = document.getElementById('exportProgressBar');
 
-  // Décoder la voix depuis le Blob en mémoire (le plus fiable, zéro CORS)
+  // DÃ©coder la voix depuis le Blob en mÃ©moire (le plus fiable, zÃ©ro CORS)
   const voiceBuf = await new Promise((resolve, reject) => {
     const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
     const rec = fsRecordings[0];
 
     const decodeArrayBuf = (arrayBuf) => {
-      tmpCtx.decodeAudioData(arrayBuf.slice(0), buf => { tmpCtx.close(); resolve(buf); }, err => reject(new Error(currentLang==='en'?'Voice decode failed':'Décodage voix échoué')));
+      tmpCtx.decodeAudioData(arrayBuf.slice(0), buf => { tmpCtx.close(); resolve(buf); }, err => reject(new Error(currentLang==='en'?'Voice decode failed':'DÃ©codage voix Ã©chouÃ©')));
     };
 
     if (rec.blob instanceof Blob) {
-      // Utiliser le Blob directement (toujours disponible en mémoire)
+      // Utiliser le Blob directement (toujours disponible en mÃ©moire)
       const reader = new FileReader();
       reader.onload = e => decodeArrayBuf(e.target.result);
       reader.onerror = () => reject(new Error(currentLang==='en'?'Cannot read Blob for export':'Lecture Blob export impossible'));
@@ -6725,8 +5976,7 @@ async function exportOfflineRender(format, quality) {
 
   // Gain vocal
   const gainVoice = offlineCtx.createGain();
-  const vocalVolElem2 = document.getElementById('vocalVolSlider');
-  gainVoice.gain.value = Math.max(0.1, Math.min(1, (vocalVolElem2 ? parseFloat(vocalVolElem2.value) : 80) / 100));
+  gainVoice.gain.value = parseFloat(document.getElementById('vocalGain').value) / 100;
 
   // EQ chain
   const eqDefs = [
@@ -6740,21 +5990,16 @@ async function exportOfflineRender(format, quality) {
   for (const eq of eqDefs) {
     const f = offlineCtx.createBiquadFilter();
     f.type = eq.type; f.frequency.value = eq.freq; f.Q.value = 1.4;
-    const eqElem = document.getElementById(eq.id);
-    f.gain.value = eqElem ? parseFloat(eqElem.value) : 0;  // Default to 0dB if slider missing
+    f.gain.value = parseFloat(document.getElementById(eq.id).value);
     chain.connect(f); chain = f;
   }
 
   // Compressor
   const comp = offlineCtx.createDynamicsCompressor();
-  const compThreshElem = document.getElementById('compThreshold');
-  const compRatioElem = document.getElementById('compRatio');
-  const compAttackElem = document.getElementById('compAttack');
-  const compReleaseElem = document.getElementById('compRelease');
-  comp.threshold.value = compThreshElem ? parseFloat(compThreshElem.value) : -50;
-  comp.ratio.value = compRatioElem ? parseFloat(compRatioElem.value) : 12;
-  comp.attack.value = (compAttackElem ? parseFloat(compAttackElem.value) : 3) / 1000;
-  comp.release.value = (compReleaseElem ? parseFloat(compReleaseElem.value) : 250) / 1000;
+  comp.threshold.value = parseFloat(document.getElementById('compThreshold').value);
+  comp.ratio.value = parseFloat(document.getElementById('compRatio').value);
+  comp.attack.value = parseFloat(document.getElementById('compAttack').value) / 1000;
+  comp.release.value = parseFloat(document.getElementById('compRelease').value) / 1000;
   comp.knee.value = 10;
   chain.connect(comp);
   comp.connect(offlineCtx.destination);
@@ -6779,14 +6024,13 @@ async function exportOfflineRender(format, quality) {
       const beatSource = offlineCtx.createBufferSource();
       beatSource.buffer = beatBuf;
       const gainBeat2 = offlineCtx.createGain();
-      const beatVolElem2 = document.getElementById('beatVolSlider');
-      gainBeat2.gain.value = Math.max(0.1, Math.min(1, (beatVolElem2 ? parseFloat(beatVolElem2.value) : 70) / 100));
+      gainBeat2.gain.value = parseFloat(document.getElementById('beatVolStudio').value) / 100;
       beatSource.connect(gainBeat2);
       gainBeat2.connect(offlineCtx.destination);
       beatSource.start(0);
     } catch(e) {
       console.warn('Beat non inclus dans export (CORS Firebase) :', e.message);
-      showToast(currentLang==='en'?'ℹ️ Processed voice exported (beat excluded, CORS blocked)':'ℹ️ Voix traitée exportée (beat non inclus, bloqué par CORS)');
+      showToast(currentLang==='en'?'â„¹ï¸ Processed voice exported (beat excluded, CORS blocked)':'â„¹ï¸ Voix traitÃ©e exportÃ©e (beat non inclus, bloquÃ© par CORS)');
     }
   }
 
@@ -6811,12 +6055,12 @@ async function exportOfflineRender(format, quality) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 
-  statusTxt.textContent = currentLang==='en'?'✓ WAV export done!':'✓ Export WAV terminé !';
+  statusTxt.textContent = currentLang==='en'?'âœ“ WAV export done!':'âœ“ Export WAV terminÃ© !';
   progressBar.style.width = '100%';
-  showToast(currentLang==='en'?'🎵 High quality export done!':'🎵 Export haute qualité terminé !');
+  showToast(currentLang==='en'?'ðŸŽµ High quality export done!':'ðŸŽµ Export haute qualitÃ© terminÃ© !');
 }
 
-// ─── Convertir AudioBuffer en WAV ───
+// â”€â”€â”€ Convertir AudioBuffer en WAV â”€â”€â”€
 function audioBufferToWav(buffer) {
   const numCh = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
@@ -6855,7 +6099,7 @@ function audioBufferToWav(buffer) {
   return new Blob([wavBuffer], { type: 'audio/wav' });
 }
 
-// ─── Re-draw waveform when new recording added ───
+// â”€â”€â”€ Re-draw waveform when new recording added â”€â”€â”€
 const _origRenderRecordingsList = typeof renderRecordingsList === 'function' ? renderRecordingsList : null;
  
 // Scroll navbar

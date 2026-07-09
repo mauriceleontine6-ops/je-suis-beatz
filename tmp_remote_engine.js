@@ -1,12 +1,12 @@
-/* ═══════════════════════════════════════════════════════════════════
-   STUDIO VIRTUEL PRO — Web Audio API Modulaire
+﻿/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+   STUDIO VIRTUEL PRO ÔÇö Web Audio API Modulaire
    Auteur : Full-Stack Audio Engineer
-   Dernière mise à jour : 12 Juin 2026
-═══════════════════════════════════════════════════════════════════ */
+   Derni├¿re mise ├á jour : 12 Juin 2026
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
-// ═══════════════════════════════════════════════════════════════════
-// 1. AUDIO ENGINE — Gestion contexte audio
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 1. AUDIO ENGINE ÔÇö Gestion contexte audio
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 class AudioEngine {
   constructor() {
@@ -27,9 +27,9 @@ class AudioEngine {
       }
       
       this.isInitialized = true;
-      console.log('✅ Audio Engine initialized', this.audioContext.sampleRate, 'Hz');
+      console.log('Ô£à Audio Engine initialized', this.audioContext.sampleRate, 'Hz');
     } catch (error) {
-      console.error('❌ Audio Engine initialization failed:', error);
+      console.error('ÔØî Audio Engine initialization failed:', error);
     }
   }
 
@@ -46,9 +46,9 @@ class AudioEngine {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 2. BEAT PLAYER — Lecteur de beats avec Web Audio
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 2. BEAT PLAYER ÔÇö Lecteur de beats avec Web Audio
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 class BeatPlayer {
   constructor(audioEngine) {
@@ -73,7 +73,7 @@ class BeatPlayer {
     this.audioBuffer = audioBuffer;
     this.beatData = { ...this.beatData, ...beatData };
     this.pausedTime = 0;
-    console.log('✅ Beat loaded:', this.beatData.name);
+    console.log('Ô£à Beat loaded:', this.beatData.name);
   }
 
   play(startAt = 0) {
@@ -167,9 +167,9 @@ class BeatPlayer {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 3. VOCAL RECORDER — Enregistrement micro avec sync
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 3. VOCAL RECORDER ÔÇö Enregistrement micro avec sync
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 function getSupportedRecorderMimeType() {
   const iosFirst = [
@@ -373,7 +373,7 @@ class VocalRecorder {
       const blob = new Blob(this.audioChunks, { type: mimeType });
 
       if (!blob.size) {
-        console.error('❌ Recording blob is empty');
+        console.error('ÔØî Recording blob is empty');
         if (this.onRecordingReady) this.onRecordingReady(null);
         return;
       }
@@ -438,7 +438,7 @@ class VocalRecorder {
       })();
 
       this.recordingOffset = Math.max(0, (this.beatStartTime - this.recordingStartAudioTime) - this.recordingLatency);
-      console.log('✅ Recording saved', {
+      console.log('Ô£à Recording saved', {
         size: blob.size,
         duration: this.recordedDuration,
         mimeType,
@@ -458,7 +458,7 @@ class VocalRecorder {
         });
       }
     } catch (error) {
-      console.error('❌ Failed to process recording:', error);
+      console.error('ÔØî Failed to process recording:', error);
       if (this.onRecordingReady) this.onRecordingReady(null);
     }
   }
@@ -550,7 +550,7 @@ class VocalRecorder {
       this.analyserNode.smoothingTimeConstant = 0.85;
       this.compressor.connect(this.analyserNode);
 
-      // Monitoring casque — entendre sa voix en direct pendant l'enregistrement
+      // Monitoring casque ÔÇö entendre sa voix en direct pendant l'enregistrement
       this.monitorGain = ctx.createGain();
       this.monitorGain.gain.value = 0;
       this.voiceGain.connect(this.monitorGain);
@@ -558,7 +558,7 @@ class VocalRecorder {
 
       this.setupMediaRecorder();
       this.recordingLatency = ctx.baseLatency || 0;
-      console.log('✅ Vocal Recorder audio graph ready');
+      console.log('Ô£à Vocal Recorder audio graph ready');
   }
 
   async initialize() {
@@ -568,10 +568,10 @@ class VocalRecorder {
       await this.acquireMicrophone();
       await this.buildAudioGraph();
       this.isInitialized = true;
-      console.log('✅ Vocal Recorder initialized');
+      console.log('Ô£à Vocal Recorder initialized');
     } catch (error) {
       this.isInitialized = false;
-      console.error('❌ Microphone access denied or unavailable:', error);
+      console.error('ÔØî Microphone access denied or unavailable:', error);
       throw error;
     }
   }
@@ -617,7 +617,7 @@ class VocalRecorder {
     this.isRecording = true;
     this.recordingStartTimestamp = Date.now();
     this.recordingStartAudioTime = this.audioEngine.getContext().currentTime;
-    console.log('🔴 Recording started');
+    console.log('­ƒö┤ Recording started');
   }
 
   stop() {
@@ -629,7 +629,7 @@ class VocalRecorder {
       }
       this.mediaRecorder.stop();
       this.isRecording = false;
-      console.log('⏹️ Recording stopped');
+      console.log('ÔÅ╣´©Å Recording stopped');
     }
   }
 
@@ -749,9 +749,9 @@ class VocalRecorder {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 4. MIXER — Table de mixage avec effets
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 4. MIXER ÔÇö Table de mixage avec effets
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 class Mixer {
   constructor(audioEngine) {
@@ -775,7 +775,7 @@ class Mixer {
   async initializeMixer() {
     const ctx = this.audioEngine.getContext();
     if (!ctx) {
-      console.error('❌ AudioContext not ready for Mixer');
+      console.error('ÔØî AudioContext not ready for Mixer');
       return;
     }
     
@@ -872,9 +872,9 @@ class Mixer {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 5. VISUALIZER — Analyseur de spectre en temps réel
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 5. VISUALIZER ÔÇö Analyseur de spectre en temps r├®el
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 class Visualizer {
   constructor(canvasElement, analyserNode) {
@@ -922,9 +922,9 @@ class Visualizer {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 6. STUDIO MANAGER — Orchestration complète
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+// 6. STUDIO MANAGER ÔÇö Orchestration compl├¿te
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 class StudioManager {
   constructor() {
@@ -938,7 +938,7 @@ class StudioManager {
     this.recordingDuration = 0;
     this.uiCallbacks = {};
 
-    // Mix playback (beat + voix synchronisés)
+    // Mix playback (beat + voix synchronis├®s)
     this.mixBeatSource = null;
     this.mixVocalSource = null;
     this.mixBeatGain = null;
@@ -952,16 +952,16 @@ class StudioManager {
     try {
       // Step 1: Initialize audio context first
       await this.engine.initialize();
-      console.log('✅ Audio Engine initialized');
+      console.log('Ô£à Audio Engine initialized');
 
       // Step 2: Initialize mixer (needs audio context)
       await this.mixer.initialize();
-      console.log('✅ Mixer initialized');
+      console.log('Ô£à Mixer initialized');
 
-      // Step 3: Le micro sera initialisé au premier clic (geste utilisateur requis)
-      console.log('✅ Studio Manager ready');
+      // Step 3: Le micro sera initialis├® au premier clic (geste utilisateur requis)
+      console.log('Ô£à Studio Manager ready');
     } catch (error) {
-      console.error('❌ Studio Manager initialization error:', error);
+      console.error('ÔØî Studio Manager initialization error:', error);
       throw error;
     }
   }
@@ -985,9 +985,9 @@ class StudioManager {
       const audioBuffer = await this.engine.getContext().decodeAudioData(arrayBuffer);
       await this.beatPlayer.loadBeat(audioBuffer, beatData);
       this.triggerCallback('beatLoaded', beatData);
-      console.log('✅ Beat loaded from URL:', fullUrl, beatData.name);
+      console.log('Ô£à Beat loaded from URL:', fullUrl, beatData.name);
     } catch (error) {
-      console.error('❌ Failed to load beat:', error, url);
+      console.error('ÔØî Failed to load beat:', error, url);
       throw error;
     }
   }
@@ -997,7 +997,7 @@ class StudioManager {
       await this.beatPlayer.loadBeat(audioBuffer, beatData);
       this.triggerCallback('beatLoaded', beatData);
     } catch (error) {
-      console.error('❌ Failed to load beat buffer:', error);
+      console.error('ÔØî Failed to load beat buffer:', error);
     }
   }
 
@@ -1090,7 +1090,7 @@ class StudioManager {
     this.mixer.setEQ(band, value);
   }
 
-  // ─── Mix Studio : beat + voix synchronisés ───
+  // ÔöÇÔöÇÔöÇ Mix Studio : beat + voix synchronis├®s ÔöÇÔöÇÔöÇ
   async renderStudioMix(beatVol = 70, vocalVol = 80) {
     const vocalBuffer = this.vocalRecorder.getRecordedBuffer();
     if (!vocalBuffer) return null;
@@ -1115,6 +1115,7 @@ class StudioManager {
     beatGain.gain.value = beatVol / 100;
     beatSource.connect(beatGain);
     beatGain.connect(offline.destination);
+    const offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
     if (offsetSeconds && offsetSeconds > 0 && offsetSeconds < beatBuffer.duration) {
       beatSource.start(0, offsetSeconds);
     } else {
@@ -1242,13 +1243,13 @@ class StudioManager {
 
     if (!vocalBuffer) {
       if (vocalBlob) return vocalBlob;
-      console.error('❌ No recording to export');
+      console.error('ÔØî No recording to export');
       return null;
     }
 
     const offsetSeconds = this.vocalRecorder.getAlignmentOffset();
     if (offsetSeconds > 0 && offsetSeconds < vocalBuffer.duration) {
-      console.log('🎚 Applying alignment offset to export:', offsetSeconds, 'seconds');
+      console.log('­ƒÄÜ Applying alignment offset to export:', offsetSeconds, 'seconds');
       vocalBuffer = this.trimAudioBuffer(vocalBuffer, offsetSeconds);
     }
 
@@ -1300,9 +1301,9 @@ class StudioManager {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // 7. GLOBAL INSTANCE
-// ═══════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 let studioManager = null;
 
@@ -1326,7 +1327,7 @@ function formatTime(seconds) {
   return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-console.log('✅ Studio Pro Audio Engine loaded');
+console.log('Ô£à Studio Pro Audio Engine loaded');
 window.isRecordingSupported = isRecordingSupported;
 window.isMobileDevice = isMobileDevice;
 window.isIOS = isIOS;

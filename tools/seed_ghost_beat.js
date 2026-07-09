@@ -19,16 +19,17 @@ const GHOST = {
   priceBasic: 25,
   pricePremium: 50,
   priceWav: 100,
-  priceExclusive: 300,
+  priceUnlimited: 150,
+  priceExclusive: 499,
   status: 'available',
   desc_fr: 'Un beat Drill/Afro sombre et hypnotique, parfait pour les punchlines et le storytelling cinématique.',
   desc_en: 'A dark and hypnotic Drill/Afro beat, perfect for punchlines and cinematic storytelling.',
 };
 
 const COVER_LOCAL = path.join(PROJECT_ROOT, 'image_beat_Ghost.jpeg');
-const AUDIO_LOCAL = path.join(PROJECT_ROOT, 'Ghost.mpeg');
+const AUDIO_LOCAL = path.join(PROJECT_ROOT, 'Ghost.mp3');
 const COVER_STORAGE = 'covers/ghost.jpeg';
-const AUDIO_STORAGE = 'beats/ghost.mpeg';
+const AUDIO_STORAGE = 'beats/ghost.mp3';
 
 function storagePublicUrl(bucketName, storagePath) {
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(storagePath)}?alt=media`;

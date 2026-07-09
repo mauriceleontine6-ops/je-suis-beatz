@@ -1,21 +1,14 @@
-// ═════════════════════════════════════════════════════════════════
+﻿// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // GLOBAL STUDIO INSTANCE & INITIALIZATION
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
-window.studioInstance = window.studioInstance || null;
-window.beatProgressInterval = window.beatProgressInterval || null;
-window.micLevelInterval = window.micLevelInterval || null;
-window.recordingTimerInterval = window.recordingTimerInterval || null;
-window.lastStudioRecording = window.lastStudioRecording || null;
-window.recordingPlaybackAudio = window.recordingPlaybackAudio || null;
-window.playbackMode = window.playbackMode || 'mix';
-var studioInstance = window.studioInstance;
-var beatProgressInterval = window.beatProgressInterval;
-var micLevelInterval = window.micLevelInterval;
-var recordingTimerInterval = window.recordingTimerInterval;
-var lastStudioRecording = window.lastStudioRecording;
-var recordingPlaybackAudio = window.recordingPlaybackAudio;
-var playbackMode = window.playbackMode;
+let studioInstance = null;
+let beatProgressInterval = null;
+let micLevelInterval = null;
+let recordingTimerInterval = null;
+let lastStudioRecording = null;
+let recordingPlaybackAudio = null;
+let playbackMode = 'mix';
 
 function getEl(id) {
   return document.getElementById(id);
@@ -127,14 +120,10 @@ async function loadStudioEngineScript() {
   });
 }
 
-window.freestyleWaveformFrame = window.freestyleWaveformFrame || null;
-window.freestyleWaveformCanvas = window.freestyleWaveformCanvas || null;
-window.freestyleWaveformCtx = window.freestyleWaveformCtx || null;
-window.freestyleWaveformData = window.freestyleWaveformData || null;
-var freestyleWaveformFrame = window.freestyleWaveformFrame;
-var freestyleWaveformCanvas = window.freestyleWaveformCanvas;
-var freestyleWaveformCtx = window.freestyleWaveformCtx;
-var freestyleWaveformData = window.freestyleWaveformData;
+let freestyleWaveformFrame = null;
+let freestyleWaveformCanvas = null;
+let freestyleWaveformCtx = null;
+let freestyleWaveformData = null;
 
 function setupFreestyleUI() {
   freestyleWaveformCanvas = getEl('waveformCanvas');
@@ -276,7 +265,7 @@ function stopFreestyleVisuals() {
 }
 
 function showMicPermissionError(message) {
-  safeText('micPermissionMsg', message || 'Permission d\'accès au microphone refusée. Vérifie les paramètres du navigateur.');
+  safeText('micPermissionMsg', message || 'Permission d\'acc├¿s au microphone refus├®e. V├®rifie les param├¿tres du navigateur.');
   safeStyle('micPermissionError', 'display', 'block');
 }
 
@@ -288,8 +277,8 @@ window.requestMicPermission = async function requestMicPermission() {
   const granted = await probeMicrophonePermission();
   if (granted) {
     hideMicPermissionError();
-    safeText('recordStatus', typeof t === 'function' ? t('fs_mic_ready') : 'Micro prêt');
-    safeText('micStatusText', typeof t === 'function' ? t('fs_mic_ready') : 'Micro prêt');
+    safeText('recordStatus', typeof t === 'function' ? t('fs_mic_ready') : 'Micro pr├¬t');
+    safeText('micStatusText', typeof t === 'function' ? t('fs_mic_ready') : 'Micro pr├¬t');
   }
 };
 
@@ -348,7 +337,7 @@ async function initializeStudioUI() {
     }
 
     if (typeof getGlobalInitStudio() !== 'function') {
-      console.warn('initStudio still not available — attempting engine script reload');
+      console.warn('initStudio still not available ÔÇö attempting engine script reload');
       try {
         await loadStudioEngineScript();
       } catch (reloadError) {
@@ -357,7 +346,7 @@ async function initializeStudioUI() {
     }
 
     if (typeof getGlobalInitStudio() !== 'function') {
-      console.warn('initStudio still not available — deferring initialization until user gesture');
+      console.warn('initStudio still not available ÔÇö deferring initialization until user gesture');
       try { activateAudioOnGesture(); } catch (e) { console.warn('activateAudioOnGesture failed', e); }
       return;
     }
@@ -367,7 +356,7 @@ async function initializeStudioUI() {
     studioInstance = await engineInitFn();
     window.studioInstance = studioInstance;
 
-    console.log('✅ Studio UI initialized');
+    console.log('Ô£à Studio UI initialized');
 
     // Setup UI callbacks
     setupUICallbacks();
@@ -382,8 +371,8 @@ async function initializeStudioUI() {
     loadBeatsFromFirebase();
 
   } catch (error) {
-    console.warn('⚠ Studio initialization encountered an issue (will retry on gesture):', error);
-    // Don't show a blocking error toast at page load — audio init can fail due to
+    console.warn('ÔÜá Studio initialization encountered an issue (will retry on gesture):', error);
+    // Don't show a blocking error toast at page load ÔÇö audio init can fail due to
     // browser autoplay/user-gesture policies. Defer a retry to the first user gesture.
     try { activateAudioOnGesture(); } catch (e) { console.warn('activateAudioOnGesture failed', e); }
   }
@@ -419,7 +408,7 @@ function setupUICallbacks() {
     safeUpdate('beatGenre', beatData.genre || 'Hip-Hop');
     safeUpdate('beatDuration', safeDuration());
 
-    const fsMeta = `${beatData.bpm || '120'} BPM · ${beatData.genre || 'Hip-Hop'}`;
+    const fsMeta = `${beatData.bpm || '120'} BPM ┬À ${beatData.genre || 'Hip-Hop'}`;
     safeUpdate('fsBeatName', beatData.name || 'Untitled');
     safeUpdate('fsBeatMeta', fsMeta);
     safeUpdate('fsBeatDuration', safeDuration());
@@ -474,7 +463,7 @@ async function loadBeatsFromFirebase() {
     const selector = document.getElementById('beatSelector');
     if (!selector) return;
 
-    selector.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--studio-secondary); font-family: var(--font-mono); font-size: 0.7rem;">⏳ ${t('studio_beats_loading')}</div>`;
+    selector.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--studio-secondary); font-family: var(--font-mono); font-size: 0.7rem;">ÔÅ│ ${t('studio_beats_loading')}</div>`;
 
     let beatsList = [];
     try {
@@ -501,7 +490,7 @@ async function loadBeatsFromFirebase() {
       const beatBtn = document.createElement('button');
       beatBtn.className = 'control-btn';
       beatBtn.innerHTML = `
-        <div style="font-size: 1.8rem; margin-bottom: 6px;">🎵</div>
+        <div style="font-size: 1.8rem; margin-bottom: 6px;">­ƒÄÁ</div>
         <div style="font-size: 0.65rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${beat.title || beat.name || 'Untitled'}</div>
         <div style="font-size: 0.55rem; color: rgba(0,217,255,0.6); margin-top: 2px;">${beat.bpm || '120'} BPM</div>
       `;
@@ -595,16 +584,16 @@ async function selectBeat(beatId, beatData) {
   }
 
   if (!loaded) {
-    showToast(typeof t === 'function' ? t('studio_beat_not_found') : '❌ Beat not found. Check your connection or choose another beat.');
+    showToast(typeof t === 'function' ? t('studio_beat_not_found') : 'ÔØî Beat not found. Check your connection or choose another beat.');
     return;
   }
 
-  showToast(typeof t === 'function' ? t('studio_beat_selected', beatInfo.name) : `✅ Beat selected: ${beatInfo.name}`);
+  showToast(typeof t === 'function' ? t('studio_beat_selected', beatInfo.name) : `Ô£à Beat selected: ${beatInfo.name}`);
 }
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // BEAT PLAYER CONTROLS
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 function studioBeatPlay() {
   studioInstance.playBeat();
@@ -633,9 +622,9 @@ function updateBeatProgressUI() {
   safeText('beatCurrentTime', formatTime(progress.current));
 }
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // RECORDING CONTROLS
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 function getMixerVolumes() {
   const beatSlider = getEl('beatVolSlider');
@@ -656,29 +645,18 @@ function applyMixerToStudio() {
   }
 }
 
-window.mobileRecorder = window.mobileRecorder || null;
-window.mobileStream = window.mobileStream || null;
-window.mobileChunks = window.mobileChunks || [];
-window.mobileRecordingActive = window.mobileRecordingActive || false;
-window.mobileRecordingStart = window.mobileRecordingStart || 0;
-window.mobileLevelCtx = window.mobileLevelCtx || null;
-window.mobileLevelAnalyser = window.mobileLevelAnalyser || null;
+let mobileRecorder = null;
+let mobileStream = null;
+let mobileChunks = [];
+let mobileRecordingActive = false;
+let mobileRecordingStart = 0;
+let mobileLevelCtx = null;
+let mobileLevelAnalyser = null;
 // Fallback recorder (WebAudio -> WAV) when MediaRecorder is not available
-window.fallbackBuffers = window.fallbackBuffers || [];
-window.fallbackAudioCtx = window.fallbackAudioCtx || null;
-window.fallbackProcessor = window.fallbackProcessor || null;
-window.fallbackSource = window.fallbackSource || null;
-var mobileRecorder = window.mobileRecorder;
-var mobileStream = window.mobileStream;
-var mobileChunks = window.mobileChunks;
-var mobileRecordingActive = window.mobileRecordingActive;
-var mobileRecordingStart = window.mobileRecordingStart;
-var mobileLevelCtx = window.mobileLevelCtx;
-var mobileLevelAnalyser = window.mobileLevelAnalyser;
-var fallbackBuffers = window.fallbackBuffers;
-var fallbackAudioCtx = window.fallbackAudioCtx;
-var fallbackProcessor = window.fallbackProcessor;
-var fallbackSource = window.fallbackSource;
+let fallbackBuffers = [];
+let fallbackAudioCtx = null;
+let fallbackProcessor = null;
+let fallbackSource = null;
 
 function cleanupMobileMic() {
   stopFreestyleVisuals();
@@ -737,14 +715,14 @@ function startMicLevelMonitor(stream) {
 
 async function startSimpleVocalRecording() {
   if (mobileRecordingActive) {
-    showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement déjà en cours');
+    showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement d├®j├á en cours');
     return;
   }
 
   // Prefer an explicit polyfill if provided, otherwise fall back to
   // the standard navigator.mediaDevices.getUserMedia API when available.
   if (!window.getUserMediaPolyfill && !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-    showToast('⚠ Micro non supporté sur ce navigateur');
+    showToast('ÔÜá Micro non support├® sur ce navigateur');
     return;
   }
 
@@ -780,7 +758,7 @@ async function startSimpleVocalRecording() {
     // Ensure MediaRecorder is available
     const useFallbackRecorder = (typeof MediaRecorder === 'undefined');
     if (useFallbackRecorder) {
-      showToast('ℹ Enregistreur natif non disponible → utilisation d\'un fallback');
+      showToast('Ôä╣ Enregistreur natif non disponible ÔåÆ utilisation d\'un fallback');
     }
 
     // Determine a supported mimeType for MediaRecorder. Fall back to common
@@ -811,7 +789,7 @@ async function startSimpleVocalRecording() {
         // Use lower bitrate for mobile to prevent playback speed issues
         options.audioBitsPerSecond = isMobile ? 128000 : 192000;
         mobileRecorder = new MediaRecorder(mobileStream, options);
-        console.log('✅ MediaRecorder created with mimeType:', mimeType || 'default', 'bitrate:', options.audioBitsPerSecond);
+        console.log('Ô£à MediaRecorder created with mimeType:', mimeType || 'default', 'bitrate:', options.audioBitsPerSecond);
       }
     } catch (e) {
       console.warn('MediaRecorder ctor failed, switching to fallback', e);
@@ -822,7 +800,7 @@ async function startSimpleVocalRecording() {
     // Prefer the WebAudio fallback which encodes WAV for maximum compatibility.
     if (isIOS) {
       if (mobileRecorder) {
-        console.log('iOS detected — preferring WebAudio fallback over MediaRecorder for compatibility');
+        console.log('iOS detected ÔÇö preferring WebAudio fallback over MediaRecorder for compatibility');
       }
       mobileRecorder = null;
     }
@@ -831,22 +809,22 @@ async function startSimpleVocalRecording() {
       mobileRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
           mobileChunks.push(e.data);
-          console.log('📦 Audio chunk received:', e.data.size, 'bytes, total chunks:', mobileChunks.length);
+          console.log('­ƒôª Audio chunk received:', e.data.size, 'bytes, total chunks:', mobileChunks.length);
         }
       };
       mobileRecorder.onstop = () => {
-        console.log('⏹️ MediaRecorder stopped, total chunks:', mobileChunks.length);
+        console.log('ÔÅ╣´©Å MediaRecorder stopped, total chunks:', mobileChunks.length);
         finishSimpleVocalRecording();
       };
       mobileRecorder.onerror = (ev) => {
         console.error('MediaRecorder error:', ev);
-        showToast(typeof t === 'function' ? t('dyn_recording_failed') : '⚠ Enregistrement impossible');
+        showToast(typeof t === 'function' ? t('dyn_recording_failed') : 'ÔÜá Enregistrement impossible');
         cleanupMobileMic();
       };
       let recorderStarted = false;
       mobileRecorder.onstart = () => {
         recorderStarted = true;
-        console.log('▶️ MediaRecorder started successfully');
+        console.log('ÔûÂ´©Å MediaRecorder started successfully');
       };
     }
 
@@ -888,7 +866,7 @@ async function startSimpleVocalRecording() {
         // Connect to destination to ensure audio flows through (required for some browsers)
         fallbackProcessor.connect(fallbackAudioCtx.destination);
         
-        console.log('✅ Fallback recorder started with sampleRate:', targetSampleRate, 'Hz, bufferSize:', bufferSize);
+        console.log('Ô£à Fallback recorder started with sampleRate:', targetSampleRate, 'Hz, bufferSize:', bufferSize);
       } catch (err) {
         console.error('startFallbackRecorder error:', err);
         throw err;
@@ -939,7 +917,7 @@ async function startSimpleVocalRecording() {
       // Start fallback recorder in parallel as backup for both mobile and desktop
       try {
         await startFallbackRecorder(mobileStream);
-        console.log('✅ Fallback recorder started in parallel');
+        console.log('Ô£à Fallback recorder started in parallel');
       } catch (fbErr) {
         console.warn('Fallback recorder (parallel) startup issue:', fbErr);
       }
@@ -953,7 +931,7 @@ async function startSimpleVocalRecording() {
         } else {
           mobileRecorder.start(1000); // 1000ms for desktop (increased)
         }
-        console.log('✅ MediaRecorder started with timeslice:', isIOS ? 'none (iOS)' : '1000ms (unified)');
+        console.log('Ô£à MediaRecorder started with timeslice:', isIOS ? 'none (iOS)' : '1000ms (unified)');
       } catch (startErr) {
         console.error('MediaRecorder start failed:', startErr);
         try { mobileRecorder.start(); } catch (e) { console.error('MediaRecorder fallback start failed:', e); }
@@ -963,7 +941,7 @@ async function startSimpleVocalRecording() {
       setTimeout(() => {
         if (mobileRecorder && mobileRecorder.state !== 'recording') {
           console.warn('MediaRecorder did not start recording, state=', mobileRecorder.state);
-          showToast(typeof t === 'function' ? t('dyn_recording_failed') : '⚠ Impossible de démarrer l\'enregistrement');
+          showToast(typeof t === 'function' ? t('dyn_recording_failed') : 'ÔÜá Impossible de d├®marrer l\'enregistrement');
           try { if (mobileRecorder && mobileRecorder.state === 'inactive') mobileRecorder.stop(); } catch (e) {}
           cleanupMobileMic();
         }
@@ -974,7 +952,7 @@ async function startSimpleVocalRecording() {
         await startFallbackRecorder(mobileStream);
       } catch (fbErr) {
         console.error('Fallback recorder failed to start:', fbErr);
-        showToast(typeof t === 'function' ? t('dyn_recording_failed') : '⚠ Impossible d\'activer le micro');
+        showToast(typeof t === 'function' ? t('dyn_recording_failed') : 'ÔÜá Impossible d\'activer le micro');
         cleanupMobileMic();
         return;
       }
@@ -997,7 +975,7 @@ async function startSimpleVocalRecording() {
       safeText('recordTimer', formatTime((Date.now() - mobileRecordingStart) / 1000));
     }, 200);
 
-    showToast(typeof t === 'function' ? t('studio_recording_started') : '🔴 Enregistrement démarré');
+    showToast(typeof t === 'function' ? t('studio_recording_started') : '­ƒö┤ Enregistrement d├®marr├®');
   } catch (error) {
     console.error('Vocal recording failed:', error);
     cleanupMobileMic();
@@ -1009,25 +987,25 @@ async function startSimpleVocalRecording() {
     let msg;
 
     if (isDenied) {
-      msg = typeof t === 'function' ? t('studio_mic_denied') : 'Micro refusé — autorise l\'accès dans les réglages';
+      msg = typeof t === 'function' ? t('studio_mic_denied') : 'Micro refus├® ÔÇö autorise l\'acc├¿s dans les r├®glages';
       showMicPermissionError(msg);
     } else if (isNotFound) {
-      msg = typeof t === 'function' ? t('studio_mic_not_found') : 'Aucun micro détecté';
+      msg = typeof t === 'function' ? t('studio_mic_not_found') : 'Aucun micro d├®tect├®';
     } else if (isNotReadable) {
-      msg = typeof t === 'function' ? t('studio_mic_error') : 'Micro occupé ou non disponible';
+      msg = typeof t === 'function' ? t('studio_mic_error') : 'Micro occup├® ou non disponible';
     } else {
-      msg = typeof t === 'function' ? t('studio_mic_error') : 'Impossible d\'accéder au microphone';
+      msg = typeof t === 'function' ? t('studio_mic_error') : 'Impossible d\'acc├®der au microphone';
     }
 
     const detail = `${errName}${errMsg ? `: ${errMsg}` : ''}`;
-    const helpHtml = `⚠ ${msg}<br><br>
-      <button class="btn-ghost" id="probeMicBtn" onclick="probeMicrophonePermission()">Vérifier autorisations micro</button>
-      <div style="margin-top:8px;font-size:0.85rem;color:var(--text-dim)">Permission: ${isDenied ? 'refusée' : 'inconnue'} · Détail: ${detail}</div>`;
+    const helpHtml = `ÔÜá ${msg}<br><br>
+      <button class="btn-ghost" id="probeMicBtn" onclick="probeMicrophonePermission()">V├®rifier autorisations micro</button>
+      <div style="margin-top:8px;font-size:0.85rem;color:var(--text-dim)">Permission: ${isDenied ? 'refus├®e' : 'inconnue'} ┬À D├®tail: ${detail}</div>`;
 
     if (isDenied || errName === 'SecurityError' || errName === 'AbortError') {
       showToast(helpHtml);
     } else {
-      showToast(`⚠ ${msg}<br><small>${detail}</small>`);
+      showToast(`ÔÜá ${msg}<br><small>${detail}</small>`);
     }
     safeText('recordStatus', `${msg} (${detail})`);
   }
@@ -1037,7 +1015,7 @@ async function startSimpleVocalRecording() {
 window.probeMicrophonePermission = async function probeMicrophonePermission() {
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showToast('❌ API getUserMedia non disponible dans ce navigateur');
+      showToast('ÔØî API getUserMedia non disponible dans ce navigateur');
       return false;
     }
 
@@ -1064,7 +1042,7 @@ window.probeMicrophonePermission = async function probeMicrophonePermission() {
       console.warn('enumerateDevices failed', e);
     }
 
-    showToast('⏳ Vérification autorisations...');
+    showToast('ÔÅ│ V├®rification autorisations...');
 
     let stream = null;
     try {
@@ -1075,7 +1053,7 @@ window.probeMicrophonePermission = async function probeMicrophonePermission() {
       tracks.forEach(t => t.stop());
 
       const detail = `Permission=${permState}; inputs=${devices.length}; active=${active}`;
-      showToast('✅ Micro accessible — ' + detail);
+      showToast('Ô£à Micro accessible ÔÇö ' + detail);
       safeText('recordStatus', 'Micro accessible');
       return true;
     } catch (e) {
@@ -1084,20 +1062,20 @@ window.probeMicrophonePermission = async function probeMicrophonePermission() {
       const errMsg = e && e.message ? e.message : String(e);
       const detail = `Permission=${permState}; inputs=${devices.length}; error=${errName}`;
       if (errName === 'NotAllowedError') {
-        showToast('⚠ Autorisation refusée — active le micro dans les réglages du navigateur');
+        showToast('ÔÜá Autorisation refus├®e ÔÇö active le micro dans les r├®glages du navigateur');
       } else if (errName === 'NotFoundError') {
-        showToast('⚠ Aucun micro détecté');
+        showToast('ÔÜá Aucun micro d├®tect├®');
       } else {
-        showToast('⚠ Impossible d\'accéder au micro: ' + errMsg);
+        showToast('ÔÜá Impossible d\'acc├®der au micro: ' + errMsg);
       }
-      safeText('recordStatus', detail + ' — ' + errMsg);
+      safeText('recordStatus', detail + ' ÔÇö ' + errMsg);
       return false;
     } finally {
       try { if (stream) stream.getTracks().forEach(t => t.stop()); } catch (e) {}
     }
   } catch (e) {
     console.error('probeMicrophonePermission fatal:', e);
-    showToast('❌ Erreur interne lors de la vérification du micro');
+    showToast('ÔØî Erreur interne lors de la v├®rification du micro');
     return false;
   }
 }
@@ -1111,7 +1089,7 @@ function finishSimpleVocalRecording() {
   let usedFallback = false;
   let recordingDuration = mobileRecordingStart ? Math.max(0.1, (Date.now() - mobileRecordingStart) / 1000) : 0.1;
 
-  console.log('🔍 Processing recording - MediaRecorder chunks:', mobileChunks.length, 'Fallback buffers:', fallbackBuffers?.length || 0);
+  console.log('­ƒöì Processing recording - MediaRecorder chunks:', mobileChunks.length, 'Fallback buffers:', fallbackBuffers?.length || 0);
 
   // Try fallback first if it captured data (works on both mobile and desktop)
   if (fallbackBuffers && fallbackBuffers.length > 0) {
@@ -1120,17 +1098,17 @@ function finishSimpleVocalRecording() {
       const interleavedFull = flattenFloat32Array(fallbackBuffers);
       recordingDuration = interleavedFull.length / sampleRate;
 
-      console.log('📊 Fallback full WAV encode - samples:', interleavedFull.length, 'sampleRate:', sampleRate, 'buffers:', fallbackBuffers.length);
+      console.log('­ƒôè Fallback full WAV encode - samples:', interleavedFull.length, 'sampleRate:', sampleRate, 'buffers:', fallbackBuffers.length);
       const wavBlobFull = encodeWAV(interleavedFull, sampleRate);
       if (wavBlobFull && wavBlobFull.size > 100) {
         blob = wavBlobFull;
         usedFallback = true;
-        console.log('✅ Using full fallback WAV for immediate playback:', wavBlobFull.size, 'bytes');
+        console.log('Ô£à Using full fallback WAV for immediate playback:', wavBlobFull.size, 'bytes');
       } else {
-        console.warn('⚠️ Full fallback WAV too small:', wavBlobFull?.size || 0, 'bytes');
+        console.warn('ÔÜá´©Å Full fallback WAV too small:', wavBlobFull?.size || 0, 'bytes');
       }
     } catch (e) {
-      console.error('❌ finishSimpleVocalRecording fallback encode failed:', e);
+      console.error('ÔØî finishSimpleVocalRecording fallback encode failed:', e);
     }
   }
 
@@ -1140,12 +1118,12 @@ function finishSimpleVocalRecording() {
       const mime = mobileRecorder?.mimeType || (typeof window.getSupportedRecorderMimeType === 'function' ? window.getSupportedRecorderMimeType() : 'audio/webm');
       blob = new Blob(mobileChunks, { type: mime });
       if (blob && blob.size > 100) {
-        console.log('✅ Using MediaRecorder blob:', blob.size, 'bytes, mime:', mime, 'chunks:', mobileChunks.length);
+        console.log('Ô£à Using MediaRecorder blob:', blob.size, 'bytes, mime:', mime, 'chunks:', mobileChunks.length);
       } else {
-        console.warn('⚠️ MediaRecorder blob too small:', blob?.size || 0, 'bytes');
+        console.warn('ÔÜá´©Å MediaRecorder blob too small:', blob?.size || 0, 'bytes');
       }
     } else {
-      console.warn('⚠️ No MediaRecorder chunks available');
+      console.warn('ÔÜá´©Å No MediaRecorder chunks available');
     }
   }
 
@@ -1153,9 +1131,9 @@ function finishSimpleVocalRecording() {
   stopFreestyleVisuals();
 
   if (!blob || blob.size <= 100) {
-    console.error('❌ Recording produced no valid data. MediaRecorder chunks:', mobileChunks.length, 'Fallback buffers:', fallbackBuffers?.length || 0, 'Final blob size:', blob?.size || 0);
-    safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_failed') : 'Impossible de capturer l\'audio. Vérifie les permissions.');
-    showToast('⚠ Enregistrement vide — vérifie que le micro fonctionne et réessaie');
+    console.error('ÔØî Recording produced no valid data. MediaRecorder chunks:', mobileChunks.length, 'Fallback buffers:', fallbackBuffers?.length || 0, 'Final blob size:', blob?.size || 0);
+    safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_failed') : 'Impossible de capturer l\'audio. V├®rifie les permissions.');
+    showToast('ÔÜá Enregistrement vide ÔÇö v├®rifie que le micro fonctionne et r├®essaie');
     const recordBtn = getEl('recordStartBtn');
     if (recordBtn) recordBtn.classList.remove('recording');
     safeClassRemove('monitoringBadge', 'active');
@@ -1183,7 +1161,7 @@ function finishSimpleVocalRecording() {
   const recordBtn = getEl('recordStartBtn');
   if (recordBtn) recordBtn.classList.remove('recording');
   safeClassRemove('monitoringBadge', 'active');
-  safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_done') : 'Enregistrement terminé');
+  safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_done') : 'Enregistrement termin├®');
 }
 
 function flattenFloat32Array(buffers) {
@@ -1257,7 +1235,7 @@ function stopSimpleVocalRecording() {
 
 async function startRecordingFlow() {
   if (mobileRecordingActive) {
-    showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement déjà en cours');
+    showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement d├®j├á en cours');
     return;
   }
 
@@ -1319,7 +1297,7 @@ function restartRecordingFlow() {
 
   safeText('recordTimer', '0:00');
   safeStyle('recordTimer', 'display', 'none');
-  safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_prepare') : 'Prêt pour un nouvel enregistrement');
+  safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_prepare') : 'Pr├¬t pour un nouvel enregistrement');
 
   setTimeout(() => {
     startRecordingFlow();
@@ -1328,8 +1306,8 @@ function restartRecordingFlow() {
 
 function handleRecordingReady(data) {
   if (!data || (!data.playbackUrl && !data.url)) {
-    safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_failed') : 'Échec de l\'enregistrement');
-    showToast(typeof t === 'function' ? t('dyn_recording_failed') : '❌ Échec de l\'enregistrement');
+    safeText('recordStatus', typeof t === 'function' ? t('dyn_recording_failed') : '├ëchec de l\'enregistrement');
+    showToast(typeof t === 'function' ? t('dyn_recording_failed') : 'ÔØî ├ëchec de l\'enregistrement');
     return;
   }
 
@@ -1373,7 +1351,7 @@ function handleRecordingReady(data) {
       wavBlob: data.wavBlob,
       mimeType: data.mimeType || 'audio/webm',
       duration: data.duration || studioInstance.getRecordingDuration() / 1000,
-      beatTitle: beat ? (beat.title || beat.name || '—') : t('fs_vocal_solo'),
+      beatTitle: beat ? (beat.title || beat.name || 'ÔÇö') : t('fs_vocal_solo'),
       date: new Date().toLocaleDateString(currentLang === 'en' ? 'en-GB' : 'fr-FR'),
       label: t('fs_take_label') + ' ' + ((typeof fsRecordings !== 'undefined' && fsRecordings.length) ? fsRecordings.length + 1 : 1),
       hasBeat,
@@ -1404,7 +1382,7 @@ function handleRecordingReady(data) {
 }
 
 async function generateStudioMix(recording) {
-  if (!studioInstance || !recording) return false;
+  if (!studioInstance || !recording) return;
 
   try {
     if (recording.blob && !studioInstance.vocalRecorder.getRecordedBuffer()) {
@@ -1418,76 +1396,27 @@ async function generateStudioMix(recording) {
 
     const beat = window.fsSelectedBeat || window.pendingStudioBeat;
     if (!studioInstance.beatPlayer.audioBuffer && beat && beat.audio) {
-      const beatInfo = {
-        name: beat.title || beat.name || 'Untitled',
-        bpm: beat.bpm || 120,
-        key: beat.key || 'C',
-        genre: beat.genre || 'Hip-Hop'
-      };
-      const directUrl = resolveBeatPlaybackURL(beat.audio);
-      const proxyUrl = resolveFsBeatProxyURL(beat.audio);
-      let beatLoaded = false;
-      let lastError = null;
-
       try {
-        await studioInstance.loadBeatFromURL(directUrl, beatInfo);
-        beatLoaded = true;
-        console.log('✅ Studio loaded beat from experience selector:', directUrl);
-      } catch (directErr) {
-        lastError = directErr;
-        console.warn('Mix direct beat load failed, trying proxy:', directErr);
-      }
-
-      if (!beatLoaded && proxyUrl && proxyUrl !== directUrl) {
-        try {
-          await studioInstance.loadBeatFromURL(proxyUrl, beatInfo);
-          beatLoaded = true;
-          console.log('✅ Studio loaded beat via proxy:', proxyUrl);
-        } catch (proxyErr) {
-          lastError = proxyErr;
-          console.warn('Mix proxy beat load failed:', proxyErr);
-        }
-      }
-
-      if (!beatLoaded && (proxyUrl || directUrl)) {
-        const fallbackUrl = proxyUrl || directUrl;
-        const buffer = await fetchAudioBufferForBeatUrl(fallbackUrl);
-        if (buffer) {
-          await studioInstance.loadBeat(buffer, beatInfo);
-          beatLoaded = true;
-          console.log('✅ Studio loaded beat from decoded buffer:', fallbackUrl);
-        }
-      }
-
-      if (!beatLoaded) {
-        console.warn('Mix beat loading ultimately failed, continuing with current state', lastError);
+        const beatInfo = {
+          name: beat.title || beat.name || 'Untitled',
+          bpm: beat.bpm || 120,
+          key: beat.key || 'C',
+          genre: beat.genre || 'Hip-Hop'
+        };
+        await studioInstance.loadBeatFromURL(beat.audio, beatInfo);
+      } catch (beatErr) {
+        console.warn('Mix beat load:', beatErr);
       }
     }
 
     const vols = getMixerVolumes();
     const mixBlob = await studioInstance.renderStudioMix(vols.beat, vols.vocal);
-    if (!mixBlob) return false;
+    if (!mixBlob) return;
 
-    if (recording.mixWavUrl) {
-      try { URL.revokeObjectURL(recording.mixWavUrl); } catch (e) {}
-    }
+    if (recording.mixWavUrl) URL.revokeObjectURL(recording.mixWavUrl);
     recording.mixWavBlob = mixBlob;
     recording.mixWavUrl = URL.createObjectURL(mixBlob);
     recording.playbackUrl = recording.mixWavUrl;
-
-    if (typeof fsRecordings !== 'undefined' && Array.isArray(fsRecordings)) {
-      const existingIndex = fsRecordings.findIndex(r => r && r.id === recording.id);
-      if (existingIndex !== -1) {
-        fsRecordings[existingIndex] = recording;
-      }
-      try {
-        localStorage.setItem('jsb_recordings', JSON.stringify(
-          fsRecordings.map(r => ({ ...r, blob: undefined, mixWavBlob: undefined }))
-        ));
-      } catch (e) {
-        console.warn('Unable to save studio mix info to localStorage:', e);
-      }
-    }
 
     if (lastStudioRecording && lastStudioRecording.id === recording.id) {
       lastStudioRecording = recording;
@@ -1496,18 +1425,10 @@ async function generateStudioMix(recording) {
         updatePlaybackAudioSource(recording);
       }
     }
-    console.log('✅ Studio mix rendered');
-    return true;
+    console.log('Ô£à Studio mix rendered');
   } catch (error) {
     console.warn('Studio mix render failed:', error);
-    return false;
   }
-}
-
-async function prepareStudioMixPlayback(recording) {
-  if (!recording || !studioInstance || !recording.hasBeat) return false;
-  if (recording.mixWavUrl) return true;
-  return await generateStudioMix(recording);
 }
 
 function setPlaybackMode(mode) {
@@ -1590,11 +1511,11 @@ function updatePlaybackAudioSource(recording) {
 
   // Ensure audio is ready before allowing playback
   audioEl.oncanplay = () => {
-    console.log('✅ Audio ready for playback');
+    console.log('Ô£à Audio ready for playback');
   };
 
   audioEl.onerror = (e) => {
-    console.error('❌ Audio playback error:', e);
+    console.error('ÔØî Audio playback error:', e);
   };
 }
 
@@ -1615,7 +1536,7 @@ function displayRecordingResult(recording) {
         <div class="recording-result-icon"><i class="fas ${recording.hasBeat ? 'fa-headphones' : 'fa-microphone'}"></i></div>
         <div class="recording-result-info">
           <div class="recording-result-title">${recording.label || t('fs_recording_label')}</div>
-          <div class="recording-result-meta">${recording.beatTitle} · ${recording.date} · ${durationLabel} · ${formatLabel}</div>
+          <div class="recording-result-meta">${recording.beatTitle} ┬À ${recording.date} ┬À ${durationLabel} ┬À ${formatLabel}</div>
         </div>
       </div>`;
   }
@@ -1639,12 +1560,12 @@ function displayRecordingResult(recording) {
         return;
       }
       const mediaErr = audioEl.error ? new Error('MediaError code ' + (audioEl.error.code || 0)) : new Error('Media playback error');
-      showToast(typeof t === 'function' ? t('dyn_playback_failed') : '⚠ Impossible de lire l\'enregistrement');
+      showToast(typeof t === 'function' ? t('dyn_playback_failed') : 'ÔÜá Impossible de lire l\'enregistrement');
       setPlaybackError(mediaErr);
     };
 
     audioEl.onloadedmetadata = () => {
-      console.log('✅ Recording ready to play:', audioEl.duration, 's');
+      console.log('Ô£à Recording ready to play:', audioEl.duration, 's');
     };
 
     updatePlaybackAudioSource(recording);
@@ -1666,32 +1587,8 @@ function getCurrentRecordingSource(recording) {
 
 async function playLastRecording() {
   if (!lastStudioRecording) {
-    if (Array.isArray(fsRecordings) && fsRecordings.length) {
-      const record = fsRecordings[0];
-      const hasBeat = Boolean(record.beatId || fsSelectedBeat);
-      lastStudioRecording = {
-        id: record.id || Date.now(),
-        url: record.url,
-        wavUrl: record.url,
-        playbackUrl: record.url,
-        blob: record.blob,
-        wavBlob: record.blob,
-        mimeType: record.mimeType || 'audio/webm',
-        duration: record.duration || 0,
-        beatTitle: record.beatTitle || (fsSelectedBeat?.title || 'Freestyle'),
-        date: record.date || new Date().toLocaleDateString(currentLang === 'en' ? 'en-GB' : 'fr-FR'),
-        label: record.label || (typeof t === 'function' ? t('fs_take_label') + ' 1' : 'Take 1'),
-        hasBeat,
-        beatOffset: record.beatOffset || 0,
-        mixWavUrl: hasBeat ? null : record.url,
-        mixWavBlob: hasBeat ? null : record.blob
-      };
-      window.lastStudioRecording = lastStudioRecording;
-      setPlaybackMode(hasBeat ? 'mix' : 'vocal');
-    } else {
-      showToast(typeof t === 'function' ? t('dyn_no_recording') : 'Aucun enregistrement disponible');
-      return;
-    }
+    showToast(typeof t === 'function' ? t('dyn_no_recording') : 'Aucun enregistrement disponible');
+    return;
   }
 
   if (window.stopFsBeat) {
@@ -1708,65 +1605,25 @@ async function playLastRecording() {
   if (studioInstance && studioInstance.isMixPlaying()) {
     studioInstance.stopStudioMix();
     const btn = getEl('playRecordingBtn');
-    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording'}">${typeof t === 'function' ? (playbackMode === 'mix' ? t('fs_listen_mix') : t('fs_listen_recording')) : (playbackMode === 'mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement')}</span>`;
+    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording'}">${typeof t === 'function' ? (playbackMode === 'mix' ? t('fs_listen_mix') : t('fs_listen_recording')) : (playbackMode === 'mix' ? '├ëcouter le mix' : '├ëcouter l\'enregistrement')}</span>`;
     return;
   }
 
-  // If the current recording has no native mix file, fallback to the blob URL in `fsRecordings`
-  if (!currentSrc && Array.isArray(fsRecordings) && fsRecordings.length) {
-    const record = fsRecordings[0];
-    if (record && record.url) {
-      lastStudioRecording = lastStudioRecording || {};
-      lastStudioRecording.playbackUrl = record.url;
-      lastStudioRecording.wavUrl = record.url;
-      lastStudioRecording.mixWavUrl = lastStudioRecording.hasBeat ? null : record.url;
-      lastStudioRecording.url = record.url;
-      window.lastStudioRecording = lastStudioRecording;
-      if (audioEl) {
-        audioEl.src = record.url;
-        try { audioEl.load(); } catch (e) {}
-      }
-    }
-  }
-
-  // If mix mode is selected and we still do not have a generated mix, create it before playback.
-  if (playbackMode === 'mix' && lastStudioRecording.hasBeat && studioInstance && !lastStudioRecording.mixWavUrl) {
-    try {
-      const prepared = await prepareStudioMixPlayback(lastStudioRecording);
-      if (prepared) {
-        currentSrc = getCurrentRecordingSource(lastStudioRecording);
-      }
-    } catch (err) {
-      console.warn('Mix generation before playback failed:', err);
-    }
-  }
-  // If a mix was generated, ensure the audio element uses it (force update)
-  if (playbackMode === 'mix' && lastStudioRecording && lastStudioRecording.mixWavUrl && audioEl) {
-    try {
-      if (audioEl.src !== lastStudioRecording.mixWavUrl) {
-        audioEl.pause();
-        audioEl.src = lastStudioRecording.mixWavUrl;
-        try { audioEl.load(); } catch (e) {}
-      }
-      currentSrc = getCurrentRecordingSource(lastStudioRecording);
-    } catch (e) {
-      console.warn('Failed to set audio element to generated mix:', e);
-    }
-  }
-
-  // Mix studio en temps réel via Web Audio (beat + voix sync)
+  // Mix studio en temps r├®el via Web Audio (beat + voix sync)
   if (playbackMode === 'mix' && lastStudioRecording.hasBeat && studioInstance) {
     const vols = getMixerVolumes();
+    // Prefer native playback when a playback URL is available (forces native audio), else use WebAudio mix
     try {
-      const prepared = await prepareStudioMixPlayback(lastStudioRecording);
-      if (prepared && audioEl) {
-        const nativeSrc = getCurrentRecordingSource(lastStudioRecording);
-        if (nativeSrc && audioEl.src !== nativeSrc) {
+      const nativeSrc = getCurrentRecordingSource(lastStudioRecording);
+      if (nativeSrc && audioEl) {
+        // Assign and play native audio element ÔÇö keeps WebAudio mix available but forces native playback
+        if (audioEl.src !== nativeSrc) {
           audioEl.src = nativeSrc;
           try { audioEl.load(); } catch (e) {}
         }
         // Let the code below handle playing the audio element
       } else {
+        // No native URL available ÔÇö fall back to WebAudio mix
         if (audioEl) audioEl.pause();
         try {
           const mixResult = studioInstance.playStudioMix(vols.beat, vols.vocal);
@@ -1774,7 +1631,7 @@ async function playLastRecording() {
             mixResult.then((ok) => {
               if (ok) {
                 const btn = getEl('playRecordingBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arrêter'}</span>`;
+                if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arr├¬ter'}</span>`;
               }
             }).catch((err) => {
               console.warn('playStudioMix promise failed:', err);
@@ -1782,7 +1639,7 @@ async function playLastRecording() {
             return;
           } else if (mixResult) {
             const btn = getEl('playRecordingBtn');
-            if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arrêter'}</span>`;
+            if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arr├¬ter'}</span>`;
             return;
           }
         } catch (e) {
@@ -1790,7 +1647,7 @@ async function playLastRecording() {
         }
       }
     } catch (e) {
-      console.warn('Native mix preparation failed, falling back to mix:', e);
+      console.warn('Native playback preference failed, falling back to mix:', e);
     }
   }
 
@@ -1826,14 +1683,14 @@ async function playLastRecording() {
               } catch (unmuteErr) {
                 console.warn('Muted replay unmute failed:', unmuteErr);
                 audioEl.muted = wasMuted;
-                showToast(typeof t === 'function' ? t('dyn_playback_failed') : '⚠ Impossible de lancer la lecture, utilise le lecteur audio');
+                showToast(typeof t === 'function' ? t('dyn_playback_failed') : 'ÔÜá Impossible de lancer la lecture, utilise le lecteur audio');
                 setPlaybackError(err);
               }
             }, 250);
           } catch (mutedErr) {
             console.warn('Muted playback retry failed:', mutedErr);
             audioEl.muted = wasMuted;
-            showToast(typeof t === 'function' ? t('dyn_playback_failed') : '⚠ Impossible de lancer la lecture, utilise le lecteur audio');
+            showToast(typeof t === 'function' ? t('dyn_playback_failed') : 'ÔÜá Impossible de lancer la lecture, utilise le lecteur audio');
             setPlaybackError(err);
           }
         });
@@ -1859,14 +1716,14 @@ async function playLastRecording() {
         }, 250);
       } catch (fallbackErr) {
         console.warn('Playback fallback failed:', fallbackErr);
-        showToast(typeof t === 'function' ? t('dyn_playback_failed') : '⚠ Impossible de lancer la lecture, utilise le lecteur audio');
+        showToast(typeof t === 'function' ? t('dyn_playback_failed') : 'ÔÜá Impossible de lancer la lecture, utilise le lecteur audio');
         setPlaybackError(err);
       }
     }
   } else {
     audioEl.pause();
     const btn = getEl('playRecordingBtn');
-    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="fs_listen_recording">${typeof t === 'function' ? t('fs_listen_recording') : 'Écouter'}</span>`;
+    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="fs_listen_recording">${typeof t === 'function' ? t('fs_listen_recording') : '├ëcouter'}</span>`;
   }
 }
 
@@ -1884,7 +1741,7 @@ function stopRecordingPlayback() {
       const labelKey = playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording';
       const label = typeof t === 'function'
         ? t(labelKey)
-        : (playbackMode === 'mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement');
+        : (playbackMode === 'mix' ? '├ëcouter le mix' : '├ëcouter l\'enregistrement');
       btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${labelKey}">${label}</span>`;
     }
   } catch (err) {
@@ -1895,7 +1752,7 @@ window.stopRecordingPlayback = stopRecordingPlayback;
 
 window.downloadLastRecording = function downloadLastStudioRecording() {
   if (!lastStudioRecording) {
-    showToast(typeof t === 'function' ? t('dyn_no_recording') : 'Aucun enregistrement à télécharger');
+    showToast(typeof t === 'function' ? t('dyn_no_recording') : 'Aucun enregistrement ├á t├®l├®charger');
     return;
   }
 
@@ -1910,7 +1767,7 @@ window.downloadLastRecording = function downloadLastStudioRecording() {
   link.href = href;
   link.download = `${prefix}_${lastStudioRecording.beatTitle || 'vocal'}_${Date.now()}.${ext}`;
   link.click();
-  showToast(typeof t === 'function' ? t('dyn_download_started') : '⬇️ Téléchargement lancé');
+  showToast(typeof t === 'function' ? t('dyn_download_started') : 'Ô¼ç´©Å T├®l├®chargement lanc├®');
 };
 
 function discardLastRecording(silent) {
@@ -1946,8 +1803,8 @@ function discardLastRecording(silent) {
   }
 
   if (!silent) {
-    safeText('recordStatus', typeof t === 'function' ? t('dyn_rec_default') : 'Prêt à enregistrer');
-    showToast(typeof t === 'function' ? t('dyn_recording_discarded') : 'Enregistrement supprimé');
+    safeText('recordStatus', typeof t === 'function' ? t('dyn_rec_default') : 'Pr├¬t ├á enregistrer');
+    showToast(typeof t === 'function' ? t('dyn_recording_discarded') : 'Enregistrement supprim├®');
   }
 }
 
@@ -1969,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const labelKey = playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording';
       const label = typeof t === 'function'
         ? t(labelKey)
-        : (playbackMode === 'mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement');
+        : (playbackMode === 'mix' ? '├ëcouter le mix' : '├ëcouter l\'enregistrement');
       btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${labelKey}">${label}</span>`;
     };
     audioEl.addEventListener('ended', () => updatePlayButtonLabel());
@@ -2003,10 +1860,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lastStudioRecording = { ...candidate };
         displayRecordingResult(lastStudioRecording);
         setPlaybackMode(lastStudioRecording.hasBeat ? 'mix' : 'vocal');
-        console.log('✅ Restored lastStudioRecording from storage');
+        console.log('Ô£à Restored lastStudioRecording from storage');
       } else {
-        // If stored URL is a blob: URL it won't be valid across sessions — keep saved list only
-        console.log('ℹ Found saved recording, but URL is not remote — skipping automatic restore');
+        // If stored URL is a blob: URL it won't be valid across sessions ÔÇö keep saved list only
+        console.log('Ôä╣ Found saved recording, but URL is not remote ÔÇö skipping automatic restore');
       }
     }
   } catch (e) {
@@ -2061,9 +1918,9 @@ function updateMicLevelUI() {
   safeStyle('micLevelBar', 'width', level + '%');
 }
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // MIXER CONTROLS
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 function updateBeatVolume(value) {
   runOrQueue(() => {
@@ -2145,9 +2002,9 @@ function toggleSolo() {
   });
 }
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // EQUALIZER CONTROLS
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 function updateEQ(band, value) {
   runOrQueue(() => {
@@ -2166,9 +2023,9 @@ function updateEQ(band, value) {
   });
 }
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // EXPORT & PUBLISH
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 async function exportFreestyle() {
   runOrQueue(async () => {
@@ -2287,9 +2144,9 @@ window.updateFreestyleTranslations = function updateFreestyleTranslations() {
   }
 };
 
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 // INITIALIZATION
-// ═════════════════════════════════════════════════════════════════
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeStudioUI);
@@ -2308,9 +2165,9 @@ if (!window.exportFreestyle) window.exportFreestyle = exportFreestyle;
 if (!window.publishFreestyle) window.publishFreestyle = publishFreestyle;
 if (!window.shareFreestyle) window.shareFreestyle = shareFreestyle;
 
-// ─────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // Mobile/tablet compatibility helpers
-// ─────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 // Ensure AudioContext is resumed on first user gesture (iOS requirement)
 function activateAudioOnGesture() {

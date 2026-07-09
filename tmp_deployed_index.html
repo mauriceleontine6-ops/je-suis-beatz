@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+﻿<!DOCTYPE html> 
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -78,11 +78,11 @@
  
   <ul class="nav-links">
     <li><a onclick="showPage('home')" id="nav-home" class="active"><i class="fas fa-house-chimney"></i> <span data-i18n="nav_home">Accueil</span></a></li>
-    <li><a onclick="showPage('beats')" id="nav-beats"><i class="fas fa-compact-disc"></i> <span>Beats</span></a></li>
+    <li><a onclick="showPage('beats')" id="nav-beats"><i class="fas fa-compact-disc"></i> <span data-i18n="nav_beats">Beats</span></a></li>
     <li><a onclick="showPage('freestyle')" id="nav-freestyle"><i class="fas fa-microphone-lines"></i> <span data-i18n="nav_freestyle">Freestyle</span></a></li>
     <li><a onclick="showPage('community')" id="nav-community"><i class="fas fa-users"></i> <span data-i18n="nav_artists">Artistes</span></a></li>
     <li><a onclick="showPage('licenses')" id="nav-licenses"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></a></li>
-    <li><a onclick="showPage('contact')" id="nav-contact"><i class="fas fa-paper-plane"></i> <span>Contact</span></a></li>
+    <li><a onclick="showPage('contact')" id="nav-contact"><i class="fas fa-paper-plane"></i> <span data-i18n="nav_contact">Contact</span></a></li>
   </ul>
  
   <div class="nav-actions">
@@ -112,11 +112,11 @@
 <!-- Mobile Drawer -->
 <div class="nav-drawer" id="navDrawer">
   <a onclick="showPage('home');closeMobileNav()"><i class="fas fa-home" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_home">Accueil</span></a>
-  <a onclick="showPage('beats');closeMobileNav()"><i class="fas fa-music" style="color:var(--cyan);margin-right:10px"></i> <span>Beats</span></a>
+  <a onclick="showPage('beats');closeMobileNav()"><i class="fas fa-music" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_beats">Beats</span></a>
   <a onclick="showPage('freestyle');closeMobileNav()"><i class="fas fa-microphone" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_freestyle">Freestyle</span></a>
   <a onclick="showPage('community');closeMobileNav()"><i class="fas fa-users" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_artists">Artistes</span></a>
   <a onclick="showPage('licenses');closeMobileNav()"><i class="fas fa-file-contract" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_licenses">Licences</span></a>
-  <a onclick="showPage('contact');closeMobileNav()"><i class="fas fa-paper-plane" style="color:var(--cyan);margin-right:10px"></i> <span>Contact</span></a>
+  <a onclick="showPage('contact');closeMobileNav()"><i class="fas fa-paper-plane" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_contact">Contact</span></a>
 </div>
 <!-- ═══════════ HOME ═══════════ -->
 <div class="page active" id="page-home">
@@ -127,13 +127,13 @@
     <div class="hero-orb orb3"></div>
  
     <div class="hero-badge"><i class="fas fa-map-marker-alt"></i> <span data-i18n="hero_badge">Côte d'Ivoire · Distribution Internationale</span></div>
-    <h1>The beat Maker's Studio</h1>
+    <h1>The Beat<br><span class="cyan">Maker's Studio</span></h1>
     <p class="hero-slogan"><em>I am the sound you are looking for</em></p>
     <div class="hero-tags">
-      <span class="hero-tag"><i class="fas fa-circle" style="color:var(--cyan);font-size:.4rem"></i> <span data-i18n="genre_drill">Drill</span></span>
-      <span class="hero-tag"><span data-i18n="genre_afrobeats">Afrobeats</span></span>
-      <span class="hero-tag"><span data-i18n="genre_hiphop">Hip-Hop</span></span>
-      <span class="hero-tag"><span data-i18n="genre_rnb">RnB</span></span>
+      <span class="hero-tag"><i class="fas fa-circle" style="color:var(--cyan);font-size:.4rem"></i> Drill</span>
+      <span class="hero-tag">Afrobeats</span>
+      <span class="hero-tag">Hip-Hop</span>
+      <span class="hero-tag">RnB</span>
     </div>
     <div class="hero-cta">
       <button class="btn-primary" onclick="showPage('beats')">
@@ -151,7 +151,7 @@
     <div class="stats-inner">
       <div class="stat-item">
         <span class="stat-num" id="statBeats">0</span>
-        <span class="stat-label"><i class="fas fa-music"></i> <span data-i18n="stat_beats">Beats</span></span>
+        <span class="stat-label"><i class="fas fa-music"></i> Beats</span>
       </div>
       <div class="stat-item">
         <span class="stat-num">4</span>
@@ -159,7 +159,7 @@
       </div>
       <div class="stat-item">
         <span class="stat-num">🌍</span>
-        <span class="stat-label" data-i18n="stat_international">International</span>
+        <span class="stat-label">International</span>
       </div>
       <div class="stat-item">
         <span class="stat-num">24/7</span>
@@ -218,17 +218,17 @@
           </ul>
         </div>
         <div class="footer-col">
-          <h4 data-i18n="footer_genres">Genres</h4>
+          <h4>Genres</h4>
           <ul>
-            <li><a onclick="showPage('beats');filterBeats('Drill')" data-i18n="genre_drill">Drill</a></li>
-            <li><a onclick="showPage('beats');filterBeats('Afro')" data-i18n="genre_afrobeats">Afrobeats</a></li>
-            <li><a onclick="showPage('beats');filterBeats('Hip-Hop')" data-i18n="genre_hiphop">Hip-Hop</a></li>
+            <li><a onclick="showPage('beats');filterBeats('Drill')">Drill</a></li>
+            <li><a onclick="showPage('beats');filterBeats('Afro')">Afrobeats</a></li>
+            <li><a onclick="showPage('beats');filterBeats('Hip-Hop')">Hip-Hop</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
         <span class="footer-copy" data-i18n="footer_rights">© 2026 Je Suis Beatz · Tous droits réservés · Abidjan, Côte d'Ivoire</span>
-        <span class="footer-copy" data-i18n="footer_made_with" style="color:rgba(0,229,255,0.3)">Fait avec <i class="fas fa-heart" style="color:var(--cyan)"></i> par Je Suis Beatz</span>
+        <span class="footer-copy" style="color:rgba(0,229,255,0.3)">Made with <i class="fas fa-heart" style="color:var(--cyan)"></i> by Je Suis Beatz</span>
       </div>
     </div>
   </footer>
@@ -512,8 +512,8 @@
           <img id="fsBeatCover" src="image_beat.jpeg" alt="Beat cover" style="width:110px;height:110px;object-fit:cover;border-radius:18px;border:1px solid rgba(0,217,255,0.12);background:#07101f" onerror="this.src='image_beat.jpeg'" />
           <div>
             <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px"><i class="fas fa-play-circle"></i> <span data-i18n="fs_selected_beat">Beat sélectionné</span></div>
-            <div id="fsBeatName" data-i18n="fs_no_beat_selected" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:2px">Aucun beat sélectionné</div>
-            <div id="fsBeatMeta" data-i18n="fs_select_hint" style="font-family:var(--font-mono);font-size:0.82rem;color:var(--text-dim);margin-top:8px">Choisis un beat dans la liste ci-dessus.</div>
+            <div id="fsBeatName" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:2px">Aucun beat sélectionné</div>
+            <div id="fsBeatMeta" style="font-family:var(--font-mono);font-size:0.82rem;color:var(--text-dim);margin-top:8px">Choisis un beat dans la liste ci-dessus.</div>
             <div style="display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
               <button class="btn-primary" id="fsBeatPlayBtn" onclick="toggleFsBeat()" style="min-width:150px"><i class="fas fa-play"></i> <span data-i18n="fs_play_beat">Jouer le beat</span></button>
               <span id="fsBeatDuration" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim)">0:00</span>
@@ -654,17 +654,6 @@
             <i class="fas fa-trash"></i> <span data-i18n="fs_discard_recording">Supprimer</span>
           </button>
         </div>
-      </div>
-
-      <div style="background:rgba(0,0,0,0.16);border:1px solid rgba(0,217,255,0.18);border-radius:20px;padding:22px;margin-top:24px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
-          <div style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase"><i class="fas fa-layer-group"></i> <span data-i18n="fs_saved_recordings">Saved Freestyles</span></div>
-          <button class="btn-ghost" onclick="document.getElementById('fsImportInput').click()" style="font-size:0.8rem;padding:8px 12px">
-            <i class="fas fa-file-import"></i> <span data-i18n="fs_import_audio">Importer un freestyle</span>
-          </button>
-        </div>
-        <div id="recordingsList"></div>
-        <input type="file" id="fsImportInput" accept="audio/*" hidden onchange="importFreestyleFile(this)">
       </div>
 
       <!-- EQ SECTION -->
@@ -1156,10 +1145,10 @@
   </div>
 </div>
  
-<script src="script.js?v=20260708b"></script>
+<script src="script.js?v=20260708a"></script>
 <!-- Studio Pro Scripts -->
-<script src="studio-pro-engine.js?v=20260709a"></script>
-<script src="studio-pro-integration.js?v=20260709b"></script>
+<script src="studio-pro-engine.js?v=20260623"></script>
+<script src="studio-pro-integration.js?v=20260707c"></script>
 
 </body>
 </html>

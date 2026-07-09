@@ -1,7 +1,7 @@
 const fs = require('fs');
 const html = fs.readFileSync('index.html', 'utf8');
 const script = fs.readFileSync('script.js', 'utf8');
-const htmlKeys = new Set([...html.matchAll(/data-i18n(?:-ph)?="([^"]+)"/g)].map(m=>m[1]));
+const htmlKeys = new Set([...html.matchAll(/data-i18n(?:-[a-z]+)?="([^"]+)"/g)].map(m=>m[1]));
 const payKeys = new Set([...html.matchAll(/data-i18n-pay="([^"]+)"/g)].map(m=>m[1]));
 const allKeys = new Set([...htmlKeys, ...payKeys]);
 const translationsStart = script.indexOf('const translations = {');

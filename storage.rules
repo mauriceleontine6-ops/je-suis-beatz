@@ -23,15 +23,32 @@ service firebase.storage {
       );
     }
 
-    // Covers des beats — lecture publique, écriture admin
-    match /covers/{fileName} {
+    // Fichiers audio des beats — lecture publique, écriture admin
+    match /beats/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && request.resource.size < 50 * 1024 * 1024
+        && (request.resource.contentType.matches('audio/.*')
+            || request.resource.contentType == 'video/mpeg'
+            || request.resource.contentType == 'application/octet-stream');
+    }
+
+    match /covers/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin()
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
 
-    // Fichiers audio des beats — lecture publique, écriture admin
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Legacy single-segment rules kept for explicit file paths
     match /beats/{fileName} {
       allow read: if true;
       allow write: if isAdmin()
@@ -39,6 +56,13 @@ service firebase.storage {
         && (request.resource.contentType.matches('audio/.*')
             || request.resource.contentType == 'video/mpeg'
             || request.resource.contentType == 'application/octet-stream');
+    }
+
+    match /covers/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
     }
 
     // Freestyles utilisateurs
