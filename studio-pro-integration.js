@@ -707,10 +707,22 @@ function cleanupMobileMic() {
   } catch (e) { console.warn('cleanup fallback:', e); }
   fallbackAudioCtx = null;
   fallbackBuffers = [];
+  if (mobileRecorder) {
+    try {
+      mobileRecorder.ondataavailable = null;
+      mobileRecorder.onstop = null;
+      mobileRecorder.onerror = null;
+      mobileRecorder.onstart = null;
+    } catch (e) {}
+    mobileRecorder = null;
+  }
   if (mobileStream) {
     mobileStream.getTracks().forEach((track) => track.stop());
     mobileStream = null;
   }
+  mobileRecordingActive = false;
+  clearInterval(recordingTimerInterval);
+  recordingTimerInterval = null;
 }
 
 function startMicLevelMonitor(stream) {
@@ -905,8 +917,10 @@ async function startSimpleVocalRecording() {
           : (src) => (src.startsWith('http') ? src : new URL(src, window.location.href).href);
       const beatUrl = resolveUrl(beatSource);
       const sameBeatLoaded = fsAudio.src && (typeof audioSrcMatches === 'function' ? audioSrcMatches(fsAudio, beatUrl) : fsAudio.src === beatUrl);
+      const beatAlreadyPlaying = fsPlaying && !fsAudio.paused && beat && beatSource && resolveBeatAudioSource(beat) === resolveBeatAudioSource(fsSelectedBeat || beat);
+      const preservePlaybackState = beatAlreadyPlaying && !sameBeatLoaded;
       const preservedFsAudioVolume = (typeof fsAudio.volume === 'number' && fsAudio.volume > 0) ? fsAudio.volume : 1.0;
-      if (!sameBeatLoaded) {
+      if (!sameBeatLoaded && !preservePlaybackState) {
         if (typeof clearFsAudioCrossOrigin === 'function') clearFsAudioCrossOrigin();
         fsAudio.src = beatUrl;
         fsAudio.load();
@@ -914,13 +928,15 @@ async function startSimpleVocalRecording() {
       fsAudio.loop = true;
       fsAudio.muted = false;
       fsAudio.volume = preservedFsAudioVolume;
-      if (!sameBeatLoaded) {
-        fsAudio.currentTime = 0;
-      } else if (fsAudio.paused && fsAudio.duration && fsAudio.currentTime >= fsAudio.duration) {
-        fsAudio.currentTime = 0;
+      if (!preservePlaybackState) {
+        if (!sameBeatLoaded) {
+          fsAudio.currentTime = 0;
+        } else if (fsAudio.paused && fsAudio.duration && fsAudio.currentTime >= fsAudio.duration) {
+          fsAudio.currentTime = 0;
+        }
       }
       try {
-        if (!sameBeatLoaded || fsAudio.paused) {
+        if (!preservePlaybackState && (!sameBeatLoaded || fsAudio.paused)) {
           if (typeof ensureFsBeatPlayback === 'function') {
             await ensureFsBeatPlayback();
           } else {
@@ -933,6 +949,13 @@ async function startSimpleVocalRecording() {
       } catch (e) {
         console.warn('Beat play:', e);
       }
+    }
+
+    const beatPosition = (typeof fsAudio !== 'undefined' && fsAudio && !isNaN(fsAudio.currentTime) && fsAudio.duration)
+      ? fsAudio.currentTime
+      : 0;
+    if (studioInstance?.vocalRecorder?.setBeatStartTime) {
+      studioInstance.vocalRecorder.setBeatStartTime(Math.max(0, beatPosition));
     }
 
     if (mobileRecorder) {
@@ -968,10 +991,15 @@ async function startSimpleVocalRecording() {
           cleanupMobileMic();
         }
       }, 1000);
+
+      mobileRecordingActive = true;
+      mobileRecordingStart = Date.now();
     } else {
       // Start fallback recorder
       try {
         await startFallbackRecorder(mobileStream);
+        mobileRecordingActive = true;
+        mobileRecordingStart = Date.now();
       } catch (fbErr) {
         console.error('Fallback recorder failed to start:', fbErr);
         showToast(typeof t === 'function' ? t('dyn_recording_failed') : '⚠ Impossible d\'activer le micro');
@@ -980,8 +1008,6 @@ async function startSimpleVocalRecording() {
       }
     }
 
-    mobileRecordingActive = true;
-    mobileRecordingStart = Date.now();
     hideMicPermissionError();
     startFreestyleVisuals();
 
@@ -1240,7 +1266,8 @@ function stopSimpleVocalRecording() {
   clearInterval(recordingTimerInterval);
   if (mobileRecorder && mobileRecorder.state === 'recording') {
     try { mobileRecorder.requestData(); } catch (e) {}
-    mobileRecorder.stop();
+    try { mobileRecorder.stop(); } catch (e) { console.warn('Error stopping MediaRecorder:', e); }
+    // Do not clear MediaRecorder event handlers here; onstop must complete before cleanup.
   } else {
     // If we used the fallback (WebAudio) recorder, stop processor and finish
     if (fallbackProcessor) {
@@ -1253,17 +1280,32 @@ function stopSimpleVocalRecording() {
     }
     cleanupMobileMic();
   }
+
+  mobileRecordingActive = false;
+  clearInterval(recordingTimerInterval);
+  recordingTimerInterval = null;
 }
 
 async function startRecordingFlow() {
-  if (mobileRecordingActive) {
+  if (mobileRecordingActive || (mobileRecorder && mobileRecorder.state === 'recording')) {
     showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement déjà en cours');
     return;
   }
 
   if (studioInstance?.vocalRecorder?.isRecording) {
-    stopRecordingFlow();
-    return;
+    // If the engine reports a recording state without local microphone activity,
+    // reset stale state before starting a new freestyle recording.
+    console.warn('startRecordingFlow: studioInstance.vocalRecorder.isRecording=true while no local recording is active');
+    try {
+      studioInstance.stopRecording();
+      studioInstance.stopBeat();
+      if (typeof studioInstance.vocalRecorder.setMonitoring === 'function') {
+        studioInstance.vocalRecorder.setMonitoring(false);
+      }
+    } catch (e) {
+      console.warn('Failed to reset stale studio recording state:', e);
+    }
+    await new Promise(resolve => setTimeout(resolve, 200));
   }
 
   return startSimpleVocalRecording();
@@ -1395,6 +1437,12 @@ function handleRecordingReady(data) {
   }
 
   displayRecordingResult(lastStudioRecording);
+  setPlaybackMode(lastStudioRecording.hasBeat ? 'mix' : 'vocal');
+  updateRecordingPlayButton(false);
+  const audioEl = getEl('recordingPlayback');
+  if (audioEl) {
+    try { audioEl.load(); } catch (e) {}
+  }
   safeText('recordStatus', t('dyn_recording_done'));
   safeStyle('recordTimer', 'display', 'none');
   showToast(hasBeat ? t('fs_mix_ready') : t('dyn_recording_saved'));
@@ -1473,6 +1521,7 @@ async function generateStudioMix(recording) {
     }
     recording.mixWavBlob = mixBlob;
     recording.mixWavUrl = URL.createObjectURL(mixBlob);
+    recording.mixedStudioUrl = recording.mixWavUrl;
     recording.playbackUrl = recording.mixWavUrl;
 
     if (typeof fsRecordings !== 'undefined' && Array.isArray(fsRecordings)) {
@@ -1531,6 +1580,7 @@ function setPlaybackMode(mode) {
     const icon = mode === 'mix' ? 'fa-headphones' : 'fa-microphone';
     hint.innerHTML = `<i class="fas ${icon}"></i> <span data-i18n="${key}">${t(key)}</span>`;
   }
+  updateRecordingPlayButton(false);
 }
 
 // Affiche un diagnostic visible pour les erreurs de playback (utile sur mobile)
@@ -1556,39 +1606,39 @@ function updatePlaybackAudioSource(recording) {
   const audioEl = getEl('recordingPlayback');
   if (!audioEl || !recording) return;
 
-  let src = recording.playbackUrl || recording.wavUrl || recording.url;
-  if (playbackMode === 'mix' && recording.mixWavUrl) {
-    src = recording.mixWavUrl;
+  let src = recording.voiceOnlyUrl || recording.wavUrl || recording.playbackUrl || recording.url;
+  if (playbackMode === 'mix') {
+    src = recording.mixWavUrl || recording.mixedStudioUrl || recording.playbackUrl || recording.wavUrl || recording.voiceOnlyUrl || recording.url || '';
   } else if (playbackMode === 'vocal') {
-    src = recording.wavUrl || recording.url;
+    src = recording.voiceOnlyUrl || recording.wavUrl || recording.playbackUrl || recording.url || '';
   }
 
   audioEl.pause();
   audioEl.currentTime = 0;
 
-  const oldSrc = audioEl.src || '';
-  const recordingUrls = [recording.mixWavUrl, recording.wavUrl, recording.playbackUrl, recording.url].filter(Boolean);
-  const isStillReferenced = recordingUrls.some((url) => url === oldSrc);
+  const currentSrc = audioEl.currentSrc || audioEl.getAttribute('src') || '';
+  const recordingUrls = [recording.mixWavUrl, recording.mixedStudioUrl, recording.voiceOnlyUrl, recording.wavUrl, recording.playbackUrl, recording.url].filter(Boolean);
+  const isStillReferenced = recordingUrls.some((url) => url === currentSrc || url === audioEl.src);
 
-  // Only revoke a blob URL if it is no longer referenced by the current recording.
-  if (oldSrc.startsWith('blob:') && oldSrc !== src && !isStillReferenced) {
+  if (currentSrc.startsWith('blob:') && currentSrc !== src && !isStillReferenced) {
     try {
-      URL.revokeObjectURL(oldSrc);
+      URL.revokeObjectURL(currentSrc);
     } catch (e) {
       console.warn('Failed to revoke old blob URL:', e);
     }
   }
 
-  if (audioEl.src !== src) {
+  if (!src) {
+    audioEl.removeAttribute('src');
+    try { audioEl.load(); } catch (e) {}
+  } else if (currentSrc !== src) {
     audioEl.src = src;
-    audioEl.load();
+    try { audioEl.load(); } catch (e) {}
   }
 
-  // Configure audio element for better playback performance
   audioEl.preload = 'auto';
   audioEl.crossOrigin = 'anonymous';
 
-  // Ensure audio is ready before allowing playback
   audioEl.oncanplay = () => {
     console.log('✅ Audio ready for playback');
   };
@@ -1605,7 +1655,7 @@ function displayRecordingResult(recording) {
   if (!section || !recording) return;
 
   const durationLabel = formatTime(recording.duration || 0);
-  const formatLabel = playbackMode === 'mix' && recording.mixWavUrl
+  const formatLabel = playbackMode === 'mix' && (recording.mixWavUrl || recording.mixedStudioUrl)
     ? t('fs_format_mix')
     : (recording.wavUrl ? t('fs_format_wav') : (recording.mimeType || 'audio').split('/').pop().toUpperCase());
 
@@ -1653,15 +1703,64 @@ function displayRecordingResult(recording) {
 
   section.style.display = 'block';
   section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  // Ensure any dynamic text inside the recording result is translated
-  if (typeof applyTranslations === 'function') try { applyTranslations(); } catch(e) {}
+  updateStudioResultTranslations();
+}
+
+function renderStudioRecordingCard(recording) {
+  if (!recording) return '';
+  const durationLabel = formatTime(recording.duration || 0);
+  const formatLabel = playbackMode === 'mix' && (recording.mixWavUrl || recording.mixedStudioUrl)
+    ? t('fs_format_mix')
+    : (recording.wavUrl ? t('fs_format_wav') : (recording.mimeType || 'audio').split('/').pop().toUpperCase());
+
+  return `
+      <div class="recording-result-card">
+        <div class="recording-result-icon"><i class="fas ${recording.hasBeat ? 'fa-headphones' : 'fa-microphone'}"></i></div>
+        <div class="recording-result-info">
+          <div class="recording-result-title">${recording.label || t('fs_recording_label')}</div>
+          <div class="recording-result-meta">${recording.beatTitle} · ${recording.date} · ${durationLabel} · ${formatLabel}</div>
+        </div>
+      </div>`;
+}
+
+function updateStudioResultTranslations() {
+  if (!lastStudioRecording || getEl('recordingResultSection')?.style.display === 'none') return;
+  const list = getEl('recordingResultList');
+  if (list) {
+    list.innerHTML = renderStudioRecordingCard(lastStudioRecording);
+  }
+  const hint = getEl('recordingPlaybackHint');
+  if (hint) {
+    const key = playbackMode === 'mix' ? 'fs_mix_playback_hint' : 'fs_vocal_playback_hint';
+    const icon = playbackMode === 'mix' ? 'fa-headphones' : 'fa-microphone';
+    hint.innerHTML = `<i class="fas ${icon}"></i> <span data-i18n="${key}">${t(key)}</span>`;
+  }
+  const audioEl = getEl('recordingPlayback');
+  const playBtn = getEl('playRecordingBtn');
+  if (playBtn) {
+    const isPlaying = audioEl ? !audioEl.paused && !audioEl.ended : false;
+    updateRecordingPlayButton(isPlaying);
+  }
 }
 
 function getCurrentRecordingSource(recording) {
   if (!recording) return '';
-  if (playbackMode === 'mix' && recording.mixWavUrl) return recording.mixWavUrl;
-  if (playbackMode === 'vocal') return recording.wavUrl || recording.url || '';
-  return recording.playbackUrl || recording.wavUrl || recording.url || '';
+  if (playbackMode === 'mix') return recording.mixWavUrl || recording.mixedStudioUrl || recording.playbackUrl || recording.wavUrl || recording.voiceOnlyUrl || recording.url || '';
+  if (playbackMode === 'vocal') return recording.voiceOnlyUrl || recording.wavUrl || recording.playbackUrl || recording.url || '';
+  return recording.playbackUrl || recording.voiceOnlyUrl || recording.wavUrl || recording.url || '';
+}
+
+function getPlaybackButtonLabelKey(isPlaying) {
+  if (isPlaying) return 'dyn_pause';
+  return playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording';
+}
+
+function updateRecordingPlayButton(isPlaying) {
+  const btn = getEl('playRecordingBtn');
+  if (!btn) return;
+  const key = getPlaybackButtonLabelKey(isPlaying);
+  const label = typeof t === 'function' ? t(key) : (key === 'dyn_pause' ? 'Pause' : key === 'fs_listen_mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement');
+  btn.innerHTML = `<i class="fas fa-${isPlaying ? 'pause' : 'play'}"></i> <span data-i18n="${key}">${label}</span>`;
 }
 
 async function playLastRecording() {
@@ -1672,8 +1771,11 @@ async function playLastRecording() {
       lastStudioRecording = {
         id: record.id || Date.now(),
         url: record.url,
-        wavUrl: record.url,
-        playbackUrl: record.url,
+        playbackUrl: record.playbackUrl || record.url,
+        wavUrl: record.wavUrl || record.url,
+        voiceOnlyUrl: record.voiceOnlyUrl || record.url,
+        mixWavUrl: hasBeat ? null : record.url,
+        mixedStudioUrl: hasBeat ? null : record.url,
         blob: record.blob,
         wavBlob: record.blob,
         mimeType: record.mimeType || 'audio/webm',
@@ -1683,7 +1785,6 @@ async function playLastRecording() {
         label: record.label || (typeof t === 'function' ? t('fs_take_label') + ' 1' : 'Take 1'),
         hasBeat,
         beatOffset: record.beatOffset || 0,
-        mixWavUrl: hasBeat ? null : record.url,
         mixWavBlob: hasBeat ? null : record.blob
       };
       window.lastStudioRecording = lastStudioRecording;
@@ -1699,7 +1800,7 @@ async function playLastRecording() {
   }
 
   const audioEl = getEl('recordingPlayback');
-  const currentSrc = getCurrentRecordingSource(lastStudioRecording);
+  let currentSrc = getCurrentRecordingSource(lastStudioRecording);
   if (audioEl && !audioEl.paused && audioEl.currentSrc === currentSrc) {
     stopRecordingPlayback();
     return;
@@ -1707,18 +1808,19 @@ async function playLastRecording() {
 
   if (studioInstance && studioInstance.isMixPlaying()) {
     studioInstance.stopStudioMix();
-    const btn = getEl('playRecordingBtn');
-    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording'}">${typeof t === 'function' ? (playbackMode === 'mix' ? t('fs_listen_mix') : t('fs_listen_recording')) : (playbackMode === 'mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement')}</span>`;
+    updateRecordingPlayButton(false);
     return;
   }
 
-  // If the current recording has no native mix file, fallback to the blob URL in `fsRecordings`
-  if (!currentSrc && Array.isArray(fsRecordings) && fsRecordings.length) {
+  // If vocal mode is selected and there is no dedicated voice-only source yet,
+  // fallback to the raw recording URL for playback.
+  if (!currentSrc && playbackMode !== 'mix' && Array.isArray(fsRecordings) && fsRecordings.length) {
     const record = fsRecordings[0];
     if (record && record.url) {
       lastStudioRecording = lastStudioRecording || {};
       lastStudioRecording.playbackUrl = record.url;
       lastStudioRecording.wavUrl = record.url;
+      lastStudioRecording.voiceOnlyUrl = record.url;
       lastStudioRecording.mixWavUrl = lastStudioRecording.hasBeat ? null : record.url;
       lastStudioRecording.url = record.url;
       window.lastStudioRecording = lastStudioRecording;
@@ -1730,7 +1832,7 @@ async function playLastRecording() {
   }
 
   // If mix mode is selected and we still do not have a generated mix, create it before playback.
-  if (playbackMode === 'mix' && lastStudioRecording.hasBeat && studioInstance && !lastStudioRecording.mixWavUrl) {
+  if (playbackMode === 'mix' && lastStudioRecording.hasBeat && studioInstance && !lastStudioRecording.mixWavUrl && !lastStudioRecording.mixedStudioUrl) {
     try {
       const prepared = await prepareStudioMixPlayback(lastStudioRecording);
       if (prepared) {
@@ -1741,11 +1843,12 @@ async function playLastRecording() {
     }
   }
   // If a mix was generated, ensure the audio element uses it (force update)
-  if (playbackMode === 'mix' && lastStudioRecording && lastStudioRecording.mixWavUrl && audioEl) {
+  if (playbackMode === 'mix' && lastStudioRecording && (lastStudioRecording.mixWavUrl || lastStudioRecording.mixedStudioUrl) && audioEl) {
     try {
-      if (audioEl.src !== lastStudioRecording.mixWavUrl) {
+      const mixSrc = lastStudioRecording.mixWavUrl || lastStudioRecording.mixedStudioUrl;
+      if (audioEl.src !== mixSrc) {
         audioEl.pause();
-        audioEl.src = lastStudioRecording.mixWavUrl;
+        audioEl.src = mixSrc;
         try { audioEl.load(); } catch (e) {}
       }
       currentSrc = getCurrentRecordingSource(lastStudioRecording);
@@ -1772,17 +1875,13 @@ async function playLastRecording() {
           const mixResult = studioInstance.playStudioMix(vols.beat, vols.vocal);
           if (mixResult && typeof mixResult.then === 'function') {
             mixResult.then((ok) => {
-              if (ok) {
-                const btn = getEl('playRecordingBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arrêter'}</span>`;
-              }
+              if (ok) updateRecordingPlayButton(true);
             }).catch((err) => {
               console.warn('playStudioMix promise failed:', err);
             });
             return;
           } else if (mixResult) {
-            const btn = getEl('playRecordingBtn');
-            if (btn) btn.innerHTML = `<i class="fas fa-stop"></i> <span>${typeof t === 'function' ? t('dyn_stop') : 'Arrêter'}</span>`;
+            updateRecordingPlayButton(true);
             return;
           }
         } catch (e) {
@@ -1796,6 +1895,14 @@ async function playLastRecording() {
 
   if (!audioEl) return;
 
+  if (playbackMode === 'mix') {
+    currentSrc = getCurrentRecordingSource(lastStudioRecording);
+    if (!currentSrc) {
+      showToast(typeof t === 'function' ? t('fs_mix_unavailable') : 'Mix studio non disponible');
+      return;
+    }
+  }
+
   updatePlaybackAudioSource(lastStudioRecording);
 
   if (audioEl.paused) {
@@ -1803,8 +1910,7 @@ async function playLastRecording() {
       const playPromise = audioEl.play();
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise.then(() => {
-          const btn = getEl('playRecordingBtn');
-          if (btn) btn.innerHTML = `<i class="fas fa-pause"></i> <span>${typeof t === 'function' ? t('dyn_pause') : 'Pause'}</span>`;
+          updateRecordingPlayButton(true);
         }).catch(async (err) => {
           console.error('Playback promise rejected:', err);
           audioEl.controls = true;
@@ -1821,8 +1927,7 @@ async function playLastRecording() {
               try {
                 audioEl.muted = false;
                 await audioEl.play();
-                const btn = getEl('playRecordingBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-pause"></i> <span>${typeof t === 'function' ? t('dyn_pause') : 'Pause'}</span>`;
+                updateRecordingPlayButton(true);
               } catch (unmuteErr) {
                 console.warn('Muted replay unmute failed:', unmuteErr);
                 audioEl.muted = wasMuted;
@@ -1865,8 +1970,7 @@ async function playLastRecording() {
     }
   } else {
     audioEl.pause();
-    const btn = getEl('playRecordingBtn');
-    if (btn) btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="fs_listen_recording">${typeof t === 'function' ? t('fs_listen_recording') : 'Écouter'}</span>`;
+    updateRecordingPlayButton(false);
   }
 }
 
@@ -1880,13 +1984,7 @@ function stopRecordingPlayback() {
       audioEl.pause();
     }
     const btn = getEl('playRecordingBtn');
-    if (btn) {
-      const labelKey = playbackMode === 'mix' ? 'fs_listen_mix' : 'fs_listen_recording';
-      const label = typeof t === 'function'
-        ? t(labelKey)
-        : (playbackMode === 'mix' ? 'Écouter le mix' : 'Écouter l\'enregistrement');
-      btn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="${labelKey}">${label}</span>`;
-    }
+    if (btn) updateRecordingPlayButton(false);
   } catch (err) {
     console.warn('stopRecordingPlayback failed', err);
   }
@@ -1899,11 +1997,11 @@ window.downloadLastRecording = function downloadLastStudioRecording() {
     return;
   }
 
-  const useMix = playbackMode === 'mix' && lastStudioRecording.mixWavUrl;
-  const useWav = !useMix && !!lastStudioRecording.wavUrl;
-  const href = useMix ? lastStudioRecording.mixWavUrl
-    : useWav ? lastStudioRecording.wavUrl : lastStudioRecording.url;
-  const ext = useMix || useWav ? 'wav' : ((lastStudioRecording.mimeType || '').includes('ogg') ? 'ogg' : 'webm');
+  const useMix = playbackMode === 'mix' && (lastStudioRecording.mixWavUrl || lastStudioRecording.mixedStudioUrl);
+  const useWav = !useMix && !!lastStudioRecording.voiceOnlyUrl;
+  const href = useMix ? (lastStudioRecording.mixWavUrl || lastStudioRecording.mixedStudioUrl)
+    : useWav ? lastStudioRecording.voiceOnlyUrl : lastStudioRecording.url;
+  const ext = useMix ? 'wav' : (useWav ? ((lastStudioRecording.mimeType || '').includes('wav') ? 'wav' : (lastStudioRecording.mimeType || '').split('/').pop() || 'webm') : ((lastStudioRecording.mimeType || '').includes('ogg') ? 'ogg' : 'webm'));
   const prefix = useMix ? 'mix_studio' : 'freestyle';
 
   const link = document.createElement('a');
@@ -2276,14 +2374,11 @@ function shareFreestyle() {
 }
 
 window.updateFreestyleTranslations = function updateFreestyleTranslations() {
-  if (lastStudioRecording && getEl('recordingResultSection')?.style.display !== 'none') {
-    displayRecordingResult(lastStudioRecording);
-    setPlaybackMode(playbackMode);
-  }
+  updateStudioResultTranslations();
   const playBtn = getEl('playRecordingBtn');
   const audioEl = getEl('recordingPlayback');
   if (playBtn && !(studioInstance && studioInstance.isMixPlaying && studioInstance.isMixPlaying()) && (!audioEl || audioEl.paused)) {
-    playBtn.innerHTML = `<i class="fas fa-play"></i> <span data-i18n="fs_listen_mix">${t('fs_listen_mix')}</span>`;
+    updateRecordingPlayButton(false);
   }
 };
 
