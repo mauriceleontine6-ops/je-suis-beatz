@@ -1570,6 +1570,13 @@ nav.scrolled {
   -webkit-user-select: text;
   cursor: text;
 }
+.contact-form-card .contact-message-input {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  cursor: text;
+}
 
 @media (max-width: 700px) {
   .contact-info-card, .contact-form-card { padding: 24px 20px; }
