@@ -5467,6 +5467,9 @@ const translations = {
     beats_chip: 'Catalogue',
     beats_title: 'Tous les Beats',
     beats_sub: 'Des productions premium pour tous les styles. Téléchargement immédiat après achat.',
+    beats_selects_label: 'JSB / SELECTS',
+    beats_delivery_note: 'Livraison instantanée · Prêt pour le studio',
+    beats_explore_label: 'Explorer par univers',
     filter_all: 'Tous',
     // Licenses
     lic_title: 'Choisissez votre Licence',
@@ -6072,6 +6075,9 @@ const translations = {
     beats_chip: 'Catalog',
     beats_title: 'All Beats',
     beats_sub: 'Premium productions for every style. Instant download after purchase.',
+    beats_selects_label: 'JSB / SELECTS',
+    beats_delivery_note: 'Instant delivery · Studio ready',
+    beats_explore_label: 'Explore by mood',
     filter_all: 'All',
     // Licenses
     lic_title: 'Choose your License',
