@@ -196,7 +196,7 @@
   <!-- Featured Beat -->
   <section class="section" style="padding-top:0">
     <div class="section-inner">
-      <div class="section-head">
+      <div class="section-head community-intro">
         <span class="section-chip"><i class="fas fa-fire"></i> <span data-i18n="featured_chip">Nouveau drop</span></span>
         <h2 class="section-title" data-i18n="featured_title">Beat en Vedette</h2>
         <div class="divider"></div>
@@ -766,12 +766,12 @@
         <div class="divider"></div>
         <p class="section-sub" data-i18n="comm_sub">Crée ton profil artiste, partage tes réseaux, publie tes sons réalisés avec les beats de Je Suis Beatz.</p>
       </div>
-      <div style="display:flex;gap:12px;margin-bottom:36px;flex-wrap:wrap;justify-content:center">
+      <div class="community-tabs" style="display:flex;gap:12px;margin-bottom:36px;flex-wrap:wrap;justify-content:center">
         <button class='filter-btn active' onclick='communityTab("profiles",this)'><i class='fas fa-users'></i> <span data-i18n='nav_artists'>Artistes</span></button>
         <button class='filter-btn' onclick='communityTab("my-profile",this)'><i class='fas fa-user-circle'></i> <span data-i18n='comm_my_profile'>Mon Profil</span></button>
         <button class='filter-btn' onclick='communityTab("feed",this)'><i class='fas fa-stream'></i> <span data-i18n='comm_feed'>Fil d'actualité</span></button>
       </div>
-      <div id="comm-profiles"><div id="artistsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px"></div></div>
+      <div id="comm-profiles"><div id="artistsGrid" class="artists-grid"></div></div>
       <div id="comm-my-profile" style="display:none"><div id="myProfileContent"></div></div>
       <div id="comm-feed" style="display:none"><div id="feedContent" style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px"></div></div>
     </div>

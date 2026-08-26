@@ -5217,21 +5217,21 @@ function artistCard(p) {
   // URLs des réseaux sociaux : on vérifie qu'elles commencent par https://
   const safeUrl = (url) => (url && /^https:\/\//.test(url)) ? encodeURI(url) : '#';
   const postCount = p.postCount || 0;
-  return `<div style="background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(0,229,255,0.12);border-radius:20px;overflow:hidden;transition:all 0.3s" onmouseover="this.style.borderColor='rgba(0,229,255,0.3)'" onmouseout="this.style.borderColor='rgba(0,229,255,0.12)'">
-    <div style="height:90px;background:linear-gradient(135deg,rgba(0,100,180,0.3),rgba(0,229,255,0.1));position:relative"></div>
-    <div style="padding:12px 20px 20px;margin-top:-28px">
+  return `<div class="artist-card-premium">
+    <div class="artist-card-banner"></div>
+    <div class="artist-card-content">
       ${avatarHtml}
-      <div style="font-family:var(--font-display);font-size:1.2rem;color:#fff;letter-spacing:1px">${safeUsername}</div>
-      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--cyan);margin:4px 0 10px">${safeGenre} · ${safeLocation}</div>
-      <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px">${safeBio}</p>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="artist-card-name">${safeUsername}</div>
+      <div class="artist-card-meta">${safeGenre} · ${safeLocation}</div>
+      <p class="artist-card-bio">${safeBio}</p>
+      <div class="artist-card-socials">
         ${p.instagram?`<a href="${safeUrl(p.instagram)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-instagram"></i></a>`:''}
         ${p.youtube?`<a href="${safeUrl(p.youtube)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-youtube"></i></a>`:''}
         ${p.tiktok?`<a href="${safeUrl(p.tiktok)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-tiktok"></i></a>`:''}
         ${p.soundcloud?`<a href="${safeUrl(p.soundcloud)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-soundcloud"></i></a>`:''}
         ${p.spotify?`<a href="${safeUrl(p.spotify)}" target="_blank" rel="noopener noreferrer" class="social-icon" style="width:34px;height:34px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:center"><i class="fab fa-spotify"></i></a>`:''}
       </div>
-      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)">
+      <div class="artist-card-footer">
         <span><i class="fas fa-music" style="color:var(--cyan)"></i> ${postCount} ${t('dyn_tracks_label')}</span>
         <span><i class="fas fa-calendar-alt" style="color:var(--cyan)"></i> ${safeJoined}</span>
       </div>
