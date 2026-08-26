@@ -1579,6 +1579,13 @@ nav.scrolled {
   position: relative;
   z-index: 10;
   isolation: isolate;
+  padding: 16px !important;
+  background: rgba(1, 9, 18, 0.82) !important;
+  border: 1px solid rgba(0,229,255,0.28) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-family: Roboto, sans-serif !important;
+  line-height: 1.6;
 }
 .contact-form-card::before,
 .contact-form-card::after,
