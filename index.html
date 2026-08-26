@@ -440,7 +440,7 @@
 <div class="page" id="page-contact">
   <section class="section" style="padding-top:110px">
     <div class="section-inner">
-      <div class="section-head">
+      <div class="section-head contact-intro">
         <span class="section-chip"><i class="fas fa-paper-plane"></i> Contact</span>
         <h2 class="section-title" data-i18n="contact_title">Travaillons Ensemble</h2>
         <div class="divider"></div>
@@ -449,10 +449,18 @@
       <div class="contact-grid">
         <div>
           <div class="contact-info-card">
+            <div class="contact-panel-head">
+              <div>
+                <span class="contact-panel-kicker" data-i18n="contact_direct_label">CONTACT DIRECT</span>
+                <h3 data-i18n="contact_info_title">Parlons de ton projet</h3>
+                <p data-i18n="contact_info_sub">Une réponse claire, une direction sonore précise.</p>
+              </div>
+              <span class="contact-status"><i></i><span data-i18n="contact_availability">Disponible</span></span>
+            </div>
             <div class="contact-row">
               <div class="contact-ico"><i class="fas fa-envelope"></i></div>
               <div>
-                <div class="contact-lbl">Email</div>
+                <div class="contact-lbl" data-i18n="contact_email_label">Email</div>
                 <div class="contact-val">
                   <a href="/cdn-cgi/l/email-protection#97fdf2e4e2fee4e3fff2f5f2f6e3faf6fcf2e5d7f0faf6fefbb9f4f8fa" style="text-decoration: none; color: #fff;">
                     <span class="__cf_email__" data-cfemail="442e2137312d37302c212621253029252f2136042329252d286a272b29">[email&#160;protected]</span>
@@ -463,7 +471,7 @@
             <div class="contact-row">
               <div class="contact-ico"><i class="fab fa-whatsapp"></i></div>
               <div>
-                <div class="contact-lbl">WhatsApp</div>
+                <div class="contact-lbl" data-i18n="contact_whatsapp_label">WhatsApp</div>
                 <div class="contact-val">+225 0701803236</div>
               </div>
             </div>
@@ -489,7 +497,11 @@
           </div>
         </div>
         <div class="contact-form-card">
-          <h3 style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:2px;margin-bottom:24px" data-i18n="contact_form_title">Envoyer un Message</h3>
+          <div class="form-panel-head">
+            <span class="contact-panel-kicker" data-i18n="contact_form_kicker">NOUVELLE DEMANDE</span>
+            <h3 data-i18n="contact_form_title">Envoyer un Message</h3>
+            <p data-i18n="contact_form_sub">Décris ton besoin, je te répondrai personnellement.</p>
+          </div>
           <div class="form-row">
             <label class="form-lbl" data-i18n="contact_name">Nom complet</label>
             <input class="form-inp" type="text" data-i18n-ph="contact_name_ph" placeholder="Votre nom">
@@ -506,7 +518,7 @@
             <label class="form-lbl" data-i18n="contact_msg">Message</label>
             <textarea class="form-inp" data-i18n-ph="contact_msg_ph" placeholder="Décrivez votre projet..."></textarea>
           </div>
-          <button class="btn-primary" style="width:100%;justify-content:center" onclick="showToast(t('dyn_msg_sent'))">
+          <button class="btn-primary contact-submit" style="width:100%;justify-content:center" onclick="showToast(t('dyn_msg_sent'))">
             <i class="fas fa-paper-plane"></i> <span data-i18n="contact_send">Envoyer le Message</span>
           </button>
         </div>
