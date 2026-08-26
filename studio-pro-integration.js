@@ -672,6 +672,7 @@ var mobileRecorder = window.mobileRecorder;
 var mobileStream = window.mobileStream;
 var mobileChunks = window.mobileChunks;
 var mobileRecordingActive = window.mobileRecordingActive;
+var mobileRecordingStarting = false;
 var mobileRecordingStart = window.mobileRecordingStart;
 var mobileLevelCtx = window.mobileLevelCtx;
 var mobileLevelAnalyser = window.mobileLevelAnalyser;
@@ -679,8 +680,33 @@ var fallbackBuffers = window.fallbackBuffers;
 var fallbackAudioCtx = window.fallbackAudioCtx;
 var fallbackProcessor = window.fallbackProcessor;
 var fallbackSource = window.fallbackSource;
+var beatResumeInterval = null;
+var beatResumeInProgress = false;
+
+function keepBeatPlayingDuringRecording() {
+  clearInterval(beatResumeInterval);
+  beatResumeInterval = setInterval(async () => {
+    if (!mobileRecordingActive || !fsAudio || !fsAudio.src) {
+      clearInterval(beatResumeInterval);
+      beatResumeInterval = null;
+      return;
+    }
+    if (!fsAudio.paused || beatResumeInProgress) return;
+    beatResumeInProgress = true;
+    try {
+      await fsAudio.play();
+    } catch (e) {
+      try { await ensureFsBeatPlayback(); } catch (retryError) {}
+    } finally {
+      beatResumeInProgress = false;
+    }
+  }, 300);
+}
 
 function cleanupMobileMic() {
+  clearInterval(beatResumeInterval);
+  beatResumeInterval = null;
+  beatResumeInProgress = false;
   stopFreestyleVisuals();
   clearInterval(micLevelInterval);
   micLevelInterval = null;
@@ -748,6 +774,16 @@ function startMicLevelMonitor(stream) {
 }
 
 async function startSimpleVocalRecording() {
+  if (mobileRecordingStarting) return;
+  mobileRecordingStarting = true;
+  try {
+    return await startSimpleVocalRecordingCore();
+  } finally {
+    mobileRecordingStarting = false;
+  }
+}
+
+async function startSimpleVocalRecordingCore() {
   if (mobileRecordingActive) {
     showToast(typeof t === 'function' ? t('dyn_recording_status') : 'Enregistrement déjà en cours');
     return;
@@ -994,12 +1030,14 @@ async function startSimpleVocalRecording() {
 
       mobileRecordingActive = true;
       mobileRecordingStart = Date.now();
+      keepBeatPlayingDuringRecording();
     } else {
       // Start fallback recorder
       try {
         await startFallbackRecorder(mobileStream);
         mobileRecordingActive = true;
         mobileRecordingStart = Date.now();
+        keepBeatPlayingDuringRecording();
       } catch (fbErr) {
         console.error('Fallback recorder failed to start:', fbErr);
         showToast(typeof t === 'function' ? t('dyn_recording_failed') : '⚠ Impossible d\'activer le micro');
@@ -2115,11 +2153,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         el.style.touchAction = 'manipulation';
         el.style.webkitTapHighlightColor = 'transparent';
-        el.addEventListener('touchstart', (ev) => {
-          // prevent duplicate mouse events
-          ev.preventDefault();
-          el.click();
-        }, { passive: false });
       } catch (e) {}
     });
   });
@@ -2341,18 +2374,38 @@ async function publishFreestyle() {
         },
         async () => {
           const url = await storageRef.getDownloadURL();
+          const username = (window.currentUser && window.currentUser.username) || user.displayName || user.email?.split('@')[0] || 'Anonymous';
+          const postData = {
+            type: 'freestyle',
+            username,
+            beatTitle: `Freestyle - ${new Date().toLocaleDateString('fr-FR')}`,
+            date: new Date().toLocaleDateString('fr'),
+            url,
+            likes: 0,
+            comments: []
+          };
 
           await db.collection('freestyles').add({
             userId: user.uid,
-            userName: user.displayName || 'Anonymous',
-            title: `Freestyle - ${new Date().toLocaleDateString('fr-FR')}`,
+            userName: username,
+            title: postData.beatTitle,
             audioUrl: url,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             likes: 0,
             plays: 0
           });
 
+          if (typeof window.addPostToFirestore === 'function') {
+            await window.addPostToFirestore(postData);
+          } else {
+            await db.collection('posts').add({ ...postData, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+          }
+
           showToast(t('publish_success'));
+          if (typeof window.showPage === 'function' && typeof window.communityTab === 'function') {
+            window.showPage('community');
+            window.communityTab('my-profile');
+          }
         }
       );
 

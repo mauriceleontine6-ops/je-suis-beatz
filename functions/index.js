@@ -127,6 +127,20 @@ function cfgOptional(path) {
   }
 }
 
+async function verifyFirebaseRequest(req) {
+  const authHeader = String(req.headers?.authorization || req.headers?.Authorization || '').trim();
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.substring(7).trim() : authHeader;
+  const token = bearer || String(req.headers?.['x-firebase-auth'] || '').trim();
+  if (!token) return null;
+  try {
+    const decoded = await adminSdk.auth().verifyIdToken(token);
+    return decoded;
+  } catch (e) {
+    console.warn('Firebase auth verify failed:', e.message || e);
+    return null;
+  }
+}
+
 exports.getUserEmailByUsername = functions.https.onCall(async (data, context) => {
   const { username } = data;
   if (!username || typeof username !== 'string' || username.length > 30) {
@@ -740,7 +754,7 @@ exports.createGeniusPayment = functions.https.onRequest(async (req, res) => {
   // CORS handling
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
     return res.status(204).send('');
@@ -750,12 +764,22 @@ exports.createGeniusPayment = functions.https.onRequest(async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const auth = await verifyFirebaseRequest(req);
+  if (!auth || !auth.uid) {
+    return res.status(401).json({ success: false, error: 'unauthenticated' });
+  }
+
   try {
     const body = req.body || {};
-    const orderData = body.orderData;
+    const orderData = body.orderData || body.data?.orderData || body.data || null;
     
-    if (!orderData) {
+    if (!orderData || typeof orderData !== 'object') {
       return res.status(400).json({ error: 'orderData missing' });
+    }
+
+    const amount = Number(orderData.amount || orderData.totalXOF || orderData.total || 0);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ success: false, error: 'invalid_amount' });
     }
 
     // Récupérer les clés depuis les params (si définis), sinon env vars, sinon functions.config()
@@ -773,7 +797,7 @@ exports.createGeniusPayment = functions.https.onRequest(async (req, res) => {
       return res.status(500).json({ success: false, error: 'missing_payment_keys' });
     }
 
-    console.log('Creating GeniusPay payment for amount:', orderData.amount);
+    console.log('Creating GeniusPay payment for uid:', auth.uid, 'amount:', amount);
 
     // Appel à l'API GeniusPay
     const gpRes = await axios.post('https://geniuspay.ci/api/v1/merchant/payments', orderData, {
@@ -812,7 +836,8 @@ exports.createGeniusPayment = functions.https.onRequest(async (req, res) => {
         name: orderData.customer_name || null,
         email: orderData.customer_email || null,
         phone: orderData.customer_phone || null
-      }
+      },
+      userId: auth.uid
     });
 
     console.log('Order saved with ID:', orderDoc.id);

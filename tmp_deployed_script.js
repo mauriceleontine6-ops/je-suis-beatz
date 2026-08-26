@@ -2501,9 +2501,14 @@ async function processGeniusPayment() {
     const cfUrl = GENIUSPAY_CONFIG.cloudFunctionURL.replace(/\/$/, '') + '/createGeniusPayment';
     if (GENIUSPAY_CONFIG.cloudFunctionURL && !GENIUSPAY_CONFIG.cloudFunctionURL.includes('YOUR_REGION')) {
       try {
+        const authUser = await waitForAuthUser();
+        const idToken = await authUser.getIdToken();
         const response = await fetch(cfUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({ orderData })
         });
 
@@ -3792,11 +3797,19 @@ function deleteRecording(i) {
 }
 function downloadLastRecording() {
   if (!fsRecordings.length) { showToast(t('dyn_no_recording')); return; }
-  const a=document.createElement('a'); a.href=fsRecordings[0].url; a.download='freestyle.webm'; a.click();
+  const rec = fsRecordings[0];
+  const href = rec.voiceOnlyUrl || rec.url;
+  const filename = rec.voiceOnlyUrl ? 'freestyle_voice_only.webm' : 'freestyle.webm';
+  const a=document.createElement('a'); a.href=href; a.download=filename; a.click();
 }
 async function playMix() {
   if (!fsRecordings.length || !fsSelectedBeat) { showToast(t('dyn_no_freestyle')); return; }
-  const voiceEl = new Audio(fsRecordings[0].url);
+  const rec = fsRecordings[0];
+  const voiceUrl = rec.voiceOnlyUrl || rec.url;
+  const mixUrl = rec.mixedStudioUrl || null;
+  if (!voiceUrl) { showToast(t('dyn_no_recording')); return; }
+
+  const voiceEl = new Audio(voiceUrl);
   voiceEl.preload = 'auto';
   voiceEl.setAttribute('playsinline', '');
   voiceEl.setAttribute('webkit-playsinline', '');
@@ -3822,20 +3835,32 @@ async function playMix() {
   const playBtn = document.getElementById('mixPlayBtn');
   if (playBtn) playBtn.disabled = true;
 
+  const recordedMix = new Audio(mixUrl || voiceUrl);
+  recordedMix.preload = 'auto';
+  recordedMix.setAttribute('playsinline', '');
+  recordedMix.setAttribute('webkit-playsinline', '');
+  recordedMix.crossOrigin = 'anonymous';
+  recordedMix.volume = 1.0;
+
   try {
-    await waitForAudioReady(fsAudio, 2500);
-    await waitForAudioReady(voiceEl, 2500);
+    if (mixUrl) {
+      await waitForAudioReady(recordedMix, 2500);
+      await recordedMix.play();
+    } else {
+      await waitForAudioReady(fsAudio, 2500);
+      await waitForAudioReady(voiceEl, 2500);
 
-    const beatPromise = fsAudio.play().catch(err => {
-      console.warn('Beat playback failed:', err);
-      return null;
-    });
-    const voicePromise = voiceEl.play().catch(err => {
-      console.warn('Voice playback failed:', err);
-      return null;
-    });
+      const beatPromise = fsAudio.play().catch(err => {
+        console.warn('Beat playback failed:', err);
+        return null;
+      });
+      const voicePromise = voiceEl.play().catch(err => {
+        console.warn('Voice playback failed:', err);
+        return null;
+      });
 
-    await Promise.all([beatPromise, voicePromise]);
+      await Promise.all([beatPromise, voicePromise]);
+    }
 
     if (playBtn) {
       playBtn.disabled = false;
@@ -3846,7 +3871,7 @@ async function playMix() {
     if (playBtn) playBtn.disabled = false;
   }
 
-  voiceEl.onended = () => {
+  recordedMix.onended = () => {
     try { fsAudio.pause(); } catch (e) {}
     if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
   };

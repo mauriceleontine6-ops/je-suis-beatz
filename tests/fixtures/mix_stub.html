@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mix Stub</title>
+</head>
+<body>
+  <h1>Mix Stub</h1>
+  <script>
+    // Minimal stub to simulate prepareStudioMixPlayback behavior
+    window.lastStudioRecording = null;
+    window.prepareStudioMixPlayback = async function(recording) {
+      const rec = recording || { id: 'fixture-' + Date.now(), hasBeat: true };
+      // Simulate async work
+      await new Promise(r => setTimeout(r, 200));
+      rec.mixWavUrl = rec.mixWavUrl || 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+      window.lastStudioRecording = rec;
+      return true;
+    };
+    window.playLastRecording = function() { return window.prepareStudioMixPlayback(window.lastStudioRecording); };
+  </script>
+</body>
+</html>

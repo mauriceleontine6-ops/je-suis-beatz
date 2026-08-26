@@ -209,11 +209,11 @@ function isIOS() {
 
 function getMicConstraints() {
   const audioConstraints = {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
     sampleRate: 48000,
-    channelCount: 1,
+    channelCount: 2,
   };
 
   return {
@@ -388,6 +388,10 @@ class VocalRecorder {
 
       let playbackUrl = this.recordedBlobUrl;
 
+      // Compute recording offset from the beat position at the time recording started.
+      // beatStartTime is already a position inside the beat buffer, so do not mix it with audio context currentTime.
+      this.recordingOffset = Math.max(0, (typeof this.beatStartTime === 'number' ? this.beatStartTime : 0) - this.recordingLatency);
+
       // Fire the ready callback immediately with the raw blob so the UI can play without waiting
       if (this.onRecordingReady) {
         try {
@@ -437,7 +441,7 @@ class VocalRecorder {
         }
       })();
 
-      this.recordingOffset = Math.max(0, (this.beatStartTime - this.recordingStartAudioTime) - this.recordingLatency);
+      this.recordingOffset = Math.max(0, (typeof this.beatStartTime === 'number' ? this.beatStartTime : 0) - this.recordingLatency);
       console.log('✅ Recording saved', {
         size: blob.size,
         duration: this.recordedDuration,
@@ -738,6 +742,47 @@ class VocalRecorder {
     return this.recordingOffset || 0;
   }
 
+  normalizeAudioBuffer(audioBuffer) {
+    if (!audioBuffer) return audioBuffer;
+    let peak = 0;
+    for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+      const channelData = audioBuffer.getChannelData(ch);
+      for (let i = 0; i < channelData.length; i += 32) {
+        peak = Math.max(peak, Math.abs(channelData[i]));
+      }
+    }
+    if (peak < 1e-4) return audioBuffer;
+    const gain = 0.96 / peak;
+    if (gain <= 1) return audioBuffer;
+
+    const normalized = this.audioEngine.getContext().createBuffer(
+      audioBuffer.numberOfChannels,
+      audioBuffer.length,
+      audioBuffer.sampleRate
+    );
+
+    for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+      const input = audioBuffer.getChannelData(ch);
+      const output = normalized.getChannelData(ch);
+      for (let i = 0; i < input.length; i++) {
+        output[i] = Math.max(-1, Math.min(1, input[i] * gain));
+      }
+    }
+    return normalized;
+  }
+
+  getAudioBufferPeak(audioBuffer) {
+    if (!audioBuffer || !audioBuffer.numberOfChannels) return 1;
+    let peak = 0;
+    for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+      const channelData = audioBuffer.getChannelData(ch);
+      for (let i = 0; i < channelData.length; i += 32) {
+        peak = Math.max(peak, Math.abs(channelData[i]));
+      }
+    }
+    return Math.max(peak, 0.001);
+  }
+
   dispose() {
     this.isInitialized = false;
     this.inputNode = null;
@@ -943,6 +988,8 @@ class StudioManager {
     this.mixVocalSource = null;
     this.mixBeatGain = null;
     this.mixVocalGain = null;
+    this.mixMasterGain = null;
+    this.mixMasterCompressor = null;
     this.mixPlaying = false;
     
     // Initialization will be called explicitly by initStudio()
@@ -1090,6 +1137,39 @@ class StudioManager {
     this.mixer.setEQ(band, value);
   }
 
+  getAudioBufferPeak(audioBuffer) {
+    if (!audioBuffer || !audioBuffer.numberOfChannels) return 1;
+    let peak = 0;
+    for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+      const data = audioBuffer.getChannelData(channel);
+      for (let index = 0; index < data.length; index += 32) {
+        peak = Math.max(peak, Math.abs(data[index]));
+      }
+    }
+    return Math.max(peak, 0.001);
+  }
+
+  normalizeAudioBuffer(audioBuffer) {
+    if (!audioBuffer) return audioBuffer;
+    const peak = this.getAudioBufferPeak(audioBuffer);
+    const gain = Math.min(1, 0.96 / peak);
+    if (gain >= 1) return audioBuffer;
+
+    const normalized = this.engine.getContext().createBuffer(
+      audioBuffer.numberOfChannels,
+      audioBuffer.length,
+      audioBuffer.sampleRate
+    );
+    for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+      const input = audioBuffer.getChannelData(channel);
+      const output = normalized.getChannelData(channel);
+      for (let index = 0; index < input.length; index++) {
+        output[index] = input[index] * gain;
+      }
+    }
+    return normalized;
+  }
+
   // ─── Mix Studio : beat + voix synchronisés ───
   async renderStudioMix(beatVol = 70, vocalVol = 80) {
     const vocalBuffer = this.vocalRecorder.getRecordedBuffer();
@@ -1103,7 +1183,10 @@ class StudioManager {
     // Use vocal duration as the target length for the mix so short vocal takes precedence
     const sampleRate = Math.max(vocalBuffer.sampleRate || 44100, beatBuffer.sampleRate || 44100, 44100);
     const vocalDuration = vocalBuffer.duration || 0;
-    const offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
+    let offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
+    if (beatBuffer && beatBuffer.duration > 0) {
+      offsetSeconds = Math.max(0, offsetSeconds % beatBuffer.duration);
+    }
     // Ensure we render at least the vocal length; include positive alignment offset if present
     const totalDuration = Math.max(vocalDuration, vocalDuration + Math.max(0, offsetSeconds));
     const length = Math.ceil(totalDuration * sampleRate);
@@ -1112,7 +1195,8 @@ class StudioManager {
     const beatSource = offline.createBufferSource();
     beatSource.buffer = beatBuffer;
     const beatGain = offline.createGain();
-    beatGain.gain.value = beatVol / 100;
+    const actualBeatGain = Math.min(1, Math.max(0.45, (beatVol / 100) * 0.9));
+    beatGain.gain.value = actualBeatGain;
     beatSource.connect(beatGain);
     beatGain.connect(offline.destination);
     if (offsetSeconds && offsetSeconds > 0 && offsetSeconds < beatBuffer.duration) {
@@ -1121,24 +1205,57 @@ class StudioManager {
       beatSource.start(0);
     }
 
+    const vocalPeak = (typeof this.getAudioBufferPeak === 'function') ? this.getAudioBufferPeak(vocalBuffer) : 1;
+    const vocalBoost = vocalPeak > 0 ? Math.min(1.25, 0.72 / vocalPeak) : 1;
+    const actualVocalGain = Math.min(1.2, (vocalVol / 100) * vocalBoost);
+
     const vocalSource = offline.createBufferSource();
     vocalSource.buffer = vocalBuffer;
     const vocalGain = offline.createGain();
-    vocalGain.gain.value = vocalVol / 100;
+    vocalGain.gain.value = actualVocalGain;
+
+    const vocalHighpass = offline.createBiquadFilter();
+    vocalHighpass.type = 'highpass';
+    vocalHighpass.frequency.value = 120;
+
+    const vocalCompressor = offline.createDynamicsCompressor();
+    vocalCompressor.threshold.value = -18;
+    vocalCompressor.knee.value = 25;
+    vocalCompressor.ratio.value = 3.8;
+    vocalCompressor.attack.value = 0.005;
+    vocalCompressor.release.value = 0.18;
+
+    const masterGain = offline.createGain();
+    masterGain.gain.value = 1.0;
+    const masterCompressor = offline.createDynamicsCompressor();
+    masterCompressor.threshold.value = -10;
+    masterCompressor.knee.value = 20;
+    masterCompressor.ratio.value = 3.2;
+    masterCompressor.attack.value = 0.004;
+    masterCompressor.release.value = 0.12;
+
     vocalSource.connect(vocalGain);
-    vocalGain.connect(offline.destination);
+    vocalGain.connect(vocalHighpass);
+    vocalHighpass.connect(vocalCompressor);
+    vocalCompressor.connect(masterGain);
+
+    beatSource.connect(masterGain);
+    masterGain.connect(masterCompressor);
+    masterCompressor.connect(offline.destination);
+
     // Place the vocal at the start of the rendered buffer
     vocalSource.start(0);
 
     const rendered = await offline.startRendering();
+    const normalized = this.normalizeAudioBuffer(rendered);
     // If rendered buffer is longer than the vocal duration, truncate to vocalDuration
     try {
       const framesWanted = Math.floor((vocalDuration || 0) * sampleRate);
-      if (framesWanted > 0 && rendered.length > framesWanted) {
-        const truncated = this.audioEngine.getContext().createBuffer(
-          rendered.numberOfChannels,
+      if (framesWanted > 0 && normalized.length > framesWanted) {
+        const truncated = this.engine.getContext().createBuffer(
+          normalized.numberOfChannels,
           framesWanted,
-          rendered.sampleRate
+          normalized.sampleRate
         );
         for (let ch = 0; ch < rendered.numberOfChannels; ch++) {
           const src = rendered.getChannelData(ch);
@@ -1169,15 +1286,32 @@ class StudioManager {
 
     this.mixBeatGain = ctx.createGain();
     this.mixVocalGain = ctx.createGain();
-    this.mixBeatGain.gain.value = beatVol / 100;
-    this.mixVocalGain.gain.value = vocalVol / 100;
+    this.mixMasterGain = ctx.createGain();
+    this.mixMasterGain.gain.value = 0.95;
+    this.mixMasterCompressor = ctx.createDynamicsCompressor();
+    this.mixMasterCompressor.threshold.value = -10;
+    this.mixMasterCompressor.knee.value = 18;
+    this.mixMasterCompressor.ratio.value = 3.0;
+    this.mixMasterCompressor.attack.value = 0.005;
+    this.mixMasterCompressor.release.value = 0.12;
 
-    const offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
+    const beatGainValue = Math.min(1, Math.max(0.5, (beatVol / 100) * 0.92));
+    const vocalPeak = (typeof this.getAudioBufferPeak === 'function') ? this.getAudioBufferPeak(vocalBuffer) : 1;
+    const vocalBoost = vocalPeak > 0 ? Math.min(1.2, 0.78 / vocalPeak) : 1;
+    const vocalGainValue = Math.min(1.15, (vocalVol / 100) * vocalBoost);
+
+    this.mixBeatGain.gain.value = beatGainValue;
+    this.mixVocalGain.gain.value = vocalGainValue;
+
+    let offsetSeconds = this.vocalRecorder.getAlignmentOffset ? this.vocalRecorder.getAlignmentOffset() : 0;
+    if (beatBuffer && beatBuffer.duration > 0) {
+      offsetSeconds = Math.min(Math.max(0, offsetSeconds), beatBuffer.duration - 0.01);
+    }
     if (beatBuffer) {
       this.mixBeatSource = ctx.createBufferSource();
       this.mixBeatSource.buffer = beatBuffer;
       this.mixBeatSource.connect(this.mixBeatGain);
-      this.mixBeatGain.connect(ctx.destination);
+      this.mixBeatGain.connect(this.mixMasterGain);
       try {
         if (offsetSeconds && offsetSeconds > 0 && offsetSeconds < beatBuffer.duration) {
           this.mixBeatSource.start(startAt, offsetSeconds);
@@ -1193,7 +1327,22 @@ class StudioManager {
     this.mixVocalSource = ctx.createBufferSource();
     this.mixVocalSource.buffer = vocalBuffer;
     this.mixVocalSource.connect(this.mixVocalGain);
-    this.mixVocalGain.connect(ctx.destination);
+    const vocalHighpass = ctx.createBiquadFilter();
+    vocalHighpass.type = 'highpass';
+    vocalHighpass.frequency.value = 120;
+
+    const vocalCompressor = ctx.createDynamicsCompressor();
+    vocalCompressor.threshold.value = -20;
+    vocalCompressor.knee.value = 30;
+    vocalCompressor.ratio.value = 3.5;
+    vocalCompressor.attack.value = 0.005;
+    vocalCompressor.release.value = 0.20;
+
+    this.mixVocalGain.connect(vocalHighpass);
+    vocalHighpass.connect(vocalCompressor);
+    vocalCompressor.connect(this.mixMasterGain);
+    this.mixMasterGain.connect(this.mixMasterCompressor);
+    this.mixMasterCompressor.connect(ctx.destination);
     this.mixVocalSource.start(startAt, 0);
 
     const endHandler = () => this.stopStudioMix();
@@ -1219,8 +1368,12 @@ class StudioManager {
   }
 
   updateMixVolumes(beatVol, vocalVol) {
-    if (this.mixBeatGain) this.mixBeatGain.gain.value = beatVol / 100;
-    if (this.mixVocalGain) this.mixVocalGain.gain.value = vocalVol / 100;
+    if (this.mixBeatGain) this.mixBeatGain.gain.value = Math.min(1, Math.max(0.5, (beatVol / 100) * 0.92));
+    if (this.mixVocalGain) {
+      const vocalPeak = this.vocalRecorder?.getRecordedBuffer ? this.getAudioBufferPeak(this.vocalRecorder.getRecordedBuffer()) : 1;
+      const vocalBoost = vocalPeak > 0 ? Math.min(1.2, 0.78 / vocalPeak) : 1;
+      this.mixVocalGain.gain.value = Math.min(1.15, (vocalVol / 100) * vocalBoost);
+    }
   }
 
   hasBeatForMix() {

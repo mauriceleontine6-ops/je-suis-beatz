@@ -65,13 +65,17 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
-    // Freestyles utilisateurs
+    // Freestyles utilisateurs — audio privé
     match /freestyles/{userId}/{fileName} {
-      allow read: if true;
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
       allow write: if request.auth != null
         && request.auth.uid == userId
+        && request.resource.size > 0
         && request.resource.size < 30 * 1024 * 1024
         && request.resource.contentType.matches('audio/.*');
+      allow delete: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
     }
   }
 }

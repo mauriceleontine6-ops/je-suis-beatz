@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Auth Component — Je Suis Beatz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth-component.css">
+</head>
+<body>
+
+<div class="auth-root">
+  <div class="auth-container" id="authContainer">
+
+    <div class="panel left-panel" id="leftPanel">
+      <div class="content">
+        <div class="lang-switch">
+          <button id="langToggle" aria-label="Toggle language">FR | EN</button>
+        </div>
+        <h2 class="welcome" data-i18n="welcome">Bienvenue !</h2>
+        <p class="desc" data-i18n="desc">Pour rester connecté avec nous, veuillez vous connecter avec vos informations personnelles</p>
+        <button class="btn-ghost" id="switchToSignUp" data-action="toggle">Créer un compte</button>
+      </div>
+    </div>
+
+    <div class="panel right-panel" id="rightPanel">
+      <div class="form-wrap">
+        <h3 class="form-title" data-i18n="signin_title">Se connecter</h3>
+        <div class="socials">
+          <button class="social-btn" data-provider="google" aria-label="Sign in with Google">G</button>
+        </div>
+        <div class="sep"><span data-i18n="or_use">ou utilisez votre email pour vous inscrire</span></div>
+        <form id="authForm" autocomplete="on">
+          <div class="field name-field">
+            <label for="name" data-i18n="name">Nom</label>
+            <input id="name" name="name" placeholder="" />
+          </div>
+          <div class="field email-field">
+            <label for="email" data-i18n="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="" required />
+          </div>
+          <div class="field pass-field">
+            <label for="password" data-i18n="password">Mot de passe</label>
+            <input id="password" name="password" type="password" required />
+          </div>
+          <button type="submit" class="btn-primary" id="mainAction" data-i18n="signin_btn">Se connecter</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="auth-component.js"></script>
+</body>
+</html>

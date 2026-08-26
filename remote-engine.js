@@ -209,11 +209,11 @@ function isIOS() {
 
 function getMicConstraints() {
   const audioConstraints = {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
     sampleRate: 48000,
-    channelCount: 1,
+    channelCount: 2,
   };
 
   return {

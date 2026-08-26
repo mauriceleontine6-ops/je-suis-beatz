@@ -23,14 +23,14 @@
 **AVANT** :
 ```html
 <link rel="stylesheet" type="text/css" href="style.css">
-<link rel="icon" type="image/jpeg" href="icône_site.jpeg">
+<link rel="icon" type="image/png" href="icône_site.png">
 ```
 
 **APRÈS** :
 ```html
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="studio-pro-theme.css">
-<link rel="icon" type="image/jpeg" href="icône_site.jpeg">
+<link rel="icon" type="image/png" href="icône_site.png">
 ```
 
 **Action** : Ajouter une ligne après `style.css`

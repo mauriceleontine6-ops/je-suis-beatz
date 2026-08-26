@@ -2479,9 +2479,14 @@ async function processGeniusPayment() {
     const cfUrl = GENIUSPAY_CONFIG.cloudFunctionURL.replace(/\/$/, '') + '/createGeniusPayment';
     if (GENIUSPAY_CONFIG.cloudFunctionURL && !GENIUSPAY_CONFIG.cloudFunctionURL.includes('YOUR_REGION')) {
       try {
+        const authUser = await waitForAuthUser();
+        const idToken = await authUser.getIdToken();
         const response = await fetch(cfUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({ orderData })
         });
 
@@ -3580,13 +3585,16 @@ async function startRecord() {
       micStream = await getMic(constraints);
     } catch (firstError) {
       if (firstError.name === 'OverconstrainedError' || /sampleRate|channelCount|autoGainControl/i.test(firstError.message || '')) {
-        micStream = await getMic({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        micStream = await getMic({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, video: false });
       } else {
         throw firstError;
       }
     }
   } catch(e) { showToast(t('dyn_mic_denied')); return; }
   const fsAudioSource = resolveBeatAudioSource(fsSelectedBeat);
+  if (fsAudioCtx && fsAudioCtx.state === 'suspended') {
+    await fsAudioCtx.resume().catch(err => console.warn('Unable to resume recording audio context:', err));
+  }
   if (!fsPlaying && fsAudioSource) {
     try {
       await ensureFsBeatPlayback();
@@ -3598,13 +3606,44 @@ async function startRecord() {
       showWarningToast('dyn_play_error', 'Lecture impossible');
       return;
     }
+  } else if (fsPlaying && fsAudio.paused && fsAudioSource) {
+    try {
+      await ensureFsBeatPlayback();
+      fsAudio.volume = preservedFsAudioVolume;
+      fsBeatVolume = preservedFsAudioVolume;
+      fsPlaying = true;
+      document.getElementById('fsBeatPlayBtn').innerHTML = `<i class='fas fa-pause'></i> ${t('dyn_pause_beat')}`;
+    } catch (e) {
+      console.warn('Unable to resume freestyle beat on record:', e);
+    }
   }
   if (typeof fsAudio.volume === 'number') {
     fsAudio.volume = preservedFsAudioVolume;
     fsBeatVolume = preservedFsAudioVolume;
   }
+  let recordStream = micStream;
   try {
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if (!fsAudioCtx || fsAudioCtx.state === 'closed') {
+      fsAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    }
+    if (fsAudioCtx.state === 'suspended') await fsAudioCtx.resume();
+
+    const micSource = fsAudioCtx.createMediaStreamSource(micStream);
+    fsMicSourceNode = micSource;
+    fsDestinationNode = null;
+    fsRecordingDestinationStream = null;
+    recordStream = micStream;
+    fsAudio.muted = false;
+  } catch (mixError) {
+    console.warn('Freestyle mix recording fallback to mic-only:', mixError);
+    if (fsAudioCtx && typeof fsAudioCtx.close === 'function') {
+      try { fsAudioCtx.close(); } catch (closeErr) { console.warn('AudioContext close failed:', closeErr); }
+      fsAudioCtx = null;
+    }
+    fsAudio.muted = false;
+  }
+  try {
+    const ctx = fsAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') await ctx.resume();
     const src = ctx.createMediaStreamSource(micStream);
     analyserNode = ctx.createAnalyser(); analyserNode.fftSize = 256;
@@ -3615,8 +3654,8 @@ async function startRecord() {
   const selectedMimeType = getSupportedRecorderMimeType() || (isIOS() ? 'audio/mp4' : 'audio/webm');
   try {
     fsMediaRecorder = selectedMimeType
-      ? new MediaRecorder(micStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
-      : new MediaRecorder(micStream);
+      ? new MediaRecorder(recordStream, { mimeType: selectedMimeType, audioBitsPerSecond: 192000 })
+      : new MediaRecorder(recordStream);
   } catch (e) {
     try {
       fsMediaRecorder = new MediaRecorder(micStream);
@@ -3627,17 +3666,25 @@ async function startRecord() {
     }
   }
   fsMediaRecorder.ondataavailable = e => { if(e.data.size>0) fsChunks.push(e.data); };
-  fsMediaRecorder.onstop = () => {
+  fsMediaRecorder.onstop = async () => {
     const mimeUsed = fsMediaRecorder.mimeType || 'audio/webm';
-    const blob = new Blob(fsChunks, {type: mimeUsed});
-    const url = URL.createObjectURL(blob);
+    const rawBlob = new Blob(fsChunks, {type: mimeUsed});
+    let finalBlob = rawBlob;
+    try {
+      finalBlob = await renderFinalRecordingBlob(rawBlob);
+    } catch (error) {
+      console.warn('Final audio rendering failed:', error);
+      finalBlob = rawBlob;
+    }
+
+    const url = URL.createObjectURL(finalBlob);
     const rec = {
       id: Date.now(),
       beatTitle: fsSelectedBeat ? fsSelectedBeat.title : '—',
       beatId: fsSelectedBeat ? fsSelectedBeat.id : null,
       url,
-      blob,
-      mimeType: mimeUsed,
+      blob: finalBlob,
+      mimeType: finalBlob.type || mimeUsed,
       duration: fsSeconds,
       date: new Date().toLocaleDateString('fr'),
       label: 'Take ' + (fsRecordings.length + 1)
@@ -3647,7 +3694,8 @@ async function startRecord() {
     document.getElementById('mixSection').style.display = 'block';
     showToast(t('dyn_recording_saved'));
     if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
-    const ml = document.getElementById('micLevel'); if(ml) ml.style.width='0%';
+    const ml = document.getElementById('micLevel'); if (ml) ml.style.width='0%';
+    setRecordingProcessingState(false);
   };
   fsMediaRecorder.start();
   fsRecording = true; fsSeconds = 0;
@@ -3665,17 +3713,35 @@ async function startRecord() {
 }
  
 function stopRecord() {
-  if (fsMediaRecorder && fsMediaRecorder.state!=='inactive') fsMediaRecorder.stop();
+  if (fsMediaRecorder && fsMediaRecorder.state!=='inactive') {
+    setRecordingProcessingState(true);
+    fsMediaRecorder.stop();
+  }
   if (micStream) micStream.getTracks().forEach(t=>t.stop());
   clearInterval(fsTimerInterval);
   fsRecording = false;
-  const rb = document.getElementById('recBtn');
-  rb.style.background='rgba(255,68,68,0.1)'; rb.style.boxShadow='none';
-  document.getElementById('recIcon').className='fas fa-microphone';
-  document.getElementById('recStatus').textContent=t('dyn_rec_default');
-  document.getElementById('recStatus').style.color='var(--text-dim)';
-  document.getElementById('recTimer').style.display='none';
+  const recTimer = document.getElementById('recTimer');
+  if (recTimer) recTimer.style.display='none';
   stopFsBeat();
+}
+ 
+function setRecordingProcessingState(isProcessing) {
+  const rb = document.getElementById('recBtn');
+  const recStatusEl = document.getElementById('recStatus');
+  if (rb) {
+    rb.disabled = isProcessing;
+    rb.style.cursor = isProcessing ? 'wait' : '';
+    rb.style.opacity = isProcessing ? '0.65' : '';
+  }
+  if (recStatusEl) {
+    if (isProcessing) {
+      recStatusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('dyn_processing') || 'Traitement audio en cours...'}`;
+      recStatusEl.style.color = '#f59e0b';
+    } else {
+      recStatusEl.textContent = t('dyn_rec_default');
+      recStatusEl.style.color = 'var(--text-dim)';
+    }
+  }
 }
  
 function animMicLevel() {
@@ -3737,11 +3803,19 @@ function deleteRecording(i) {
 }
 function downloadLastRecording() {
   if (!fsRecordings.length) { showToast(t('dyn_no_recording')); return; }
-  const a=document.createElement('a'); a.href=fsRecordings[0].url; a.download='freestyle.webm'; a.click();
+  const rec = fsRecordings[0];
+  const href = rec.voiceOnlyUrl || rec.url;
+  const filename = rec.voiceOnlyUrl ? 'freestyle_voice_only.webm' : 'freestyle.webm';
+  const a=document.createElement('a'); a.href=href; a.download=filename; a.click();
 }
 async function playMix() {
   if (!fsRecordings.length || !fsSelectedBeat) { showToast(t('dyn_no_freestyle')); return; }
-  const voiceEl = new Audio(fsRecordings[0].url);
+  const rec = fsRecordings[0];
+  const voiceUrl = rec.voiceOnlyUrl || rec.url;
+  const mixUrl = rec.mixedStudioUrl || null;
+  if (!voiceUrl) { showToast(t('dyn_no_recording')); return; }
+
+  const voiceEl = new Audio(voiceUrl);
   voiceEl.preload = 'auto';
   voiceEl.setAttribute('playsinline', '');
   voiceEl.setAttribute('webkit-playsinline', '');
@@ -3767,20 +3841,32 @@ async function playMix() {
   const playBtn = document.getElementById('mixPlayBtn');
   if (playBtn) playBtn.disabled = true;
 
+  const recordedMix = new Audio(mixUrl || voiceUrl);
+  recordedMix.preload = 'auto';
+  recordedMix.setAttribute('playsinline', '');
+  recordedMix.setAttribute('webkit-playsinline', '');
+  recordedMix.crossOrigin = 'anonymous';
+  recordedMix.volume = 1.0;
+
   try {
-    await waitForAudioReady(fsAudio, 2500);
-    await waitForAudioReady(voiceEl, 2500);
+    if (mixUrl) {
+      await waitForAudioReady(recordedMix, 2500);
+      await recordedMix.play();
+    } else {
+      await waitForAudioReady(fsAudio, 2500);
+      await waitForAudioReady(voiceEl, 2500);
 
-    const beatPromise = fsAudio.play().catch(err => {
-      console.warn('Beat playback failed:', err);
-      return null;
-    });
-    const voicePromise = voiceEl.play().catch(err => {
-      console.warn('Voice playback failed:', err);
-      return null;
-    });
+      const beatPromise = fsAudio.play().catch(err => {
+        console.warn('Beat playback failed:', err);
+        return null;
+      });
+      const voicePromise = voiceEl.play().catch(err => {
+        console.warn('Voice playback failed:', err);
+        return null;
+      });
 
-    await Promise.all([beatPromise, voicePromise]);
+      await Promise.all([beatPromise, voicePromise]);
+    }
 
     if (playBtn) {
       playBtn.disabled = false;
@@ -3791,7 +3877,7 @@ async function playMix() {
     if (playBtn) playBtn.disabled = false;
   }
 
-  voiceEl.onended = () => {
+  recordedMix.onended = () => {
     try { fsAudio.pause(); } catch (e) {}
     if (playBtn) playBtn.innerHTML = `<i class='fas fa-play'></i> ${t('fs_listen_mix')}`;
   };
@@ -4175,6 +4261,7 @@ const translations = {
     dyn_recording_done: 'Enregistrement terminé ✓',
     dyn_recording_stopped: 'Enregistrement arrêté',
     dyn_recording_prepare: 'Prêt pour un nouvel enregistrement',
+    dyn_processing: 'Traitement audio en cours...',
     dyn_rec_default: 'Prêt à enregistrer',
     dyn_no_freestyle: '⚠ Enregistre un freestyle d\'abord',
     dyn_login_first: '⚠ Connecte-toi pour publier !',
@@ -5789,7 +5876,7 @@ async function saveAccountProfile() {
     showToast('✓ Profil mis à jour.');
   } catch (e) {
     console.warn('saveAccountProfile failed', e);
-    if (msgEl) msgEl.textContent = 'Erreur lors de la sauvegarde du profil.';
+    if (msgEl) msgEl.textContent = 'Erreur lors de la sauvegarde du profil: ' + (e && e.message ? e.message : String(e));
   }
 }
 
@@ -6097,6 +6184,67 @@ function audioBufferToWav(buffer) {
     }
   }
   return new Blob([wavBuffer], { type: 'audio/wav' });
+}
+
+async function renderFinalRecordingBlob(rawBlob) {
+  const arrayBuffer = await rawBlob.arrayBuffer();
+  const decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const audioBuffer = await new Promise((resolve, reject) => {
+    decodeCtx.decodeAudioData(arrayBuffer.slice(0), resolve, reject);
+  });
+  try { decodeCtx.close(); } catch (e) {}
+
+  const sampleRate = 48000;
+  const numChannels = Math.max(1, Math.min(2, audioBuffer.numberOfChannels));
+  const offlineCtx = new OfflineAudioContext(numChannels, Math.ceil(audioBuffer.duration * sampleRate), sampleRate);
+  const source = offlineCtx.createBufferSource();
+  source.buffer = audioBuffer;
+  const gainNode = offlineCtx.createGain();
+  gainNode.gain.value = 0.98;
+  source.connect(gainNode).connect(offlineCtx.destination);
+  source.start(0);
+
+  const renderedBuffer = await offlineCtx.startRendering();
+  return await encodeAudioBufferToWav(renderedBuffer);
+}
+
+function getAudioEncoderWorker() {
+  if (window._audioEncoderWorker) return window._audioEncoderWorker;
+  try {
+    window._audioEncoderWorker = new Worker('audio-encoder-worker.js');
+    return window._audioEncoderWorker;
+  } catch (e) {
+    console.warn('Audio encoder worker unavailable:', e);
+    return null;
+  }
+}
+
+async function encodeAudioBufferToWav(audioBuffer) {
+  const worker = getAudioEncoderWorker();
+  if (!worker) {
+    return audioBufferToWav(audioBuffer);
+  }
+
+  const numChannels = audioBuffer.numberOfChannels;
+  const channelData = [];
+  for (let i = 0; i < numChannels; i++) {
+    channelData.push(audioBuffer.getChannelData(i).slice(0));
+  }
+
+  return new Promise((resolve, reject) => {
+    const onMessage = (event) => {
+      if (!event.data || event.data.type !== 'wav-ready') return;
+      worker.removeEventListener('message', onMessage);
+      const wavBlob = new Blob([event.data.wavBuffer], { type: 'audio/wav' });
+      resolve(wavBlob);
+    };
+    worker.addEventListener('message', onMessage);
+    worker.postMessage({ type: 'encode-wav', sampleRate: audioBuffer.sampleRate, channelData }, channelData.map(ch => ch.buffer));
+    setTimeout(() => {
+      worker.removeEventListener('message', onMessage);
+      reject(new Error('Audio encoding timed out'));
+    }, 30000);
+  });
 }
 
 // ─── Re-draw waveform when new recording added ───

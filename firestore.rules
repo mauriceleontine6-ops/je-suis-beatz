@@ -159,8 +159,17 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.resource.data.status == 'pending'
         && request.resource.data.userId == request.auth.uid
+        && request.resource.data.orderId is string
+        && request.resource.data.orderId.size() > 0
+        && request.resource.data.paymentMethod is string
+        && request.resource.data.paymentMethod.size() > 0
+        && request.resource.data.cartItems is list
         && request.resource.data.total is number
-        && request.resource.data.total > 0;
+        && request.resource.data.total > 0
+        && request.resource.data.keys().hasOnly([
+          'orderId', 'transactionId', 'paypalOrderId', 'userId', 'customerEmail',
+          'cartItems', 'total', 'status', 'paymentMethod', 'createdAt'
+        ]);
 
       // Aucune modification côté client — uniquement via Cloud Function (admin SDK)
       allow update, delete: if false;
@@ -176,11 +185,45 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.resource.data.status == 'PENDING'
         && request.resource.data.userId == request.auth.uid
+        && request.resource.data.transactionId is string
+        && request.resource.data.transactionId.size() > 0
+        && request.resource.data.paymentMethod is string
+        && request.resource.data.paymentMethod.size() > 0
         && request.resource.data.totalUSD is number
-        && request.resource.data.totalUSD > 0;
+        && request.resource.data.totalUSD > 0
+        && request.resource.data.keys().hasOnly([
+          'transactionId', 'userId', 'cartItems', 'totalUSD', 'amountXOF',
+          'customerEmail', 'customerPhone', 'status', 'paymentMethod', 'createdAt'
+        ]);
 
       // Modification interdite côté client
       allow update, delete: if false;
+    }
+
+    // ── Collection : freestyles ─────────────────────────────────────
+    match /freestyles/{freestyleId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.url is string
+        && request.resource.data.url.matches('https://.*')
+        && request.resource.data.mimeType is string
+        && request.resource.data.mimeType.matches('audio/.*')
+        && request.resource.data.duration is number
+        && request.resource.data.duration >= 0
+        && request.resource.data.label is string
+        && request.resource.data.label.size() > 0
+        && request.resource.data.uploadedAt is string
+        && request.resource.data.uploadedAt.size() > 0
+        && request.resource.data.keys().hasOnly([
+          'userId', 'username', 'recordId', 'beatTitle', 'beatId',
+          'url', 'mimeType', 'duration', 'date', 'label', 'beatOffset',
+          'uploadedAt', 'createdAt'
+        ]);
+
+      allow update: if false;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
     // ── Collection : settings ─────────────────────────────────────

@@ -24,13 +24,15 @@
      • base-uri 'self' : empêche réécriture de <base href>
      • form-action 'self' : soumission de formulaires vers le site uniquement
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app; connect-src 'self' https://www.gstatic.com https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci https://open.er-api.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app http://localhost:8080 http://127.0.0.1:8080; connect-src 'self' https://www.gstatic.com https://*.googleapis.com https://storage.googleapis.com https://*.cloudfunctions.net https://*.firebaseio.com wss://*.firebaseio.com wss://*.run.app https://firebasestorage.googleapis.com https://us-central1-je-suis-beatz.cloudfunctions.net https://*.run.app https://api.geniuspay.ci https://open.er-api.com https://accounts.google.com https://apis.google.com http://localhost:8080 http://127.0.0.1:8080; frame-src https://je-suis-beatz.firebaseapp.com https://accounts.google.com https://accounts.youtube.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self' https://geniuspay.ci; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests;">
 <title>Je Suis Beatz — I am the sound you are looking for</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" type="text/css" href="style.css?v=20260615">
-<link rel="stylesheet" type="text/css" href="studio-pro-theme.css?v=20260615">
-<link rel="icon" type="image/jpeg" href="icône_site.jpeg">
+<link rel="stylesheet" type="text/css" href="style.css?v=20260826i">
+<link rel="stylesheet" type="text/css" href="studio-pro-theme.css?v=20260729">
+<link rel="stylesheet" href="auth-component.css">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
 <!-- ═══ FIREBASE SDK ═══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -42,7 +44,7 @@
     apiKey: "AIzaSyA8Bno11y0ijvlm4EfM-MF0LpE6gE6nZGI",
     authDomain: "je-suis-beatz.firebaseapp.com",
     projectId: "je-suis-beatz",
-    storageBucket: "je-suis-beatz.firebasestorage.app",
+    storageBucket: "je-suis-beatz.appspot.com",
     messagingSenderId: "260774573474",
     appId: "1:260774573474:web:46959196c9091227fdaefb",
     measurementId: "G-39K49HH649"
@@ -66,57 +68,66 @@
 <div class="grid-lines"></div>
  
 <!-- ═══════════ NAVBAR ═══════════ -->
-<nav id="mainNav">
-  <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">
-    <div class="nav-logo-icon"><i class="fas fa-waveform-lines"></i></div>
-    <span>JE SUIS <em>BEATZ</em></span>
+<nav id="mainNav" aria-label="Navigation principale">
+  <div class="nav-left">
+    <a href="#" class="nav-logo" onclick="showPage('home'); return false;">
+      <span class="nav-logo-icon"><img src="logo.png" class="nav-logo-img" alt="Je Suis Beatz"></span>
+      <span class="nav-logo-text">JE SUIS <em>BEATZ</em></span>
+    </a>
   </div>
- 
-  <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
- 
-  <ul class="nav-links">
-    <li><a onclick="showPage('home')" id="nav-home" class="active"><i class="fas fa-house-chimney"></i> <span data-i18n="nav_home">Accueil</span></a></li>
-    <li><a onclick="showPage('beats')" id="nav-beats"><i class="fas fa-compact-disc"></i> <span>Beats</span></a></li>
-    <li><a onclick="showPage('freestyle')" id="nav-freestyle"><i class="fas fa-microphone-lines"></i> <span data-i18n="nav_freestyle">Freestyle</span></a></li>
-    <li><a onclick="showPage('community')" id="nav-community"><i class="fas fa-users"></i> <span data-i18n="nav_artists">Artistes</span></a></li>
-    <li><a onclick="showPage('licenses')" id="nav-licenses"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></a></li>
-    <li><a onclick="showPage('contact')" id="nav-contact"><i class="fas fa-paper-plane"></i> <span>Contact</span></a></li>
+  <ul class="nav-links" role="menubar">
+    <li><a href="#" role="menuitem" onclick="showPage('home');return false;" id="nav-home" class="active"><i class="fas fa-house-chimney"></i> <span data-i18n="nav_home">Accueil</span></a></li>
+    <li><a href="#" role="menuitem" onclick="showPage('beats');return false;" id="nav-beats"><i class="fas fa-compact-disc"></i> <span>Beats</span></a></li>
+    <li><a href="#" role="menuitem" onclick="showPage('freestyle');return false;" id="nav-freestyle"><i class="fas fa-microphone-lines"></i> <span data-i18n="nav_freestyle">Freestyle</span></a></li>
+    <li><a href="#" role="menuitem" onclick="showPage('community');return false;" id="nav-community"><i class="fas fa-users"></i> <span data-i18n="nav_artists">Artistes</span></a></li>
+    <li><a href="#" role="menuitem" onclick="showPage('licenses');return false;" id="nav-licenses"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></a></li>
+    <li><a href="#" role="menuitem" onclick="showPage('contact');return false;" id="nav-contact"><i class="fas fa-paper-plane"></i> <span>Contact</span></a></li>
   </ul>
- 
   <div class="nav-actions">
-    <button class="btn-cart" onclick="toggleCart()" title="Cart">
+    <button class="btn-cart" type="button" title="Panier" aria-label="Ouvrir le panier">
       <i class="fas fa-shopping-bag"></i>
+      <span class="cart-text">Panier</span>
       <span class="cart-count" id="cartCount">0</span>
     </button>
-    <button class="btn-account-icon" id="accountBtn" onclick="showPage('account')" title="Mon Compte" data-i18n-title="nav_account">
-      <i class="fas fa-user-circle"></i>
-    </button>
-    <!-- Language switcher -->
-    <button class="btn-lang" id="langBtn" onclick="toggleLang()" title="Switch language">
-      <span id="langFlag">🇬🇧</span> <span id="langLabel">EN</span>
-    </button>
+    <div class="nav-preferences" aria-label="Préférences du compte">
+      <button class="btn-account-icon" id="accountBtn" onclick="showPage('account')" title="Mon Compte" data-i18n-title="nav_account">
+        <i class="fas fa-user-circle"></i>
+      </button>
+      <!-- Language switcher -->
+      <button class="btn-lang" id="langBtn" onclick="toggleLang()" data-i18n-title="lang_switch" title="Switch language">
+        <span id="langFlag">🇬🇧</span> <span id="langLabel">EN</span>
+      </button>
+    </div>
     <button class="btn-login-nav" id="authBtn" onclick="showPage('login')">
       <i class="fas fa-user"></i> <span data-i18n="nav_login">Connexion</span>
     </button>
-    <button class="btn-login-nav" id="adminBtn" onclick="showAdminPage()" style="display:none">
-      <i class="fas fa-cog"></i> Admin
+    <button class="btn-login-nav admin-nav-button" id="adminBtn" onclick="showAdminPage()" style="display:none" title="Ouvrir l'administration" aria-label="Ouvrir l'administration">
+      <i class="fas fa-cog"></i> <span>Admin</span>
     </button>
     <button class="btn-login-nav danger" id="logoutBtn" onclick="logout()" style="display:none">
       <i class="fas fa-sign-out-alt"></i> <span id="logoutName"></span>
     </button>
   </div>
+  <button class="hamburger nav-toggle" id="hamburger" aria-label="Ouvrir le menu" aria-controls="navDrawer" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
  
 <!-- Mobile Drawer -->
-<div class="nav-drawer" id="navDrawer">
-  <a onclick="showPage('home');closeMobileNav()"><i class="fas fa-home" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_home">Accueil</span></a>
-  <a onclick="showPage('beats');closeMobileNav()"><i class="fas fa-music" style="color:var(--cyan);margin-right:10px"></i> <span>Beats</span></a>
-  <a onclick="showPage('freestyle');closeMobileNav()"><i class="fas fa-microphone" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_freestyle">Freestyle</span></a>
-  <a onclick="showPage('community');closeMobileNav()"><i class="fas fa-users" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_artists">Artistes</span></a>
-  <a onclick="showPage('licenses');closeMobileNav()"><i class="fas fa-file-contract" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_licenses">Licences</span></a>
-  <a onclick="showPage('contact');closeMobileNav()"><i class="fas fa-paper-plane" style="color:var(--cyan);margin-right:10px"></i> <span>Contact</span></a>
+<div class="nav-drawer" id="navDrawer" aria-hidden="true" role="menu">
+  <button class="drawer-close" aria-label="Fermer le menu" type="button" onclick="toggleMobileNav()">×</button>
+  <a href="#" role="menuitem" onclick="showPage('home');closeMobileNav();return false;"><i class="fas fa-home" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_home">Accueil</span></a>
+  <a href="#" role="menuitem" onclick="showPage('beats');closeMobileNav();return false;"><i class="fas fa-music" style="color:var(--cyan);margin-right:10px"></i> <span>Beats</span></a>
+  <a href="#" role="menuitem" onclick="showPage('freestyle');closeMobileNav();return false;"><i class="fas fa-microphone" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_freestyle">Freestyle</span></a>
+  <a href="#" role="menuitem" onclick="showPage('community');closeMobileNav();return false;"><i class="fas fa-users" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_artists">Artistes</span></a>
+  <a href="#" role="menuitem" onclick="showPage('licenses');closeMobileNav();return false;"><i class="fas fa-file-contract" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_licenses">Licences</span></a>
+  <a href="#" role="menuitem" onclick="showPage('contact');closeMobileNav();return false;"><i class="fas fa-paper-plane" style="color:var(--cyan);margin-right:10px"></i> <span>Contact</span></a>
+  <button class="drawer-action drawer-auth-action" id="authDrawerBtn" type="button" onclick="showPage('login');closeMobileNav()" style="display:none">
+    <i class="fas fa-user" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_login">Connexion</span>
+  </button>
+  <button class="drawer-action drawer-auth-action" id="logoutDrawerBtn" type="button" onclick="logout()" style="display:none">
+    <i class="fas fa-sign-out-alt" style="color:#ff8080;margin-right:10px"></i> <span data-i18n="nav_logout">Déconnexion</span>
+  </button>
 </div>
 <!-- ═══════════ HOME ═══════════ -->
 <div class="page active" id="page-home">
@@ -127,7 +138,7 @@
     <div class="hero-orb orb3"></div>
  
     <div class="hero-badge"><i class="fas fa-map-marker-alt"></i> <span data-i18n="hero_badge">Côte d'Ivoire · Distribution Internationale</span></div>
-    <h1>The beat Maker's Studio</h1>
+    <h1>The Beat Maker's Studio</h1>
     <p class="hero-slogan"><em>I am the sound you are looking for</em></p>
     <div class="hero-tags">
       <span class="hero-tag"><i class="fas fa-circle" style="color:var(--cyan);font-size:.4rem"></i> <span data-i18n="genre_drill">Drill</span></span>
@@ -143,6 +154,20 @@
         <i class="fas fa-file-alt"></i> <span data-i18n="hero_licenses">Voir les Licences</span>
       </button>
     </div>
+    <div class="hero-proof" aria-label="Informations sur les offres">
+      <div class="hero-proof-item">
+        <i class="fas fa-bolt"></i>
+        <span data-i18n="hero_proof_listen">Écoute instantanée</span>
+      </div>
+      <div class="hero-proof-item">
+        <i class="fas fa-wave-square"></i>
+        <span data-i18n="hero_proof_formats">Formats studio</span>
+      </div>
+      <div class="hero-proof-item">
+        <i class="fas fa-file-contract"></i>
+        <span data-i18n="hero_proof_licenses">5 licences claires</span>
+      </div>
+    </div>
     <div class="wave-viz" id="heroWave"></div>
   </section>
  
@@ -154,7 +179,7 @@
         <span class="stat-label"><i class="fas fa-music"></i> <span data-i18n="stat_beats">Beats</span></span>
       </div>
       <div class="stat-item">
-        <span class="stat-num">4</span>
+        <span class="stat-num">5</span>
         <span class="stat-label"><i class="fas fa-file-contract"></i> <span data-i18n="nav_licenses">Licences</span></span>
       </div>
       <div class="stat-item">
@@ -186,7 +211,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="nav-logo" style="margin-bottom:0">
-            <div class="nav-logo-icon"><i class="fas fa-waveform-lines"></i></div>
+            <div class="nav-logo-icon"><img src="logo.png" class="nav-logo-img" alt="Je Suis Beatz"></div>
             <span style="font-family:var(--font-display);font-size:1.3rem;color:#fff;letter-spacing:2px">JE SUIS <em style="color:var(--cyan);font-style:normal">BEATZ</em></span>
           </div>
           <p data-i18n="footer_desc">Producteur basé en Côte d'Ivoire. Des sons premium conçus pour dominer les charts internationaux. <em style="color:var(--cyan);font-style:italic">I am the sound you are looking for.</em></p>
@@ -647,6 +672,9 @@
           <button class="btn-primary" id="playRecordingBtn" onclick="playLastRecording()">
             <i class="fas fa-play"></i> <span data-i18n="fs_listen_mix">Écouter le mix</span>
           </button>
+          <button class="btn-ghost" onclick="saveLastRecording()">
+            <i class="fas fa-save"></i> <span data-i18n="fs_save_recording">Sauvegarder</span>
+          </button>
           <button class="btn-ghost" onclick="downloadLastRecording()">
             <i class="fas fa-download"></i> <span data-i18n="fs_download_voice">Télécharger</span>
           </button>
@@ -814,74 +842,47 @@
 <!-- ═══════════ LOGIN ═══════════ -->
 <div class="page" id="page-login">
   <div class="login-page">
-    <div class="login-card">
-      <!-- Premium Logo with Glow -->
-      <div class="login-icon"><img src="icône_site.jpeg" alt="Logo Je Suis Beatz" style="width:100%;height:100%;border-radius:18px;object-fit:cover"/></div>
-      
-      <!-- Premium Typography -->
-      <div class="login-title" id="loginTitle" data-i18n="login_title">Connexion</div>
-      <div class="login-sub" id="loginSub" data-i18n="login_sub">Accédez à votre espace</div>
-      
-      <!-- Alert Messages -->
-      <div class="alert error" id="loginErr"></div>
-      <div class="alert ok" id="loginOk"></div>
- 
-      <!-- Login Form -->
-      <div id="loginForm">
-        <div class="form-row">
-          <input class="form-inp" type="text" id="loginUser" placeholder="Email ou Pseudo" data-i18n-ph="login_email_placeholder" autocomplete="username">
-          <label class="form-lbl" data-i18n="login_email_label">Email ou Pseudo</label>
-        </div>
-        
-        <div class="form-row" style="position:relative">
-          <input class="form-inp" type="password" id="loginPass" placeholder="••••••••" data-i18n-ph="login_pwd_placeholder" autocomplete="current-password">
-          <label class="form-lbl" data-i18n="login_pwd_label">Mot de passe</label>
-          <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('loginPass')" title="Afficher/Masquer le mot de passe" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--cyan);cursor:pointer;font-size:1.2rem;padding:8px;z-index:10">
-            <i class="fas fa-eye" id="loginPassToggle"></i>
-          </button>
-        </div>
-        
-        <button class="btn-primary" onclick="doLogin()">
-          <i class="fas fa-sign-in-alt"></i> <span data-i18n="login_btn">Se Connecter</span>
-        </button>
-
-        <div class="login-resend" style="margin-top:14px;text-align:center;">
-          <a onclick="resendVerificationEmail()" data-i18n="login_resend_verify" style="color:#00c6ff;font-size:0.85rem;">Renvoyer l'email de vérification</a>
-        </div>
-        
-        <div class="login-switch"><span data-i18n="login_no_account">Pas de compte ?</span> <a onclick="toggleRegister()" data-i18n="login_register">S'inscrire</a></div>
-        <div style="text-align:center">
-          <span class="back-link" onclick="showPage('home')"><i class="fas fa-arrow-left"></i> <span data-i18n="login_back">Retour au site</span></span>
+      <div class="login-card">
+        <!-- Embedded Auth Component -->
+        <div class="auth-root-inline">
+          <div class="auth-container" id="authContainerInline">
+            <div class="panel left-panel" id="leftPanelInline">
+              <div class="content">
+                <div class="login-logo-wrap">
+                  <img src="logo.png" alt="Logo Je Suis Beatz" class="site-logo-img" />
+                </div>
+                <h2 class="welcome" data-i18n="welcome_back">Bon retour parmi nous</h2>
+                <p class="desc" data-i18n="desc">Pour rester connecté avec nous, veuillez vous connecter avec vos informations personnelles</p>
+                <button class="btn-ghost" id="switchToSignUpInline" data-action="toggle" data-i18n="create_account">Créer un compte</button>
+              </div>
+            </div>
+            <div class="panel right-panel" id="rightPanelInline">
+              <div class="form-wrap">
+                <h3 class="form-title" data-i18n="signin_title">Se connecter</h3>
+                <div class="socials">
+                        <button class="social-btn" data-provider="google" aria-label="Sign in with Google">G</button>
+                      </div>
+                <div class="sep"><span data-i18n="or_use">ou utilisez votre email pour vous inscrire</span></div>
+                <form id="authFormInline" autocomplete="on">
+                  <div class="field name-field">
+                    <label for="nameInline" data-i18n="name">Nom</label>
+                    <input id="nameInline" name="name" placeholder="" />
+                  </div>
+                  <div class="field email-field">
+                    <label for="emailInline" data-i18n="email">E-mail</label>
+                    <input id="emailInline" name="email" type="email" placeholder="" required />
+                  </div>
+                  <div class="field pass-field">
+                    <label for="passwordInline" data-i18n="password">Mot de passe</label>
+                    <input id="passwordInline" name="password" type="password" required />
+                  </div>
+                  <button type="submit" class="btn-primary" id="mainActionInline" data-i18n="signin_btn">Se connecter</button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
- 
-      <!-- Register Form -->
-      <div id="registerForm" style="display:none">
-        <div class="form-row">
-          <input class="form-inp" type="text" id="regUser" placeholder="Votre pseudo" data-i18n-ph="reg_pseudo_placeholder" autocomplete="username">
-          <label class="form-lbl" data-i18n="reg_pseudo">Pseudo</label>
-        </div>
-        
-        <div class="form-row">
-          <input class="form-inp" type="email" id="regEmail" placeholder="votre@email.com" data-i18n-ph="reg_email_placeholder" autocomplete="email">
-          <label class="form-lbl" data-i18n="reg_email">Email</label>
-        </div>
-        
-        <div class="form-row" style="position:relative">
-          <input class="form-inp" type="password" id="regPass" placeholder="Min. 6 caractères" data-i18n-ph="reg_pwd_placeholder" autocomplete="new-password">
-          <label class="form-lbl" data-i18n="reg_pwd">Mot de passe</label>
-          <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('regPass')" title="Afficher/Masquer le mot de passe" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--cyan);cursor:pointer;font-size:1.2rem;padding:8px;z-index:10">
-            <i class="fas fa-eye" id="regPassToggle"></i>
-          </button>
-        </div>
-        
-        <button class="btn-primary" onclick="doRegister()">
-          <i class="fas fa-user-plus"></i> <span data-i18n="reg_btn">Créer un Compte</span>
-        </button>
-        
-        <div class="login-switch"><span data-i18n="reg_already">Déjà inscrit ?</span> <a onclick="toggleRegister()" data-i18n="login_btn">Se connecter</a></div>
-      </div>
-    </div>
   </div>
 </div>
  
@@ -1057,7 +1058,7 @@
   <div class="modal-box">
     <div class="modal-head">
       <div class="modal-title"><i class="fas fa-shopping-bag" style="color:var(--cyan);font-size:1.4rem;margin-right:10px"></i><span data-i18n="cart_title">Panier</span></div>
-      <button class="modal-close" onclick="toggleCart()"><i class="fas fa-times"></i></button>
+      <button class="modal-close"><i class="fas fa-times"></i></button>
     </div>
     <div id="cartItems"></div>
     <div id="cartFoot" style="display:none">
@@ -1156,7 +1157,8 @@
   </div>
 </div>
  
-<script src="script.js?v=20260708b"></script>
+<script src="script.js?v=20260729"></script>
+<script src="auth-component.js"></script>
 <!-- Studio Pro Scripts -->
 <script src="studio-pro-engine.js?v=20260709a"></script>
 <script src="studio-pro-integration.js?v=20260709b"></script>

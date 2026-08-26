@@ -1,0 +1,21 @@
+﻿{
+  "status": "success",
+  "result": [
+    {
+      "projectId": "je-suis-beatz",
+      "projectNumber": "260774573474",
+      "displayName": "je-suis-beatz",
+      "name": "projects/je-suis-beatz",
+      "resources": {
+        "hostingSite": "je-suis-beatz",
+        "realtimeDatabaseInstance": "je-suis-beatz-default-rtdb"
+      },
+      "state": "ACTIVE",
+      "labels": {
+        "firebase": "enabled",
+        "firebase/storage-default-bucket": "created"
+      },
+      "etag": "1_2f6ac418-4737-47df-aeb0-e8468f9e884f"
+    }
+  ]
+}
