@@ -1576,7 +1576,14 @@ nav.scrolled {
   min-height: 150px;
   resize: vertical;
   cursor: text;
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
 }
+.contact-form-card::before,
+.contact-form-card::after,
+.contact-form-card *::before,
+.contact-form-card *::after { pointer-events: none; }
 
 @media (max-width: 700px) {
   .contact-info-card, .contact-form-card { padding: 24px 20px; }
