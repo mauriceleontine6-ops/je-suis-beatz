@@ -5207,7 +5207,7 @@ function artistCard(p) {
   // ✅ SÉCURITÉ : Toutes les données Firestore sont sanitisées avant injection dans innerHTML
   const safeUsername = sanitize(p.username || '');
   const safeGenre    = sanitize(p.genre || t('comm_artist_label'));
-  const safeLocation = sanitize(p.location || 'International');
+  const safeLocation = sanitize(p.location || t('comm_international'));
   const safeBio      = sanitize(p.bio || t('dyn_no_bio'));
   const safeJoined   = sanitize(String(p.joined || '2026'));
   const photoUrl = safeImageUrl(p.photoURL);
@@ -5364,7 +5364,7 @@ function postCard(p, mine) {
         <div style="font-family:var(--font-display);font-size:1rem;color:#fff;letter-spacing:1px">${safeTitle}</div>
         <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);margin-top:3px">${safeBeatTitle?`<i class="fas fa-music" style="color:var(--cyan)"></i> ${safeBeatTitle} · `:''}<i class="fas fa-calendar" style="color:var(--cyan)"></i> ${safeDate}</div>
       </div>
-      <span style="font-family:var(--font-mono);font-size:0.55rem;padding:3px 10px;border-radius:100px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'🎤 Freestyle':'🎵 '+t('dyn_tracks_label')}</span>
+      <span style="font-family:var(--font-mono);font-size:0.55rem;padding:3px 10px;border-radius:100px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--cyan)">${p.type==='freestyle'?'🎤 '+t('comm_freestyle_label'):'🎵 '+t('dyn_tracks_label')}</span>
     </div>
     ${safeDesc?`<p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5">${safeDesc}</p>`:''}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -5570,8 +5570,9 @@ const translations = {
     fs_play_beat: 'Jouer le beat',
     fs_rec_hint: 'Appuie pour enregistrer',
     // Community
-    comm_title: 'Artist Space',
-    comm_sub: 'Create your artist profile, share your socials, and publish tracks made with Je Suis Beatz beats.',
+    comm_chip: 'Communauté',
+    comm_title: 'Espace Artistes',
+    comm_sub: 'Crée ton profil artiste, partage tes réseaux et publie tes morceaux réalisés avec les beats de Je Suis Beatz.',
     // Login
     login_title: 'Sign In',
     login_sub: 'Access your account',
@@ -5626,6 +5627,7 @@ const translations = {
     dyn_no_artists: 'Aucun artiste inscrit.',
     dyn_be_first: 'Sois le premier !',
     dyn_no_bio: 'Pas encore de bio.',
+    dyn_tracks_label: 'morceaux',
     dyn_no_pub: 'Aucune publication',
     dyn_sold_label: 'Vendu',
     dyn_available_label: 'Disponible',
@@ -5641,6 +5643,16 @@ const translations = {
     dyn_download_started: '⬇️ Téléchargement lancé',
     comm_my_profile: 'Mon Profil',
     comm_feed: 'Fil d\'actualité',
+    comm_artist_label: 'Artiste',
+    comm_tracks_published: 'morceaux publiés',
+    comm_my_posts: 'Mes publications',
+    comm_edit_profile: 'Modifier mon profil',
+    comm_stage_name: 'Nom de scène',
+    comm_music_genre: 'Genre musical',
+    comm_location: 'Pays / Ville',
+    comm_bio_ph: 'Ton style, ton parcours...',
+    comm_international: 'International',
+    comm_freestyle_label: 'Freestyle',
     fs_my_rec: 'Mes enregistrements',
     dyn_no_rec_static: 'Aucun enregistrement',
     // Account page
@@ -5948,6 +5960,27 @@ const translations = {
     login_resend_username_not_found: 'Pseudo introuvable. Vérifiez vos informations et réessayez.',
     login_verify_send_failed: '⚠ Compte créé, mais l\'email de vérification n\'a pas pu être envoyé. Vérifiez votre adresse ou réessayez plus tard.',
     login_verify_sent: '✅ Compte créé ! Un lien de vérification a été envoyé à %s. Veuillez vérifier votre email avant de vous connecter.',
+    comm_chip: 'Communauté',
+    comm_title: 'Espace Artistes',
+    comm_sub: 'Crée ton profil artiste, partage tes réseaux et publie tes morceaux réalisés avec les beats de Je Suis Beatz.',
+    comm_artist_label: 'Artiste',
+    comm_tracks_published: 'morceaux publiés',
+    dyn_tracks_label: 'morceaux',
+    comm_my_posts: 'Mes publications',
+    comm_edit_profile: 'Modifier mon profil',
+    comm_stage_name: 'Nom de scène',
+    comm_music_genre: 'Genre musical',
+    comm_location: 'Pays / Ville',
+    comm_bio_ph: 'Ton style, ton parcours...',
+    comm_social_media: 'Réseaux sociaux',
+    comm_publish_track: 'Publier un morceau',
+    comm_track_title: 'Titre du morceau',
+    comm_track_url: 'URL du morceau',
+    comm_beat_used: 'Beat utilisé',
+    comm_choose_beat: 'Choisir un beat',
+    comm_description: 'Description',
+    comm_desc_ph: 'Quelques mots sur ce morceau...',
+    comm_publish_btn: 'Publier le morceau',
   },
   en: {
     // Nav
