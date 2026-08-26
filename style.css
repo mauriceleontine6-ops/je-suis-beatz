@@ -1475,6 +1475,50 @@ nav.scrolled {
   display: flex; align-items: center; gap: 12px;
 }
 .lic-features li i { color: var(--cyan); font-size: 0.8rem; flex-shrink: 0; }
+
+/* Premium licensing hierarchy */
+.licenses-intro .section-sub { max-width: 680px; }
+.licenses-grid { gap: 18px; align-items: stretch; }
+.license-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-radius: 12px;
+  padding: 30px 26px 26px;
+}
+.license-card::before { border-radius: 12px; }
+.license-card:hover { transform: translateY(-6px); }
+.license-card .lic-features { flex: 1; }
+.license-card .btn-primary { margin-top: auto; }
+.license-card.featured-lic {
+  border-color: rgba(0,255,255,0.5);
+  background: linear-gradient(160deg, rgba(0,229,255,0.16), rgba(2,12,24,0.92) 42%);
+  box-shadow: 0 18px 54px rgba(0,229,255,0.1);
+}
+.license-card-premium { transform: translateY(-10px); }
+.license-card-premium:hover { transform: translateY(-16px); }
+.license-card-exclusive {
+  border-color: rgba(212,175,55,0.48) !important;
+  background: linear-gradient(160deg, rgba(212,175,55,0.13), rgba(2,12,24,0.94) 44%) !important;
+}
+.license-card-exclusive .lic-name,
+.license-card-exclusive .lic-price { color: #e3bd52 !important; }
+.license-card-exclusive .lic-tagline { color: rgba(227,189,82,0.9) !important; }
+.lic-note {
+  min-height: 86px;
+  color: rgba(255,255,255,0.68) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.7 !important;
+}
+.lic-price { margin-bottom: 14px; }
+
+@media (max-width: 700px) {
+  .licenses-grid { grid-template-columns: 1fr; gap: 14px; }
+  .license-card-premium,
+  .license-card-premium:hover { transform: none; }
+  .license-card { padding: 26px 22px 22px; }
+  .lic-note { min-height: 0; }
+}
  
 /* ── CONTACT ── */
 .contact-grid {
