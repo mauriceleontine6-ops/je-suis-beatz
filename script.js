@@ -1280,6 +1280,8 @@ function renderAll() {
   renderStats();
   const statBeatsEl = document.getElementById('statBeats');
   if (statBeatsEl) statBeatsEl.textContent = beats.length;
+  const catalogBeatCountEl = document.getElementById('catalogBeatCount');
+  if (catalogBeatCountEl) catalogBeatCountEl.textContent = beats.length;
   if (document.getElementById('fsBeatList')) renderFsBeatList();
   if (document.getElementById('recordingsList')) renderRecordingsList();
   if (typeof bindFsTouchHandlers === 'function') bindFsTouchHandlers();

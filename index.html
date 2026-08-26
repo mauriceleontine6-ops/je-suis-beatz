@@ -263,18 +263,28 @@
 <div class="page" id="page-beats">
   <section class="section" style="padding-top:110px">
     <div class="section-inner">
-      <div class="section-head">
-        <span class="section-chip"><i class="fas fa-compact-disc"></i> <span data-i18n="beats_chip">Catalogue</span></span>
-        <h2 class="section-title" data-i18n="beats_title">Tous les Beats</h2>
-        <div class="divider"></div>
-        <p class="section-sub" data-i18n="beats_sub">Des productions premium pour tous les styles. Téléchargement immédiat après achat.</p>
+      <div class="beats-intro">
+        <div class="beats-intro-main">
+          <span class="section-chip"><i class="fas fa-compact-disc"></i> <span data-i18n="beats_chip">Catalogue</span></span>
+          <h2 class="section-title" data-i18n="beats_title">Tous les Beats</h2>
+          <div class="divider"></div>
+          <p class="section-sub" data-i18n="beats_sub">Des productions premium pour tous les styles. Téléchargement immédiat après achat.</p>
+        </div>
+        <div class="beats-intro-note">
+          <span class="beats-intro-note-label">JSB / SELECTS</span>
+          <strong><span id="catalogBeatCount">0</span> <span data-i18n="stat_beats">Beats</span></strong>
+          <span>Instant delivery · Studio ready</span>
+        </div>
       </div>
-      <div class="filter-row" id="filterRow">
-        <button class="filter-btn active" data-filter="Tous" onclick="filterBeats('Tous',this)"><i class="fas fa-border-all"></i> <span data-i18n="filter_all">Tous</span></button>
-        <button class="filter-btn" data-filter="Drill" onclick="filterBeats('Drill',this)">Drill</button>
-        <button class="filter-btn" data-filter="Afro" onclick="filterBeats('Afro',this)">Afro</button>
-        <button class="filter-btn" data-filter="Hip-Hop" onclick="filterBeats('Hip-Hop',this)">Hip-Hop</button>
-        <button class="filter-btn" data-filter="RnB" onclick="filterBeats('RnB',this)">RnB</button>
+      <div class="catalog-toolbar">
+        <span class="catalog-toolbar-label"><i class="fas fa-sliders"></i> Explorer par univers</span>
+        <div class="filter-row" id="filterRow">
+          <button class="filter-btn active" data-filter="Tous" onclick="filterBeats('Tous',this)"><i class="fas fa-border-all"></i> <span data-i18n="filter_all">Tous</span></button>
+          <button class="filter-btn" data-filter="Drill" onclick="filterBeats('Drill',this)">Drill</button>
+          <button class="filter-btn" data-filter="Afro" onclick="filterBeats('Afro',this)">Afro</button>
+          <button class="filter-btn" data-filter="Hip-Hop" onclick="filterBeats('Hip-Hop',this)">Hip-Hop</button>
+          <button class="filter-btn" data-filter="RnB" onclick="filterBeats('RnB',this)">RnB</button>
+        </div>
       </div>
       <div class="beats-grid" id="beatsGrid"></div>
     </div>
