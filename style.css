@@ -4246,6 +4246,37 @@ a.btn-ghost {
   }
 }
 
+#page-contact .contact-form-card .form-inp:not(.contact-message-input) {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  padding: 14px 16px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: #0b1d2c !important;
+  background-image: none !important;
+  border: 1px solid rgba(0,229,255,0.35) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  caret-color: var(--cyan) !important;
+  font: 15px/1.4 Roboto, sans-serif !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+#page-contact .contact-form-card .form-inp:not(.contact-message-input)::placeholder {
+  color: rgba(222,242,255,0.76) !important;
+  opacity: 1 !important;
+}
+#page-contact .contact-form-card .form-inp:not(.contact-message-input):focus {
+  border-color: var(--cyan) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.14), 0 0 20px rgba(0,229,255,0.12) !important;
+}
+
 /* A disconnected admin button must stay hidden despite layout rules. */
 #mainNav .nav-actions .admin-nav-button[style*="display:none"] {
   display: none !important;
