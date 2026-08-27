@@ -500,7 +500,7 @@
           <div class="form-panel-head">
             <span class="contact-panel-kicker" data-i18n="contact_form_kicker">NOUVELLE DEMANDE</span>
             <h3 data-i18n="contact_form_title">Envoyer un Message</h3>
-            <textarea id="contactMessage" class="form-inp contact-message-input contact-message-inline" name="message" rows="5" aria-label="Décris ton besoin" required data-i18n-ph="contact_form_sub" placeholder="Décris ton besoin, je te répondrai personnellement." onpointerdown="this.focus()" onmousedown="this.focus()" onmouseup="this.focus()" onclick="this.focus()"></textarea>
+            <p class="form-panel-description" data-i18n="contact_form_sub">Décris ton besoin, je te répondrai personnellement.</p>
           </div>
           <div class="form-row">
             <label class="form-lbl" for="contactName" data-i18n="contact_name">Nom complet</label>
@@ -513,6 +513,10 @@
           <div class="form-row">
             <label class="form-lbl" for="contactSubject" data-i18n="contact_subject">Sujet</label>
             <input id="contactSubject" class="form-inp contact-visible-input" type="text" name="subject" required data-i18n-ph="contact_subject_ph" placeholder="Collaboration, question, achat...">
+          </div>
+          <div class="form-row contact-message-row">
+            <label class="form-lbl" for="contactMessage" data-i18n="contact_msg">Décris ton besoin</label>
+            <textarea id="contactMessage" class="form-inp contact-message-input contact-message-inline" name="message" rows="5" aria-label="Décris ton besoin" required data-i18n-ph="contact_msg_ph" placeholder="Décris ton besoin..." onpointerdown="this.focus()" onmousedown="this.focus()" onmouseup="this.focus()" onclick="this.focus()"></textarea>
           </div>
           <button type="submit" class="btn-primary contact-submit" style="width:100%;justify-content:center">
             <i class="fas fa-paper-plane"></i> <span data-i18n="contact_send">Envoyer le Message</span>

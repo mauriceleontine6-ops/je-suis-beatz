@@ -1643,6 +1643,7 @@ nav.scrolled {
   resize: vertical;
 }
 .contact-message-inline::placeholder { color: rgba(222,242,255,0.82) !important; opacity: 1 !important; }
+.form-panel-description { margin: 8px 0 0; color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; }
 .contact-form-card::before,
 .contact-form-card::after,
 .contact-form-card *::before,
