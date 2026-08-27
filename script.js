@@ -2261,11 +2261,12 @@ function sendContactMessage(event) {
     '',
     message
   ].join('\n');
-  const mailto = `mailto:jesuisthebeatmaker@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailto;
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=jesuisthebeatmaker@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const gmailWindow = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+  if (!gmailWindow) window.location.href = gmailUrl;
   showToast(currentLang === 'en'
-    ? 'Your email app is opening to send your message.'
-    : 'Votre application email s’ouvre pour envoyer votre message.');
+    ? 'Gmail is opening with your message ready to send.'
+    : 'Gmail s’ouvre avec votre message prêt à être envoyé.');
 }
  
 function formatCard(input) {
