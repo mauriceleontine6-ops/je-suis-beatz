@@ -2245,6 +2245,28 @@ function copyCryptoAddr() {
     showToast(currentLang==='en' ? '✓ Address copied!' : '✓ Adresse copiée !');
   });
 }
+
+function sendContactMessage(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+
+  const name = form.elements.name.value.trim();
+  const email = form.elements.email.value.trim();
+  const subject = form.elements.subject.value.trim();
+  const message = form.elements.message.value.trim();
+  const body = [
+    `Nom : ${name}`,
+    `Email : ${email}`,
+    '',
+    message
+  ].join('\n');
+  const mailto = `mailto:jesuisthebeatmaker@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  showToast(currentLang === 'en'
+    ? 'Your email app is opening to send your message.'
+    : 'Votre application email s’ouvre pour envoyer votre message.');
+}
  
 function formatCard(input) {
   let v = input.value.replace(/\D/g,'').slice(0,16);
