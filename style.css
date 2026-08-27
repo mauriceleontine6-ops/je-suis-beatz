@@ -1587,6 +1587,14 @@ nav.scrolled {
   font-family: Roboto, sans-serif !important;
   line-height: 1.6;
 }
+.contact-form-card .contact-message-input::placeholder {
+  color: rgba(222, 242, 255, 0.72) !important;
+  opacity: 1 !important;
+}
+.contact-form-card .contact-message-input:focus {
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.14), 0 0 24px rgba(0,229,255,0.16) !important;
+}
 .contact-form-card::before,
 .contact-form-card::after,
 .contact-form-card *::before,
