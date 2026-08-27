@@ -1629,6 +1629,20 @@ nav.scrolled {
   font: 16px/1.6 Roboto, sans-serif !important;
 }
 .contact-message-shell .contact-message-input:placeholder-shown + .contact-message-hint { display: block; }
+.contact-message-inline {
+  display: block !important;
+  width: 100%;
+  min-height: 132px;
+  margin-top: 14px;
+  padding: 14px !important;
+  background: #0b1d2c !important;
+  border: 1px solid rgba(0,229,255,0.4) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font: 15px/1.6 Roboto, sans-serif !important;
+  resize: vertical;
+}
+.contact-message-inline::placeholder { color: rgba(222,242,255,0.82) !important; opacity: 1 !important; }
 .contact-form-card::before,
 .contact-form-card::after,
 .contact-form-card *::before,
