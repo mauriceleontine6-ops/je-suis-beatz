@@ -516,7 +516,10 @@
           </div>
           <div class="form-row">
             <label class="form-lbl" for="contactMessage" data-i18n="contact_msg">Décris ton besoin</label>
-            <textarea id="contactMessage" class="form-inp contact-message-input" name="message" rows="6" aria-label="Décris ton besoin" data-i18n-ph="contact_msg_ph" placeholder="Décris ton besoin..." onpointerdown="this.focus()" onmousedown="this.focus()" onmouseup="this.focus()" onclick="this.focus()"></textarea>
+            <div class="contact-message-shell">
+              <span class="contact-message-hint" data-i18n="contact_msg_hint">Écris ta demande ici...</span>
+              <textarea id="contactMessage" class="form-inp contact-message-input" name="message" rows="6" aria-label="Décris ton besoin" data-i18n-ph="contact_msg_ph" placeholder="Décris ton besoin..." onpointerdown="this.focus()" onmousedown="this.focus()" onmouseup="this.focus()" onclick="this.focus()"></textarea>
+            </div>
           </div>
           <button type="submit" class="btn-primary contact-submit" style="width:100%;justify-content:center">
             <i class="fas fa-paper-plane"></i> <span data-i18n="contact_send">Envoyer le Message</span>
