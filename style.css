@@ -1616,8 +1616,17 @@ nav.scrolled {
 .contact-message-shell .contact-message-input {
   min-height: 135px;
   padding: 10px !important;
+  display: block !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   background: #0b1d2c !important;
+  background-image: none !important;
   border: 1px solid rgba(0,229,255,0.35) !important;
+  color: #ffffff !important;
+  caret-color: #00e5ff !important;
+  font: 16px/1.6 Roboto, sans-serif !important;
 }
 .contact-message-shell .contact-message-input:placeholder-shown + .contact-message-hint { display: block; }
 .contact-form-card::before,
