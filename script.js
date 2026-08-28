@@ -31,6 +31,7 @@ let fsRecordingStartBeat = 0;
 const loginAttempts = {};
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_ATTEMPT_RESET_MS = 15 * 60 * 1000; // 15 minutes
+let isSigningOut = false;
 
 function isLoginRateLimited(identifier) {
   const key = `login_${identifier}`;
@@ -1609,12 +1610,13 @@ function renderAdminTables() {
       </div></td>
     </tr>`;
   };
-  const html = `
-    <thead><tr><th>${t('admin_col_title')}</th><th>Genre</th><th>BPM</th><th>Basic</th><th>${t('admin_col_status')}</th><th>${t('admin_col_actions')}</th></tr></thead>
-    <tbody>${beats.map(row).join('')}</tbody>`;
+  const tableHead = `<thead><tr><th>${t('admin_col_title')}</th><th>Genre</th><th>BPM</th><th>Basic</th><th>${t('admin_col_status')}</th><th>${t('admin_col_actions')}</th></tr></thead>`;
+  const recentBeats = sortBeatsNewestFirst(beats).slice(0, 5);
+  const html = `${tableHead}<tbody>${beats.map(row).join('')}</tbody>`;
+  const recentHtml = `${tableHead}<tbody>${recentBeats.length ? recentBeats.map(row).join('') : `<tr><td colspan="6" class="admin-empty-state">${currentLang === 'en' ? 'No beats yet' : 'Aucun beat pour le moment'}</td></tr>`}</tbody>`;
   const rt = document.getElementById('recentTbl');
   const mt = document.getElementById('manageTbl');
-  if (rt) rt.innerHTML = html;
+  if (rt) rt.innerHTML = recentHtml;
   if (mt) mt.innerHTML = html;
 }
 
@@ -1687,17 +1689,18 @@ async function renderAdminUsers(force = false, limit = 1000) {
         : `Affichage de ${users?.length || 0} utilisateurs${partial ? ` sur ${count}` : ''}`;
     }
     if (!users?.length) {
-      tbl.innerHTML = `<tbody><tr><td colspan="4" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
+      tbl.innerHTML = `<tbody><tr><td colspan="5" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
       adminUserStatsLoaded = true;
       return;
     }
     tbl.innerHTML = `
-      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
+      <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th><th>${currentLang==='en'?'Action':'Action'}</th></tr></thead>
       <tbody>${users.map(u => `<tr>
         <td><strong>${sanitize(u.username)}</strong></td>
         <td>${sanitize(u.email)}</td>
         <td>${sanitize(u.role || 'user')}</td>
         <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+        <td>${u.role === 'admin' ? '<span class="admin-protected-user">Protégé</span>' : `<button class="tbl-del" title="Supprimer cet utilisateur" aria-label="Supprimer ${sanitize(u.username)}" onclick='deleteAdminUser("${String(u.uid).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")'><i class="fas fa-trash"></i></button>`}</td>
       </tr>`).join('')}</tbody>`;
     if (partial && note) {
       note.textContent += currentLang === 'en' ? ' (partial list)' : ' (liste partielle)';
@@ -1727,17 +1730,18 @@ async function renderAdminUsers(force = false, limit = 1000) {
             : `Affichage de ${count} utilisateurs (requête directe)`;
         }
         if (!users.length) {
-          tbl.innerHTML = `<tbody><tr><td colspan="4" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
+          tbl.innerHTML = `<tbody><tr><td colspan="5" style="text-align:center;color:gray;padding:20px">${currentLang==='en'?'No users yet':'Aucun utilisateur'}</td></tr></tbody>`;
           adminUserStatsLoaded = true;
           return;
         }
         tbl.innerHTML = `
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th></tr></thead>
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>${currentLang==='en'?'Registered':'Inscrit le'}</th><th>Action</th></tr></thead>
           <tbody>${users.map(u => `<tr>
             <td><strong>${sanitize(u.username)}</strong></td>
             <td>${sanitize(u.email)}</td>
             <td>${sanitize(u.role || 'user')}</td>
             <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+            <td>${u.role === 'admin' ? '<span class="admin-protected-user">Protégé</span>' : `<button class="tbl-del" title="Supprimer cet utilisateur" aria-label="Supprimer ${sanitize(u.username)}" onclick='deleteAdminUser("${String(u.uid).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")'><i class="fas fa-trash"></i></button>`}</td>
           </tr>`).join('')}</tbody>`;
         adminUserStatsLoaded = true;
         return;
@@ -1749,6 +1753,28 @@ async function renderAdminUsers(force = false, limit = 1000) {
     if (countEl) countEl.textContent = '—';
     if (note) note.textContent = currentLang === 'en' ? 'Unable to load user list.' : 'Impossible de charger la liste.';
     tbl.innerHTML = '';
+  }
+}
+
+async function deleteAdminUser(uid) {
+  const authenticatedUser = auth.currentUser || currentUser;
+  if (!uid || !authenticatedUser?.uid || uid === authenticatedUser.uid) {
+    showToast('⚠ Suppression non autorisée');
+    return;
+  }
+  if (!(await ensureAdminAuth())) return;
+  if (!confirm(currentLang === 'en'
+    ? 'Delete this user permanently?'
+    : 'Supprimer définitivement cet utilisateur ?')) return;
+  try {
+    await callCloudFunction('adminDeleteUserHttp', { uid });
+    adminUserStatsLoaded = false;
+    await renderAdminUsers(true);
+    showToast(currentLang === 'en' ? '✓ User deleted' : '✓ Utilisateur supprimé');
+  } catch (e) {
+    console.error('adminDeleteUser failed:', e);
+    const message = e?.details || e?.message || '';
+    showToast('⚠ ' + (currentLang === 'en' ? 'Deletion failed: ' : 'Suppression impossible : ') + message);
   }
 }
  
@@ -2618,11 +2644,22 @@ function simulatePay(method) {
 async function processGeniusPayment() {
   try {
     // Validation
+    if (!currentUser && auth.currentUser) {
+      currentUser = {
+        uid: auth.currentUser.uid,
+        email: auth.currentUser.email || '',
+        username: auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || 'Client',
+        phone: ''
+      };
+    }
     if (!currentUser) {
       showToast(t('dyn_pay_login'));
       return;
     }
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+      showToast(currentLang === 'en' ? 'Your cart is empty.' : 'Votre panier est vide.');
+      return;
+    }
 
     const totalUSD = cartTotalUsd();
     const amountXOF = convertUsdToXofPayment(totalUSD);
@@ -2642,6 +2679,7 @@ async function processGeniusPayment() {
     const orderData = {
       amount: amountXOF,
       currency: 'XOF',
+      language: currentLang === 'en' ? 'en' : 'fr',
       customer_phone: '+225' + (currentUser.phone || '0707000000'),
       customer_name: currentUser.username || 'Customer',
       customer_email: currentUser.email,
@@ -3228,21 +3266,62 @@ async function doRegister() {
   }
 }
 async function logout() {
- try { await auth.signOut(); } catch(e) {}
-  currentUser=null; cart=[]; sessionStorage.removeItem('jsb_user2'); updateAuth(); showPage('home'); showToast(t('dyn_disconnected')); updateCartBadge();
+  isSigningOut = true;
+  currentUser = null;
+  cart = [];
+  sessionStorage.removeItem('jsb_user2');
+  updateAuth();
+  try {
+    await auth.signOut();
+    showPage('home');
+    showToast(t('dyn_disconnected'));
+  } catch (e) {
+    console.warn('Sign out failed:', e);
+    isSigningOut = false;
+    updateAuth();
+  } finally {
+    isSigningOut = false;
+    updateAuth();
+    updateCartBadge();
+  }
 }
 function updateAuth() {
-  const isAuthenticated = Boolean(auth.currentUser);
-  document.getElementById('authBtn').style.display = isAuthenticated ? 'none' : 'flex';
-  document.getElementById('logoutBtn').style.display = isAuthenticated ? 'flex' : 'none';
+  const isAuthenticated = !isSigningOut && Boolean(auth.currentUser || currentUser);
+  document.body.classList.toggle('is-authenticated', isAuthenticated);
+  const authBtn = document.getElementById('authBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (authBtn) {
+    authBtn.hidden = isAuthenticated;
+    authBtn.style.display = isAuthenticated ? 'none' : 'flex';
+    authBtn.setAttribute('aria-hidden', String(isAuthenticated));
+  }
+  if (logoutBtn) {
+    logoutBtn.hidden = !isAuthenticated;
+    logoutBtn.style.display = isAuthenticated ? 'flex' : 'none';
+  }
   const authDrawerBtn = document.getElementById('authDrawerBtn');
   const logoutDrawerBtn = document.getElementById('logoutDrawerBtn');
-  if (authDrawerBtn) authDrawerBtn.style.display = isAuthenticated ? 'none' : 'flex';
-  if (logoutDrawerBtn) logoutDrawerBtn.style.display = isAuthenticated ? 'flex' : 'none';
+  if (authDrawerBtn) {
+    authDrawerBtn.hidden = isAuthenticated;
+    authDrawerBtn.style.display = isAuthenticated ? 'none' : 'flex';
+  }
+  if (logoutDrawerBtn) {
+    logoutDrawerBtn.hidden = !isAuthenticated;
+    logoutDrawerBtn.style.display = isAuthenticated ? 'flex' : 'none';
+  }
+  const accountDrawerBtn = document.getElementById('accountDrawerBtn');
+  if (accountDrawerBtn) {
+    accountDrawerBtn.hidden = !isAuthenticated;
+    accountDrawerBtn.style.display = isAuthenticated ? 'flex' : 'none';
+  }
   const firebaseEmail = auth.currentUser?.email || currentUser?.email || '';
-  const showAdmin = isAuthenticated && ((currentUser && currentUser.role === 'admin') || isOwnerEmail(firebaseEmail));
+  const showAdmin = !isSigningOut && Boolean(auth.currentUser) && ((currentUser && currentUser.role === 'admin') || isOwnerEmail(firebaseEmail));
   const adminBtn = document.getElementById('adminBtn');
-  if (adminBtn) adminBtn.style.display = showAdmin ? 'flex' : 'none';
+  if (adminBtn) {
+    adminBtn.hidden = !showAdmin;
+    adminBtn.style.display = showAdmin ? 'flex' : 'none';
+    adminBtn.setAttribute('aria-hidden', String(!showAdmin));
+  }
   const showAccountBtn = isAuthenticated;
   const accountBtn = document.getElementById('accountBtn');
   if (accountBtn) {
@@ -3268,6 +3347,8 @@ function updateAuth() {
 // ✅ SÉCURITÉ : À l'init, on revalide le token Firebase si l'user est déjà connecté
 auth.onAuthStateChanged(async (firebaseUser) => {
   if (firebaseUser) {
+    // Hide the login action immediately; profile and role data load afterward.
+    updateAuth();
     try {
       const isAdmin = await syncAdminRole(firebaseUser);
       let stored = JSON.parse(sessionStorage.getItem('jsb_user2') || 'null');
@@ -3298,6 +3379,7 @@ auth.onAuthStateChanged(async (firebaseUser) => {
       mergeFsRecordings(firestoreRecords);
     } catch (e) { console.warn('Token refresh failed:', e); }
   } else {
+    updateAuth();
     // Firebase dit que personne n'est connecté : nettoyer
     if (currentUser) {
       currentUser = null;
@@ -5456,6 +5538,20 @@ const translations = {
     password: 'Mot de passe',
     create_account: 'Créer un compte',
     already_have_account: 'Vous avez déjà un compte ? Connectez-vous',
+    forgot_password: 'Mot de passe oublié ?',
+    show_password: 'Afficher le mot de passe',
+    hide_password: 'Masquer le mot de passe',
+    forgot_email_required: 'Saisissez une adresse e-mail valide.',
+    auth_loading: 'Connexion en cours...',
+    auth_success: 'Connexion réussie.',
+    signup_success: 'Compte créé. Vérifiez votre e-mail.',
+    auth_unavailable: 'Le service de connexion est momentanément indisponible.',
+    auth_failed: 'Échec de l’authentification.',
+    reset_sent: 'Un lien de réinitialisation a été envoyé à votre adresse e-mail.',
+    reset_failed: 'Impossible d’envoyer le lien de réinitialisation.',
+    auth_kicker: 'ACCÈS STUDIO',
+    auth_form_subtitle: 'Retrouvez vos achats, licences et projets.',
+    auth_trust: 'Accès sécurisé à votre espace studio',
     // Hero
     hero_badge: "<span class=\"flag-orange\">Côte d'Ivoire</span> · <span class=\"flag-white\">Distribution</span> <span class=\"flag-green\">Internationale</span>",
     hero_title: 'Le Studio<br><span class="cyan">du Beatmaker</span>',
@@ -5690,24 +5786,24 @@ const translations = {
     // Account page
     account_chip: 'Mon Compte',
     account_title: 'Bienvenue dans votre espace client',
-    account_sub: 'Gérez vos achats, licences, favoris, factures et paramètres de profil.',
+    account_sub: 'Retrouvez vos commandes, licences, favoris et paramètres de profil.',
     account_view_purchases: 'Voir mes achats',
     account_dashboard_title: 'Tableau de bord',
     account_tab_purchases: 'Mes Achats',
-    account_tab_licenses: 'Licences & Contrats',
+    account_tab_licenses: 'Licences',
     account_tab_favorites: 'Favoris',
     account_tab_billing: 'Facturation',
     account_tab_settings: 'Paramètres',
-    account_panel_purchases_title: 'Mes Achats / Téléchargements',
-    account_panel_purchases_desc: 'Retrouvez tous vos beats, téléchargements et licences associées.',
-    account_panel_licenses_title: 'Mes Licences & Contrats',
-    account_panel_licenses_desc: 'Résumé des droits d\'utilisation pour chaque beat acheté.',
+    account_panel_purchases_title: 'Mes Commandes',
+    account_panel_purchases_desc: 'Consultez vos commandes et leur état de paiement.',
+    account_panel_licenses_title: 'Mes Licences',
+    account_panel_licenses_desc: 'Licences disponibles pour vos commandes payées.',
     account_panel_favorites_title: 'Mes Favoris',
     account_panel_favorites_desc: 'Beats sauvegardés pour réécoute ou achat ultérieur.',
     account_panel_billing_title: 'Historique de Facturation',
     account_panel_billing_desc: 'Reçus, factures et détails de vos transactions passées.',
     account_panel_settings_title: 'Paramètres du Profil',
-    account_panel_settings_desc: 'Modifiez votre nom, email, photo et mot de passe.',
+    account_panel_settings_desc: 'Modifiez votre nom, votre photo et votre mot de passe.',
     account_profile_title: 'Profil',
     account_profile_name: 'Nom',
     account_profile_email: 'Email',
@@ -6049,6 +6145,20 @@ const translations = {
     password: 'Password',
     create_account: 'Create Account',
     already_have_account: 'Already have an account? Sign in',
+    forgot_password: 'Forgot password?',
+    show_password: 'Show password',
+    hide_password: 'Hide password',
+    forgot_email_required: 'Enter a valid email address.',
+    auth_loading: 'Signing in...',
+    auth_success: 'Signed in successfully.',
+    signup_success: 'Account created. Check your email.',
+    auth_unavailable: 'The sign-in service is temporarily unavailable.',
+    auth_failed: 'Authentication failed.',
+    reset_sent: 'A password reset link was sent to your email address.',
+    reset_failed: 'Unable to send the password reset link.',
+    auth_kicker: 'STUDIO ACCESS',
+    auth_form_subtitle: 'Find your purchases, licenses and projects.',
+    auth_trust: 'Secure access to your studio space',
     // Stats
     stat_beats: 'Beats',
     stat_international: 'International',
@@ -6312,24 +6422,24 @@ const translations = {
     // Account page
     account_chip: 'Customer Dashboard',
     account_title: 'Welcome to your customer space',
-    account_sub: 'Manage your purchases, licenses, favorites, invoices and profile settings.',
+    account_sub: 'Find your orders, licenses, favorites and profile settings.',
     account_view_purchases: 'View my purchases',
     account_dashboard_title: 'Dashboard',
     account_tab_purchases: 'Purchases',
-    account_tab_licenses: 'Licenses & Contracts',
+    account_tab_licenses: 'Licenses',
     account_tab_favorites: 'Favorites',
     account_tab_billing: 'Billing',
     account_tab_settings: 'Settings',
-    account_panel_purchases_title: 'My Purchases / Downloads',
-    account_panel_purchases_desc: 'Find all your beats, downloads and associated licenses.',
-    account_panel_licenses_title: 'My Licenses & Contracts',
-    account_panel_licenses_desc: 'Summary of usage rights for each purchased beat.',
+    account_panel_purchases_title: 'My Orders',
+    account_panel_purchases_desc: 'Review your orders and their payment status.',
+    account_panel_licenses_title: 'My Licenses',
+    account_panel_licenses_desc: 'Licenses available for your paid orders.',
     account_panel_favorites_title: 'My Favorites',
     account_panel_favorites_desc: 'Saved beats for replay or later purchase.',
     account_panel_billing_title: 'Billing History',
     account_panel_billing_desc: 'Receipts, invoices and details of your past transactions.',
     account_panel_settings_title: 'Profile Settings',
-    account_panel_settings_desc: 'Change your name, email, photo and password.',
+    account_panel_settings_desc: 'Change your name, photo and password.',
     account_profile_title: 'Profile',
     account_profile_name: 'Name',
     account_profile_email: 'Email',
@@ -7306,8 +7416,10 @@ function getCurrentActivePage() {
 }
 
 function accountTab(tab, el) {
-  document.querySelectorAll('.account-sidebar-item').forEach(btn => {
-    btn.classList.toggle('active', btn === el);
+  const sidebarButtons = document.querySelectorAll('.account-sidebar-item');
+  const clickedSidebarButton = el?.classList.contains('account-sidebar-item');
+  sidebarButtons.forEach(btn => {
+    btn.classList.toggle('active', clickedSidebarButton ? btn === el : tab === 'purchases' && btn === sidebarButtons[0]);
   });
   document.querySelectorAll('.account-panel').forEach(panel => {
     panel.classList.toggle('active', panel.id === `account-panel-${tab}`);
@@ -7385,11 +7497,13 @@ async function renderAccountDashboard() {
   const paymentLabel = t('account_payment_method');
   const totalLabel = t('account_total');
   const favoriteLabel = t('account_favorite');
+  const completedStatuses = new Set(['completed', 'success', 'paid']);
 
   if (purchasesEl) {
     purchasesEl.innerHTML = sortedOrders.length ? sortedOrders.map(order => {
       const createdAt = order.createdAt && order.createdAt.toDate ? order.createdAt.toDate() : new Date();
-      const subtotal = Array.isArray(order.cartItems) ? order.cartItems.reduce((sum, item) => sum + Number(item.price || 0), 0) : Number(order.total || order.totalUSD || 0);
+      const itemsTotal = Array.isArray(order.cartItems) ? order.cartItems.reduce((sum, item) => sum + Number(item.price || 0), 0) : 0;
+      const subtotal = itemsTotal || Number(order.total || order.totalUSD || 0);
       const itemsHtml = Array.isArray(order.cartItems) ? order.cartItems.map(item => `
         <div class="account-subitem">
           <div class="account-subitem-title">${sanitize(item.title)} · ${sanitize(item.license || t('account_license'))}</div>
@@ -7413,7 +7527,7 @@ async function renderAccountDashboard() {
   }
 
   const licenseItems = [];
-  sortedOrders.forEach(order => {
+  sortedOrders.filter(order => completedStatuses.has(String(order.status || '').toLowerCase())).forEach(order => {
     (Array.isArray(order.cartItems) ? order.cartItems : []).forEach(item => {
       licenseItems.push({
         title: item.title,

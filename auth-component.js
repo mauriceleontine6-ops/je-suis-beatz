@@ -6,6 +6,26 @@
   const mainAction = document.getElementById('mainAction') || document.getElementById('mainActionInline');
   const formTitle = document.querySelector('.form-title');
   const welcome = document.querySelector('.welcome');
+  const form = document.getElementById('authForm') || document.getElementById('authFormInline');
+  const message = document.getElementById('authMessage') || document.getElementById('authMessageInline');
+
+  function translate(key, fallback) {
+    return typeof window.t === 'function' ? (window.t(key) || fallback) : fallback;
+  }
+
+  function setMessage(text, type = '') {
+    if (!message) return;
+    message.textContent = text || '';
+    message.className = `auth-message${type ? ` ${type}` : ''}`;
+  }
+
+  function setLoading(isLoading) {
+    if (container) container.classList.toggle('is-loading', isLoading);
+    if (form) {
+      const submit = form.querySelector('[type="submit"]');
+      if (submit) submit.setAttribute('aria-busy', String(isLoading));
+    }
+  }
 
   function updateAuthModeTexts(mode) {
     if (welcome) {
@@ -17,10 +37,14 @@
     if (mainAction) {
       mainAction.dataset.i18n = mode === 'signup' ? 'signup_btn' : 'signin_btn';
     }
+    const password = document.getElementById('password') || document.getElementById('passwordInline');
+    if (password) password.autocomplete = mode === 'signup' ? 'new-password' : 'current-password';
     if (switchBtn) {
       // show appropriate switch text: when in signup mode offer link to sign-in
       switchBtn.dataset.i18n = mode === 'signup' ? 'already_have_account' : 'create_account';
     }
+    const name = document.getElementById('name') || document.getElementById('nameInline');
+    if (name) name.required = mode === 'signup';
   }
 
   function applyTranslations() {
@@ -94,8 +118,11 @@
     const provider = getSocialProvider(providerName);
     if (!fbAuth || !provider) {
       const msg = translate('err_social_provider') || 'Unsupported social login provider';
-      return alert(msg);
+      setMessage(msg, 'error');
+      return;
     }
+    setMessage(translate('auth_loading', 'Connexion en cours...'), 'loading');
+    setLoading(true);
     try {
       // Try popup first, fallback to redirect if popup is blocked/unavailable
       try {
@@ -114,6 +141,7 @@
         throw popupErr;
       }
       const currentEmail = fbAuth.currentUser?.email;
+      if (typeof window.updateAuth === 'function') window.updateAuth();
       let isAdmin = (typeof window.isOwnerEmail === 'function' && window.isOwnerEmail(currentEmail)) ||
         (typeof window.isCurrentUserAdmin === 'function' && window.isCurrentUserAdmin());
       if (!isAdmin && typeof window.syncAdminRole === 'function' && fbAuth.currentUser) {
@@ -137,11 +165,13 @@
       if (typeof window.showToast === 'function') {
         window.showToast(translate('social_login_success').replace('%s', providerName || '').trim());
       }
+      setMessage(translate('auth_success', 'Connexion réussie.'), 'success');
     } catch (err) {
       console.error('Social login failed', err);
       const message = err?.message || translate('err_social_login_failed') || 'Social login failed';
-      if (typeof window.showToast === 'function') window.showToast(`⚠ ${message}`);
-      else alert(message);
+      setMessage(message, 'error');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -171,11 +201,10 @@
     socialButtons.forEach((btn) => btn.addEventListener('click', handleSocialLogin));
 
     // toggle by clicking primary action when in sign-up mode -> submit
-    const form = document.getElementById('authForm') || document.getElementById('authFormInline');
-    const translate = typeof window.t === 'function' ? window.t : (key) => key;
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (container?.classList.contains('is-loading')) return;
         const nameEl = document.getElementById('name') || document.getElementById('nameInline');
         const emailEl = document.getElementById('email') || document.getElementById('emailInline');
         const passEl = document.getElementById('password') || document.getElementById('passwordInline') || document.getElementById('regPass');
@@ -184,17 +213,20 @@
         const password = passEl ? passEl.value : '';
 
         const fbAuth = window.auth || (window.firebase && window.firebase.auth && window.firebase.auth());
+        setMessage(translate('auth_loading', 'Connexion en cours...'), 'loading');
+        setLoading(true);
         try {
           if (fbAuth) {
             if (container.classList.contains('sign-up-mode') || container.classList.contains('sign-up-mode-mobile')) {
               const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
               try { if (name && cred.user && cred.user.updateProfile) await cred.user.updateProfile({ displayName: name }); } catch (e) { console.warn('profile update failed', e); }
               try { if (cred.user && cred.user.sendEmailVerification) await cred.user.sendEmailVerification(); } catch (e) { console.warn('sendEmailVerification failed', e); }
-              alert(translate('signup_btn') + ' — OK');
+              setMessage(translate('signup_success', 'Compte créé. Vérifiez votre e-mail.'), 'success');
             } else {
               await fbAuth.signInWithEmailAndPassword(email, password);
-              alert(translate('signin_btn') + ' — OK');
+              setMessage(translate('auth_success', 'Connexion réussie.'), 'success');
             }
+            if (typeof window.updateAuth === 'function') window.updateAuth();
             const currentEmail = fbAuth.currentUser?.email;
             let isAdmin = (typeof window.isOwnerEmail === 'function' && window.isOwnerEmail(currentEmail)) ||
               (typeof window.isCurrentUserAdmin === 'function' && window.isCurrentUserAdmin());
@@ -213,14 +245,58 @@
               window.showPage('account');
             }
           } else {
-            alert(translate(container.classList.contains('sign-up-mode') ? 'signup_btn' : 'signin_btn') + ' — (demo)');
+            setMessage(translate('auth_unavailable', 'Le service de connexion est momentanément indisponible.'), 'error');
           }
         } catch (err) {
           console.error(err);
-          alert(err && err.message ? err.message : 'Authentication failed');
+          const code = err?.code || '';
+          const key = code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found'
+            ? 'err_wrong_creds' : code === 'auth/email-already-in-use' ? 'err_email_taken' : '';
+          setMessage(key ? translate(key, err.message) : (err?.message || translate('auth_failed', 'Échec de l’authentification.')), 'error');
+        } finally {
+          setLoading(false);
         }
       });
     }
+
+    document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const field = document.getElementById(button.dataset.passwordToggle);
+        if (!field) return;
+        const visible = field.type === 'password';
+        field.type = visible ? 'text' : 'password';
+        button.textContent = '';
+        button.classList.toggle('is-visible', visible);
+        button.setAttribute('aria-label', visible ? translate('hide_password', 'Masquer le mot de passe') : translate('show_password', 'Afficher le mot de passe'));
+      });
+    });
+
+    document.querySelectorAll('.forgot-password').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const emailEl = document.getElementById('email') || document.getElementById('emailInline');
+        const email = emailEl?.value.trim() || '';
+        const fbAuth = window.auth || (window.firebase && window.firebase.auth && window.firebase.auth());
+        if (!email || !emailEl.checkValidity()) {
+          setMessage(translate('forgot_email_required', 'Saisissez une adresse e-mail valide.'), 'error');
+          emailEl?.focus();
+          return;
+        }
+        if (!fbAuth) {
+          setMessage(translate('auth_unavailable', 'Le service de connexion est momentanément indisponible.'), 'error');
+          return;
+        }
+        setLoading(true);
+        setMessage(translate('auth_loading', 'Envoi en cours...'), 'loading');
+        try {
+          await fbAuth.sendPasswordResetEmail(email);
+          setMessage(translate('reset_sent', 'Un lien de réinitialisation a été envoyé à votre adresse e-mail.'), 'success');
+        } catch (err) {
+          setMessage(translate('reset_failed', 'Impossible d’envoyer le lien de réinitialisation.'), 'error');
+        } finally {
+          setLoading(false);
+        }
+      });
+    });
 
     // small hover effect for socials: done via CSS
   }

@@ -180,6 +180,20 @@
   transform: translateY(-1px);
   border-color: rgba(0,229,255,0.35);
 }
+.password-wrap { position: relative; display: flex; align-items: center; }
+.password-wrap input { width: 100%; padding-right: 72px; }
+.password-toggle, .text-btn {
+  background: none; border: 0; color: var(--cyan); cursor: pointer; font-weight: 700;
+}
+.password-toggle { position: absolute; right: 12px; padding: 8px; font-size: 0.78rem; }
+.password-toggle:hover, .text-btn:hover { text-decoration: underline; }
+.auth-actions { display: flex; justify-content: flex-end; margin: -6px 0 16px; }
+.text-btn { padding: 4px 0; font-size: 0.82rem; }
+.auth-message { min-height: 1.4em; margin: 0 0 14px; color: var(--text-dim); font-size: 0.9rem; line-height: 1.4; }
+.auth-message.error { color: #ff9b9b; }
+.auth-message.success { color: #8ff5bb; }
+.auth-message.loading { color: var(--cyan); }
+.auth-container.is-loading .btn-primary, .auth-container.is-loading .social-btn { opacity: 0.6; pointer-events: none; }
 
 .btn-primary {
   background: linear-gradient(135deg, #00c9ff 0%, #0078b8 100%);
@@ -268,6 +282,9 @@
     max-width: 100%;
     width: 100%;
   }
+  .login-logo-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .mobile-site-name { display: inline; color: #fff; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.08em; }
+  .mobile-site-name em { color: var(--cyan); font-style: normal; }
   .auth-container.sign-up-mode {
     transform: none;
   }
@@ -364,6 +381,113 @@
   background: radial-gradient(circle at 20% 20%, rgba(0,229,255,0.12), transparent 22%), radial-gradient(circle at 85% 80%, rgba(255,209,102,0.08), transparent 25%);
   z-index: 0;
   pointer-events: none;
+}
+
+/* Login-only premium treatment. */
+.auth-root, .login-page {
+  background-color: #05080d;
+}
+.auth-container {
+  border-color: rgba(255,209,102,0.22);
+  border-radius: 18px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.58), 0 0 45px rgba(0,229,255,0.08);
+}
+.auth-container .left-panel {
+  background: linear-gradient(145deg, rgba(0,229,255,0.13), rgba(3,10,22,0.96) 72%);
+}
+.auth-container .right-panel {
+  background: rgba(10,17,28,0.96);
+}
+.auth-container .form-title { font-family: 'Syne', sans-serif; letter-spacing: 0.02em; }
+.auth-container .btn-primary {
+  background: linear-gradient(135deg, #ffd166, #e8a93b);
+  border-color: #ffd166;
+  color: #081018;
+  box-shadow: 0 12px 28px rgba(255,209,102,0.16);
+}
+.auth-container .btn-primary:hover { background: #ffe19a; box-shadow: 0 16px 34px rgba(255,209,102,0.22); }
+.auth-container .social-btn { border-radius: 10px; }
+.auth-container .field input { border-radius: 10px; background: rgba(0,0,0,0.34); }
+.auth-kicker {
+  color: var(--cyan); font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.24em; margin-bottom: 10px; opacity: 0.85;
+}
+.auth-form-subtitle { color: rgba(232,244,255,0.62); font-size: 0.88rem; margin: -12px 0 22px; }
+.auth-trust {
+  display: flex; align-items: center; gap: 8px; margin-top: 28px;
+  color: rgba(232,244,255,0.52); font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+.auth-trust i { color: #8ff5bb; }
+.auth-container .password-toggle {
+  width: 38px; height: 38px; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 0;
+}
+.auth-container .password-toggle::before { content: '\f06e'; font-family: 'Font Awesome 6 Free'; font-size: 0.9rem; }
+.mobile-site-name { display: none; }
+
+@media (max-width: 480px) {
+  #mainNav .nav-actions .btn-account-icon {
+    display: none !important;
+  }
+}
+
+/* Mobile keeps only the shopping bag, language and admin actions in the bar. */
+@media (max-width: 1024px) {
+  #mainNav .nav-actions .btn-account-icon,
+  #mainNav .nav-actions #authBtn,
+  #mainNav .nav-actions #logoutBtn {
+    display: none !important;
+  }
+  #mainNav .nav-actions .btn-cart {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  #mainNav .nav-actions .admin-nav-button {
+    width: 82px !important;
+    min-width: 82px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+    line-height: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 82px !important;
+  }
+  #mainNav .nav-actions .admin-nav-button i {
+    width: 16px;
+    min-width: 16px;
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
+  }
+  #mainNav .nav-actions .admin-nav-button span {
+    font-size: 0.66rem !important;
+    line-height: 1 !important;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1350px) {
+  #mainNav .nav-links {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0 !important;
+    width: 100%;
+    min-width: 0;
+    padding: 4px !important;
+  }
+  #mainNav .nav-links a {
+    min-width: 0;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 3px !important;
+    font-size: 0.58rem !important;
+    letter-spacing: 0.35px !important;
+  }
+  #mainNav .nav-links a i { font-size: 0.62rem; }
 }
 .login-card {
   background: rgba(2,10,22,0.96);
@@ -613,5 +737,39 @@
     min-height: calc(100vh - 66px);
     margin-top: 66px;
     background-position: center bottom;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  #mainNav .nav-actions .admin-nav-button,
+  #mainNav .nav-actions .admin-nav-button i,
+  #mainNav .nav-actions .admin-nav-button span {
+    line-height: 1.2 !important;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  #mainNav .nav-actions .admin-nav-button {
+    width: 82px !important;
+    min-width: 82px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+    line-height: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 82px !important;
+  }
+  #mainNav .nav-actions .admin-nav-button i {
+    width: 16px;
+    min-width: 16px;
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
+  }
+  #mainNav .nav-actions .admin-nav-button span {
+    font-size: 0.66rem !important;
+    line-height: 1 !important;
+    white-space: nowrap;
   }
 }

@@ -28,7 +28,7 @@
 <title>Je Suis Beatz — I am the sound you are looking for</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" type="text/css" href="style.css?v=20260827j">
+<link rel="stylesheet" type="text/css" href="style.css?v=20260828q">
 <link rel="stylesheet" type="text/css" href="studio-pro-theme.css?v=20260729">
 <link rel="stylesheet" href="auth-component.css">
 <link rel="icon" type="image/png" href="logo.png">
@@ -124,6 +124,9 @@
   <a href="#" role="menuitem" onclick="showPage('contact');closeMobileNav();return false;"><i class="fas fa-paper-plane" style="color:var(--cyan);margin-right:10px"></i> <span>Contact</span></a>
   <button class="drawer-action drawer-auth-action" id="authDrawerBtn" type="button" onclick="showPage('login');closeMobileNav()" style="display:none">
     <i class="fas fa-user" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_login">Connexion</span>
+  </button>
+  <button class="drawer-action drawer-account-action" id="accountDrawerBtn" type="button" onclick="showPage('account');closeMobileNav()" style="display:none">
+    <i class="fas fa-user-circle" style="color:var(--cyan);margin-right:10px"></i> <span data-i18n="nav_account">Mon Compte</span>
   </button>
   <button class="drawer-action drawer-auth-action" id="logoutDrawerBtn" type="button" onclick="logout()" style="display:none">
     <i class="fas fa-sign-out-alt" style="color:#ff8080;margin-right:10px"></i> <span data-i18n="nav_logout">Déconnexion</span>
@@ -500,7 +503,6 @@
           <div class="form-panel-head">
             <span class="contact-panel-kicker" data-i18n="contact_form_kicker">NOUVELLE DEMANDE</span>
             <h3 data-i18n="contact_form_title">Envoyer un Message</h3>
-            <p class="form-panel-description" data-i18n="contact_form_sub">Décris ton besoin, je te répondrai personnellement.</p>
           </div>
           <div class="form-row">
             <label class="form-lbl" for="contactName" data-i18n="contact_name">Nom complet</label>
@@ -798,7 +800,7 @@
         <div>
           <span class="section-chip"><i class="fas fa-user-circle"></i> <span data-i18n="account_chip">Mon Compte</span></span>
           <h2 class="section-title" data-i18n="account_title">Bienvenue dans votre espace client</h2>
-          <p class="section-sub" data-i18n="account_sub">Gérez vos achats, licences, favoris, factures et paramètres de profil.</p>
+          <p class="section-sub" data-i18n="account_sub">Retrouvez vos commandes, licences, favoris et paramètres de profil.</p>
         </div>
         <button class="btn-primary" onclick="accountTab('purchases', this)"><i class="fas fa-box"></i> <span data-i18n="account_view_purchases">Voir mes achats</span></button>
       </div>
@@ -806,18 +808,18 @@
         <aside class="account-sidebar">
           <div class="account-sidebar-title" data-i18n="account_dashboard_title">Tableau de bord</div>
           <button class="account-sidebar-item active" onclick="accountTab('purchases', this)"><i class="fas fa-box"></i> <span data-i18n="account_tab_purchases">Mes Achats</span></button>
-          <button class="account-sidebar-item" onclick="accountTab('licenses', this)"><i class="fas fa-file-contract"></i> <span data-i18n="account_tab_licenses">Licences & Contrats</span></button>
+          <button class="account-sidebar-item" onclick="accountTab('licenses', this)"><i class="fas fa-file-contract"></i> <span data-i18n="account_tab_licenses">Licences</span></button>
           <button class="account-sidebar-item" onclick="accountTab('favorites', this)"><i class="fas fa-heart"></i> <span data-i18n="account_tab_favorites">Favoris</span></button>
           <button class="account-sidebar-item" onclick="accountTab('billing', this)"><i class="fas fa-receipt"></i> <span data-i18n="account_tab_billing">Facturation</span></button>
           <button class="account-sidebar-item" onclick="accountTab('settings', this)"><i class="fas fa-cog"></i> <span data-i18n="account_tab_settings">Paramètres</span></button>
         </aside>
         <main class="account-main">
           <div class="account-panel active" id="account-panel-purchases">
-            <div class="account-panel-header"><h3 data-i18n="account_panel_purchases_title">Mes Achats / Téléchargements</h3><p data-i18n="account_panel_purchases_desc">Retrouvez tous vos beats, téléchargements et licences associées.</p></div>
+            <div class="account-panel-header"><h3 data-i18n="account_panel_purchases_title">Mes Commandes</h3><p data-i18n="account_panel_purchases_desc">Consultez vos commandes et leur état de paiement.</p></div>
             <div id="accountPurchasesList" class="account-list"></div>
           </div>
           <div class="account-panel" id="account-panel-licenses">
-            <div class="account-panel-header"><h3 data-i18n="account_panel_licenses_title">Mes Licences & Contrats</h3><p data-i18n="account_panel_licenses_desc">Résumé des droits d'utilisation pour chaque beat acheté.</p></div>
+            <div class="account-panel-header"><h3 data-i18n="account_panel_licenses_title">Mes Licences</h3><p data-i18n="account_panel_licenses_desc">Licences disponibles pour vos commandes payées.</p></div>
             <div id="accountLicensesList" class="account-list"></div>
           </div>
           <div class="account-panel" id="account-panel-favorites">
@@ -829,7 +831,7 @@
             <div id="accountBillingList" class="account-list"></div>
           </div>
           <div class="account-panel" id="account-panel-settings">
-            <div class="account-panel-header"><h3 data-i18n="account_panel_settings_title">Paramètres du Profil</h3><p data-i18n="account_panel_settings_desc">Modifiez votre nom, email, photo et mot de passe.</p></div>
+            <div class="account-panel-header"><h3 data-i18n="account_panel_settings_title">Paramètres du Profil</h3><p data-i18n="account_panel_settings_desc">Modifiez votre nom, votre photo et votre mot de passe.</p></div>
             <div class="account-settings-grid">
               <div class="account-card">
                 <h4 data-i18n="account_profile_title">Profil</h4>
@@ -872,15 +874,19 @@
               <div class="content">
                 <div class="login-logo-wrap">
                   <img src="logo.png" alt="Logo Je Suis Beatz" class="site-logo-img" />
+                  <span class="mobile-site-name">JE SUIS <em>BEATZ</em></span>
                 </div>
                 <h2 class="welcome" data-i18n="welcome_back">Bon retour parmi nous</h2>
                 <p class="desc" data-i18n="desc">Pour rester connecté avec nous, veuillez vous connecter avec vos informations personnelles</p>
                 <button class="btn-ghost" id="switchToSignUpInline" data-action="toggle" data-i18n="create_account">Créer un compte</button>
+                <div class="auth-trust"><i class="fas fa-shield-halved"></i> <span data-i18n="auth_trust">Accès sécurisé à votre espace studio</span></div>
               </div>
             </div>
             <div class="panel right-panel" id="rightPanelInline">
               <div class="form-wrap">
+                <div class="auth-kicker" data-i18n="auth_kicker">STUDIO ACCESS</div>
                 <h3 class="form-title" data-i18n="signin_title">Se connecter</h3>
+                <p class="auth-form-subtitle" data-i18n="auth_form_subtitle">Retrouvez vos achats, licences et projets.</p>
                 <div class="socials">
                         <button class="social-btn" data-provider="google" aria-label="Sign in with Google">G</button>
                       </div>
@@ -896,8 +902,15 @@
                   </div>
                   <div class="field pass-field">
                     <label for="passwordInline" data-i18n="password">Mot de passe</label>
-                    <input id="passwordInline" name="password" type="password" required />
+                    <div class="password-wrap">
+                      <input id="passwordInline" name="password" type="password" required autocomplete="current-password" />
+                      <button type="button" class="password-toggle" data-password-toggle="passwordInline" aria-label="Afficher le mot de passe"></button>
+                    </div>
                   </div>
+                  <div class="auth-actions">
+                    <button type="button" class="text-btn forgot-password" data-i18n="forgot_password">Mot de passe oublié ?</button>
+                  </div>
+                  <p class="auth-message" id="authMessageInline" role="status" aria-live="polite"></p>
                   <button type="submit" class="btn-primary" id="mainActionInline" data-i18n="signin_btn">Se connecter</button>
                 </form>
               </div>
@@ -913,7 +926,7 @@
   <button class="admin-mobile-toggle" id="adminMobileToggle" onclick="toggleAdminSidebar()">
     <i class="fas fa-bars" id="adminToggleIcon"></i>
     <span style="font-weight:bold;letter-spacing:2px" data-i18n="admin_menu">MENU ADMIN</span>
-    <span style="margin-left:auto;font-size:0.55rem;opacity:0.6">ADMIN PANEL</span>
+    <span style="margin-left:auto;font-size:0.55rem;opacity:0.6">ADMIN</span>
   </button>
 <div class="admin-layout">
     <aside class="admin-sidebar" id="adminSidebar">
@@ -935,9 +948,9 @@
           <div class="admin-card-title"><i class="fas fa-clock"></i> <span data-i18n="admin_recent_beats">Beats récents</span></div>
           <div class="beats-table-wrap"><table class="beats-table" id="recentTbl"></table></div>
         </div>
-        <div class="admin-card" style="margin-top:24px">
+        <div class="admin-card">
           <div class="admin-card-title"><i class="fas fa-users"></i> Utilisateurs inscrits</div>
-          <p id="adminUsersNote" style="color:rgba(255,255,255,0.6);font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;margin-bottom:16px"></p>
+          <p id="adminUsersNote" class="admin-users-note"></p>
           <div class="beats-table-wrap"><table class="beats-table" id="adminUsersTbl"></table></div>
         </div>
       </div>
@@ -1009,11 +1022,6 @@
       <div class="admin-panel" id="panel-manage">
         <h1 style="font-family:var(--font-display);font-size:clamp(1.5rem,5vw,2.2rem);color: #fff;margin-bottom:6px;letter-spacing:2px" data-i18n="admin_manage_beats">Gérer les Beats</h1>
         <p style="color: white;margin-bottom:24px;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px" data-i18n="admin_manage_beats_sub">Modifier ou supprimer vos beats existants</p>
-        <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
-          <p style="color: white;margin:0;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:2px" data-i18n="admin_manage_beats_sub">Modifier ou supprimer vos beats existants</p>
-          <button type="button" id="btnAutoTranslate" class="btn-ghost" style="margin-left:auto" onclick="autoTranslateBeatsUI()"><i class="fas fa-language"></i> Auto-translate missing</button>
-          <button type="button" id="btnRepairStorage" class="btn-ghost" onclick="repairBeatsFromStorage()"><i class="fas fa-cloud-arrow-down"></i> Récupérer depuis Storage</button>
-        </div>
         <div class="admin-card">
           <div class="admin-card-title"><i class="fas fa-list"></i> <span data-i18n="admin_full_catalog">Catalogue complet</span></div>
           <div class="beats-table-wrap"><table class="beats-table" id="manageTbl"></table></div>
@@ -1179,7 +1187,7 @@
   </div>
 </div>
  
-<script src="script.js?v=20260826"></script>
+<script src="script.js?v=20260828"></script>
 <script src="auth-component.js"></script>
 <!-- Studio Pro Scripts -->
 <script src="studio-pro-engine.js?v=20260709a"></script>

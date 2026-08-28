@@ -4,6 +4,7 @@
 const functions = require('firebase-functions');
 const adminSdk  = require('firebase-admin');
 const axios     = require('axios');
+const crypto    = require('crypto');
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
 // Optional params API (firebase-functions v7+). Use if available, otherwise null.
@@ -27,6 +28,13 @@ async function callerIsAdmin(context) {
   if (context.auth.token.admin === true) return true;
 
   const uid = context.auth.uid;
+  let authEmail = (context.auth.token.email || '').toLowerCase();
+  try {
+    const authUser = await adminSdk.auth().getUser(uid);
+    if (authUser.email) authEmail = authUser.email.toLowerCase();
+  } catch (e) { /* Firestore role checks may still authorize the caller */ }
+  if (BOOTSTRAP_ADMIN_EMAILS.includes(authEmail) || BOOTSTRAP_ADMIN_UIDS.includes(uid)) return true;
+
   const adminDoc = await db.collection('admins').doc(uid).get();
   if (adminDoc.exists) {
     const adminData = adminDoc.data();
@@ -62,6 +70,7 @@ async function callerIsAdmin(context) {
 }
 
 const BOOTSTRAP_ADMIN_EMAILS = ['jesuisthebeatmaker@gmail.com'];
+const BOOTSTRAP_ADMIN_UIDS = ['l7wKvkWH7rXcHcUW63c382TWCRq1'];
 
 // Secret Manager client for fetching secrets at runtime
 const secretManagerClient = new SecretManagerServiceClient();
@@ -227,7 +236,7 @@ exports.paypalWebhook = functions.https.onRequest(async (req, res) => {
       confirmedAt: adminSdk.firestore.FieldValue.serverTimestamp()
     });
 
-    await sendDownloadEmail(orderData, payerEmail);
+    await sendPurchaseLicenseEmail(orderData, payerEmail, orderDoc.id);
 
     console.log('✅ Commande PayPal confirmée:', orderDoc.id);
     return res.status(200).send('OK');
@@ -313,7 +322,7 @@ exports.cinetpayWebhook = functions.https.onRequest(async (req, res) => {
 
     await batch.commit();
 
-    await sendDownloadEmail(orderData, orderData.customerEmail);
+    await sendPurchaseLicenseEmail(orderData, orderData.customerEmail, orderDoc.id);
 
     console.log('✅ Commande CinetPay confirmée:', orderDoc.id);
     return res.status(200).json({ code: '00', message: 'OK' });
@@ -630,6 +639,94 @@ exports.getAdminUserStats = functions.https.onCall(async (data, context) => {
   return { count: totalCount, users, partial: users.length < totalCount, limit };
 });
 
+exports.adminDeleteUser = functions.https.onCall(async (data, context) => {
+  const callerUid = context.auth?.uid || '';
+  const callerEmail = String(context.auth?.token?.email || '').trim().toLowerCase();
+  const ownerIsCalling = callerUid === 'l7wKvkWH7rXcHcUW63c382TWCRq1'
+    || callerEmail === 'jesuisthebeatmaker@gmail.com';
+  if (!ownerIsCalling && !(await callerIsAdmin(context))) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      `Admin only (uid=${callerUid || 'missing'}, email=${callerEmail || 'missing'})`,
+    );
+  }
+
+  const uid = String(data?.uid || '').trim();
+  if (!uid) {
+    throw new functions.https.HttpsError('invalid-argument', 'User uid required');
+  }
+  if (uid === context.auth.uid) {
+    throw new functions.https.HttpsError('failed-precondition', 'You cannot delete yourself');
+  }
+
+  const [target, userDoc, adminDoc] = await Promise.all([
+    adminSdk.auth().getUser(uid).catch(() => null),
+    db.collection('users').doc(uid).get(),
+    db.collection('admins').doc(uid).get(),
+  ]);
+  if (!target && !userDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'User not found');
+  }
+  if (target?.customClaims?.admin === true
+    || (userDoc.exists && userDoc.data().role === 'admin')
+    || (adminDoc.exists && (adminDoc.data().isAdmin === true || adminDoc.data().admin === true))) {
+    throw new functions.https.HttpsError('failed-precondition', 'Administrators are protected');
+  }
+
+  if (target) await adminSdk.auth().deleteUser(uid);
+  await Promise.all([
+    db.collection('users').doc(uid).delete(),
+    db.collection('profiles').doc(uid).delete(),
+  ]);
+
+  return { success: true, uid };
+});
+
+// HTTP fallback for clients where the callable SDK does not forward Auth context.
+exports.adminDeleteUserHttp = functions.https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Firebase-Auth');
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
+  const auth = await verifyFirebaseRequest(req);
+  const callerUid = auth?.uid || '';
+  const callerEmail = String(auth?.email || '').trim().toLowerCase();
+  const ownerIsCalling = callerUid === 'l7wKvkWH7rXcHcUW63c382TWCRq1'
+    || callerEmail === 'jesuisthebeatmaker@gmail.com';
+  if (!auth || (!ownerIsCalling && !(await callerIsAdmin({ auth })))) {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const uid = String(req.body?.uid || req.body?.data?.uid || '').trim();
+  if (!uid) return res.status(400).json({ error: 'User uid required' });
+  if (uid === callerUid) return res.status(409).json({ error: 'You cannot delete yourself' });
+
+  try {
+    const [target, userDoc, adminDoc] = await Promise.all([
+      adminSdk.auth().getUser(uid).catch(() => null),
+      db.collection('users').doc(uid).get(),
+      db.collection('admins').doc(uid).get(),
+    ]);
+    if (!target && !userDoc.exists) return res.status(404).json({ error: 'User not found' });
+    if (target?.customClaims?.admin === true
+      || (userDoc.exists && userDoc.data().role === 'admin')
+      || (adminDoc.exists && (adminDoc.data().isAdmin === true || adminDoc.data().admin === true))) {
+      return res.status(409).json({ error: 'Administrators are protected' });
+    }
+    if (target) await adminSdk.auth().deleteUser(uid);
+    await Promise.all([
+      db.collection('users').doc(uid).delete(),
+      db.collection('profiles').doc(uid).delete(),
+    ]);
+    return res.status(200).json({ result: { success: true, uid } });
+  } catch (e) {
+    console.error('adminDeleteUserHttp error:', e.message || e);
+    return res.status(500).json({ error: 'User deletion failed' });
+  }
+});
+
 exports.setAdminClaim = functions.https.onCall(async (data, context) => {
   const { email } = data;
   if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email required');
@@ -703,10 +800,17 @@ async function verifyPaypalSignature(headers, rawBody, webhookId) {
   }
 }
 
-async function sendDownloadEmail(orderData, email) {
+async function sendPurchaseLicenseEmail(orderData, email, orderId) {
   if (!email) return;
 
   try {
+    const orderRef = orderId ? db.collection('orders').doc(orderId) : null;
+    const existingLicense = orderRef ? await orderRef.get() : null;
+    if (existingLicense?.exists && existingLicense.data()?.licenseSentAt) {
+      console.log('Licence déjà envoyée pour la commande:', orderId);
+      return;
+    }
+
     const sgMail = require('@sendgrid/mail');
     
     // Try to get API key from multiple sources
@@ -723,25 +827,86 @@ async function sendDownloadEmail(orderData, email) {
     
     sgMail.setApiKey(apiKey);
 
-    const items = (orderData.items || orderData.cartItems || [])
-      .map(i => `<li><strong>${i.beatTitle || i.title}</strong> — Licence ${i.license} ($${i.price})</li>`)
-      .join('');
+    const items = (orderData.items || orderData.cartItems || []).map((item) => ({
+      title: item.beatTitle || item.title || item.name || 'Beat',
+      license: item.license || item.licenseName || 'Standard',
+      price: item.price ?? item.price_usd ?? item.unit_price ?? '',
+    }));
+    const licenseNumber = `JSB-${String(orderId || 'ORDER').slice(-8).toUpperCase()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    const issuedAt = new Date().toISOString();
+    const isEnglish = orderData.language === 'en' || orderData.locale === 'en';
+    const licensePayload = {
+      licenseNumber,
+      orderId: orderId || orderData.orderId || null,
+      buyerEmail: email.toLowerCase(),
+      buyerName: orderData.customer?.name || orderData.customer_name || orderData.customerName || 'Acheteur',
+      items,
+      total: orderData.total ?? orderData.totalUSD ?? orderData.metadata?.total_usd ?? null,
+      currency: orderData.currency || 'USD',
+      issuedAt,
+      status: 'payment_confirmed',
+    };
+    const signingSecret = process.env.GENIUSPAY_SECRET || process.env.LICENSE_SIGNING_SECRET || 'je-suis-beatz-license-v1';
+    const licenseHash = crypto.createHash('sha256')
+      .update(JSON.stringify(licensePayload) + signingSecret)
+      .digest('hex');
+    const itemHtml = items.map(i => `<li><strong>${escapeHtml(i.title)}</strong> — Licence ${escapeHtml(i.license)}${i.price !== '' ? ` (${escapeHtml(String(i.price))})` : ''}</li>`).join('');
 
     const msg = {
       to:      email,
       from:    { email: 'noreply@je-suis-beatz.com', name: 'Je Suis Beatz' },
       replyTo: 'jesuisthebeatmaker@gmail.com',
-      subject: '🎵 Votre beat est prêt — Je Suis Beatz',
-      html: `
-<p>Merci pour votre achat !</p>
-<ul>${items}</ul>
+      subject: isEnglish
+        ? `Your authenticated purchase license ${licenseNumber} — Je Suis Beatz`
+        : `Votre licence d'achat ${licenseNumber} — Je Suis Beatz`,
+      html: isEnglish ? `
+    <h2>Authenticated purchase license</h2>
+    <p>Hello ${escapeHtml(String(licensePayload.buyerName))},</p>
+    <p>Your payment has been confirmed. This license is the proof of authentication for your purchase from Je Suis Beatz.</p>
+    <p><strong>License number:</strong> ${licenseNumber}<br>
+    <strong>Order:</strong> ${escapeHtml(String(licensePayload.orderId || '—'))}<br>
+    <strong>Issue date:</strong> ${issuedAt}<br>
+    <strong>Status:</strong> Payment confirmed</p>
+    <h3>Rights acquired</h3>
+    <ul>${itemHtml}</ul>
+    <p><strong>Authentication fingerprint:</strong><br><code>${licenseHash}</code></p>
+    <p>Keep this email: the license number and fingerprint can be used to verify its authenticity.</p>
+    <p>Je Suis Beatz<br>jesuisthebeatmaker@gmail.com</p>
+    ` : `
+    <h2>Licence d'achat authentifiée</h2>
+    <p>Bonjour ${escapeHtml(String(licensePayload.buyerName))},</p>
+    <p>Votre paiement a été confirmé. Cette licence constitue la preuve d'authentification de votre achat auprès de Je Suis Beatz.</p>
+    <p><strong>Numéro de licence :</strong> ${licenseNumber}<br>
+    <strong>Commande :</strong> ${escapeHtml(String(licensePayload.orderId || '—'))}<br>
+    <strong>Date d'émission :</strong> ${issuedAt}<br>
+    <strong>Statut :</strong> Paiement confirmé</p>
+    <h3>Droits acquis</h3>
+    <ul>${itemHtml}</ul>
+    <p><strong>Empreinte d'authentification :</strong><br><code>${licenseHash}</code></p>
+    <p>Conservez cet e-mail : le numéro de licence et son empreinte permettent de vérifier l'authenticité de cette licence.</p>
+    <p>Je Suis Beatz<br>jesuisthebeatmaker@gmail.com</p>
 `
     };
 
     await sgMail.send(msg);
+    if (orderRef) {
+      await orderRef.set({
+        licenseNumber,
+        licenseHash,
+        licenseIssuedAt: adminSdk.firestore.Timestamp.fromDate(new Date(issuedAt)),
+        licenseSentAt: adminSdk.firestore.FieldValue.serverTimestamp(),
+        licenseStatus: 'payment_confirmed',
+      }, { merge: true });
+    }
   } catch (e) {
     console.error('Erreur envoi email:', e.message || e);
   }
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[character]));
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -829,6 +994,7 @@ exports.createGeniusPayment = functions.https.onRequest(async (req, res) => {
       totalXOF: orderData.amount ?? null,
       totalUSD: orderData.metadata?.total_usd ?? null,
       currency: orderData.currency || 'XOF',
+      language: orderData.language === 'en' ? 'en' : 'fr',
       metadata: orderData.metadata || null,
       cartItems: orderData.metadata?.cart || [],
       items: orderData.items || [],
@@ -885,7 +1051,9 @@ exports.geniuspayWebhook = functions.https.onRequest(async (req, res) => {
     console.log('geniuspayWebhook received:', { gpId, gpRef, gpStatus });
 
     // Determine if this is a success notification
-    const successIndicator = gpStatus.includes('success') || gpStatus === 'paid' || gpData.scenario === 'success';
+    const successIndicator = gpStatus.includes('success')
+      || ['paid', 'completed', 'confirmed', 'succeeded'].includes(gpStatus)
+      || gpData.scenario === 'success';
 
     const gpIdStr = gpId != null ? String(gpId) : null;
     const gpIdNum = (gpId != null && !Number.isNaN(Number(gpId))) ? Number(gpId) : null;
@@ -938,9 +1106,9 @@ exports.geniuspayWebhook = functions.https.onRequest(async (req, res) => {
     const customerEmail = orderData?.customer?.email || orderData?.customerEmail || null;
     if (customerEmail) {
       try {
-        await sendDownloadEmail(orderData, customerEmail);
+        await sendPurchaseLicenseEmail(orderData, customerEmail, orderDoc.id);
       } catch (e) {
-        console.error('geniuspayWebhook: sendDownloadEmail failed', e.message || e);
+        console.error('geniuspayWebhook: purchase license email failed', e.message || e);
       }
     }
 

@@ -20,12 +20,15 @@
         <h2 class="welcome" data-i18n="welcome">Bienvenue !</h2>
         <p class="desc" data-i18n="desc">Pour rester connecté avec nous, veuillez vous connecter avec vos informations personnelles</p>
         <button class="btn-ghost" id="switchToSignUp" data-action="toggle">Créer un compte</button>
+        <div class="auth-trust"><i class="fas fa-shield-halved"></i> <span data-i18n="auth_trust">Accès sécurisé à votre espace studio</span></div>
       </div>
     </div>
 
     <div class="panel right-panel" id="rightPanel">
       <div class="form-wrap">
+        <div class="auth-kicker" data-i18n="auth_kicker">STUDIO ACCESS</div>
         <h3 class="form-title" data-i18n="signin_title">Se connecter</h3>
+        <p class="auth-form-subtitle" data-i18n="auth_form_subtitle">Retrouvez vos achats, licences et projets.</p>
         <div class="socials">
           <button class="social-btn" data-provider="google" aria-label="Sign in with Google">G</button>
         </div>
@@ -41,8 +44,15 @@
           </div>
           <div class="field pass-field">
             <label for="password" data-i18n="password">Mot de passe</label>
-            <input id="password" name="password" type="password" required />
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" required autocomplete="current-password" />
+              <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Afficher le mot de passe"></button>
+            </div>
           </div>
+          <div class="auth-actions">
+            <button type="button" class="text-btn forgot-password" data-i18n="forgot_password">Mot de passe oublié ?</button>
+          </div>
+          <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
           <button type="submit" class="btn-primary" id="mainAction" data-i18n="signin_btn">Se connecter</button>
         </form>
       </div>
